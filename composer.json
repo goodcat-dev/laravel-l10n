@@ -13,6 +13,13 @@
             "email": "outlaw.plz@gmail.com"
         }
     ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Goodcat\\I10n\\LocalizationServiceProvider"
+            ]
+        }
+    },
     "keywords": [
         "laravel",
         "i10n",
@@ -20,7 +27,8 @@
         "goodcat"
     ],
     "require": {
-        "php": "^8.2"
+        "php": "^8.2",
+        "illuminate/support": "^10.0|^11.0|^12.0"
     },
     "require-dev": {
         "orchestra/testbench": "^10.4",
