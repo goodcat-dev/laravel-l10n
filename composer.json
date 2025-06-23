@@ -1,0 +1,31 @@
+{
+    "name": "goodcat/laravel-i10n",
+    "description": "A Laravel package for app localization",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Goodcat\\I10n\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Matteo Palazzo",
+            "email": "outlaw.plz@gmail.com"
+        }
+    ],
+    "keywords": [
+        "laravel",
+        "i10n",
+        "localization",
+        "goodcat"
+    ],
+    "require": {
+        "php": "^8.2"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^10.4",
+        "phpunit/phpunit": "^12.2",
+        "laravel/pint": "^1.22",
+        "larastan/larastan": "^3.5"
+    }
+}
