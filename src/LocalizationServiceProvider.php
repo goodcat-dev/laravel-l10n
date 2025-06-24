@@ -3,38 +3,15 @@
 namespace Goodcat\I10n;
 
 use Illuminate\Routing\Route;
-use Illuminate\Support\Facades\Route as RouteFacades;
+use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\ServiceProvider;
 
 class LocalizationServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
-        $this->app->booted(function () {
-            $routeCollection = RouteFacades::getRoutes();
-
-            /** @var Route $route */
-            foreach ($routeCollection as $route) {
-                /** @var array<string, string> $locales */
-                $locales = @$route->action['localized_path'];
-
-                if (!$locales) continue;
-
-                foreach ($locales as $locale => $path) {
-                    $localizedRoute = clone $route;
-
-                    $localizedRoute->uri = $path;
-
-                    $localizedRoute->prefix($route->getPrefix());
-
-                    if ($route->getName()) {
-                        $localizedRoute->name(".$locale");
-                    };
-
-                    $routeCollection->add($localizedRoute);
-                }
-            }
-        });
+        $this->app->booted(fn() => $this->registerTranslatedRoute());
     }
 
     public function register(): void
@@ -45,5 +22,37 @@ class LocalizationServiceProvider extends ServiceProvider
 
             return $this;
         });
+    }
+
+    protected function registerTranslatedRoute(): void
+    {
+        if ($this->app->routesAreCached()) {
+            return;
+        }
+
+        /** @var Router $router */
+        $router = App::make(Router::class);
+
+        /** @var Route $route */
+        foreach ($router->getRoutes() as $route) {
+            /** @var array<string, string> $locales */
+            $locales = @$route->action['localized_path'];
+
+            if (!$locales) continue;
+
+            foreach ($locales as $locale => $uri) {
+                $localized = clone $route;
+
+                $localized->action['locale'] = $locale;
+
+                $localized->prefix($locale);
+
+                if ($route->getName()) {
+                    $localized->name(".$locale");
+                };
+
+                $router->addRoute($localized->methods, $uri, $localized->action);
+            }
+        }
     }
 }
