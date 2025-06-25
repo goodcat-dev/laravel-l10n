@@ -36,9 +36,7 @@ class LocalizationServiceProvider extends ServiceProvider
         /** @var Route $route */
         foreach ($router->getRoutes() as $route) {
             /** @var array<string, string> $locales */
-            $locales = @$route->action['localized_path'];
-
-            if (!$locales) continue;
+            $locales = $route->action['localized_path'] ?? [];
 
             foreach ($locales as $locale => $uri) {
                 $localized = clone $route;

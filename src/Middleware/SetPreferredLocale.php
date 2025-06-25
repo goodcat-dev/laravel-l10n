@@ -11,8 +11,6 @@ class SetPreferredLocale
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $request->session()->put('locale', 'it');
-
         $locale = $request->session()->get('locale');
 
         $locale ??= $request->user()?->preferred_locale;
