@@ -15,7 +15,9 @@ class SetPreferredLocale
 
         $locale ??= $request->user()?->preferred_locale;
 
-        $locale ??= $this->detectBrowserLocale($request);
+        if (config('app.detect_browser_locale', false)) {
+            $locale ??= $this->detectBrowserLocale($request);
+        }
 
         if ($locale && ! App::isLocale($locale)) {
             App::setLocale($locale);
@@ -26,7 +28,7 @@ class SetPreferredLocale
 
     protected function detectBrowserLocale(Request $request): ?string
     {
-        $locales = array_intersect($request->getLanguages(), config('app.locales'));
+        $locales = array_intersect($request->getLanguages(), config('app.locales', []));
 
         return array_pop($locales);
     }
