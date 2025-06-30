@@ -1,10 +1,10 @@
 {
-    "name": "goodcat/laravel-i10n",
+    "name": "goodcat/laravel-l10n",
     "description": "An opinionated Laravel package for app localization",
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "Goodcat\\I10n\\": "src/"
+            "Goodcat\\L10n\\": "src/"
         }
     },
     "authors": [
@@ -16,13 +16,13 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Goodcat\\I10n\\LocalizationServiceProvider"
+                "Goodcat\\L10n\\LocalizationServiceProvider"
             ]
         }
     },
     "keywords": [
         "laravel",
-        "i10n",
+        "l10n",
         "localization",
         "goodcat"
     ],

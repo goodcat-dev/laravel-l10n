@@ -1,6 +1,6 @@
 <?php
 
-namespace Goodcat\I10n;
+namespace Goodcat\L10n;
 
 use Illuminate\Routing\Route;
 use Illuminate\Support\ServiceProvider;
@@ -9,7 +9,7 @@ class LocalizationServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
-        $this->app->booted(fn() => I10n::registerTranslatedRoutes());
+        $this->app->booted(fn() => L10n::registerTranslatedRoutes());
     }
 
     public function register(): void

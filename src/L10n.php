@@ -1,21 +1,42 @@
 <?php
 
-namespace Goodcat\I10n;
+namespace Goodcat\L10n;
 
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Route as RouteFacades;
 
-class I10n
+class L10n
 {
     public static function route(string $name, mixed $parameters = [], bool $absolute = true, ?string $locale = null): string
     {
         if (!$locale) $locale = App::getLocale();
 
-        $name .= ".$locale";
+        if (
+            $locale !== App::getFallbackLocale()
+            && RouteFacades::has("$name.$locale")
+        ) {
+            $name .= ".$locale";
+        }
 
         return app('url')->route($name, $parameters, $absolute);
+    }
+
+    public static function toRoute(string $route, mixed $parameters = [], int $status = 302, array $headers = [], ?string $locale = null): RedirectResponse
+    {
+        if (!$locale) $locale = App::getLocale();
+
+        if (
+            $locale !== App::getFallbackLocale()
+            && RouteFacades::has("$route.$locale")
+        ) {
+            $route .= ".$locale";
+        }
+
+        return redirect()->route($route, $parameters, $status, $headers);
     }
 
     public static function detectBrowserLocale(Request $request): ?string

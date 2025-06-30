@@ -1,14 +1,14 @@
 <?php
 
-namespace Goodcat\I10n\Middleware;
+namespace Goodcat\L10n\Middleware;
 
 use Closure;
-use Goodcat\I10n\I10n;
+use Goodcat\L10n\L10n;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Symfony\Component\HttpFoundation\Response;
 
-class SetPreferredLocale
+class SetLocale
 {
     public function handle(Request $request, Closure $next): Response
     {
@@ -17,7 +17,7 @@ class SetPreferredLocale
         $locale ??= $request->user()?->preferred_locale;
 
         if (config('app.detect_browser_locale', false)) {
-            $locale ??= I10n::detectBrowserLocale($request);
+            $locale ??= L10n::detectBrowserLocale($request);
         }
 
         if ($locale && !App::isLocale($locale)) {
