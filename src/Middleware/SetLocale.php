@@ -12,16 +12,14 @@ class SetLocale
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $locale = $request->session()->get('locale');
+        foreach (L10n::getLocaleResolvers() as $resolver) {
+            $locale = $resolver->resolve($request);
 
-        $locale ??= $request->user()?->preferred_locale;
+            if ($locale) {
+                App::setLocale($locale);
 
-        if (config('app.detect_browser_locale', false)) {
-            $locale ??= L10n::detectBrowserLocale($request);
-        }
-
-        if ($locale && !App::isLocale($locale)) {
-            App::setLocale($locale);
+                break;
+            }
         }
 
         return $next($request);

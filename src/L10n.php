@@ -2,8 +2,11 @@
 
 namespace Goodcat\L10n;
 
+use Goodcat\L10n\LocaleResolvers\BrowserLocale;
+use Goodcat\L10n\LocaleResolvers\RouteLocale;
+use Goodcat\L10n\LocaleResolvers\SessionLocale;
+use Goodcat\L10n\LocaleResolvers\LocaleResolverInterface;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\App;
@@ -11,9 +14,24 @@ use Illuminate\Support\Facades\Route as RouteFacades;
 
 class L10n
 {
+    /** @var LocaleResolverInterface[]  */
+    public static array $localeResolvers = [];
+
+    /**
+     * @return LocaleResolverInterface[]
+     */
+    public static function getLocaleResolvers(): array
+    {
+        if (!static::$localeResolvers) {
+            return [new SessionLocale, new RouteLocale, new BrowserLocale];
+        }
+
+        return static::$localeResolvers;
+    }
+
     public static function route(string $name, mixed $parameters = [], bool $absolute = true, ?string $locale = null): string
     {
-        if (!$locale) $locale = App::getLocale();
+        $locale ??= App::getLocale();
 
         if (
             $locale !== App::getFallbackLocale()
@@ -27,7 +45,7 @@ class L10n
 
     public static function toRoute(string $route, mixed $parameters = [], int $status = 302, array $headers = [], ?string $locale = null): RedirectResponse
     {
-        if (!$locale) $locale = App::getLocale();
+        $locale ??= App::getLocale();
 
         if (
             $locale !== App::getFallbackLocale()
@@ -37,13 +55,6 @@ class L10n
         }
 
         return redirect()->route($route, $parameters, $status, $headers);
-    }
-
-    public static function detectBrowserLocale(Request $request): ?string
-    {
-        $locales = array_intersect($request->getLanguages(), config('app.locales', []));
-
-        return array_pop($locales);
     }
 
     public static function registerTranslatedRoutes(): void
