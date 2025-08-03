@@ -6,5 +6,5 @@ use Illuminate\Http\Request;
 
 interface LocaleResolverInterface
 {
-    public function resolve(Request $request): string;
+    public function resolve(Request $request): ?string;
 }

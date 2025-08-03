@@ -6,8 +6,8 @@ use Illuminate\Http\Request;
 
 class SessionLocale implements LocaleResolverInterface
 {
-    public function resolve(Request $request): string
+    public function resolve(Request $request): ?string
     {
-        return $request->session()->get('locale', '');
+        return $request->session()->get('locale');
     }
 }

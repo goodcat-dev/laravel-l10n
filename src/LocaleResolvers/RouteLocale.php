@@ -6,8 +6,8 @@ use Illuminate\Http\Request;
 
 class RouteLocale implements LocaleResolverInterface
 {
-    public function resolve(Request $request): string
+    public function resolve(Request $request): ?string
     {
-        return $request->route()->getAction('locale') ?? '';
+        return $request->route()->getAction('locale');
     }
 }

@@ -80,7 +80,7 @@ class L10n
 
                 if ($route->getName()) {
                     $localized->name(".$locale");
-                };
+                }
 
                 $router->addRoute($localized->methods, $uri, $localized->action);
             }
