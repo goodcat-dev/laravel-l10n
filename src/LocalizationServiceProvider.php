@@ -9,7 +9,7 @@ class LocalizationServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
-        $this->app->booted(fn() => L10n::registerTranslatedRoutes());
+        $this->app->booted(fn () => L10n::registerTranslatedRoutes());
     }
 
     public function register(): void

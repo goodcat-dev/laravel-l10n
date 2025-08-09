@@ -3,9 +3,9 @@
 namespace Goodcat\L10n;
 
 use Goodcat\L10n\LocaleResolvers\BrowserLocale;
+use Goodcat\L10n\LocaleResolvers\LocaleResolverInterface;
 use Goodcat\L10n\LocaleResolvers\RouteLocale;
 use Goodcat\L10n\LocaleResolvers\SessionLocale;
-use Goodcat\L10n\LocaleResolvers\LocaleResolverInterface;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Route as RouteFacades;
 
 class L10n
 {
-    /** @var LocaleResolverInterface[]  */
+    /** @var LocaleResolverInterface[] */
     public static array $localeResolvers = [];
 
     /**
@@ -22,7 +22,7 @@ class L10n
      */
     public static function getLocaleResolvers(): array
     {
-        if (!static::$localeResolvers) {
+        if (! static::$localeResolvers) {
             return [new SessionLocale, new RouteLocale, new BrowserLocale];
         }
 
@@ -66,8 +66,9 @@ class L10n
         /** @var Router $router */
         $router = App::make(Router::class);
 
-        /** @var Route $route */
         foreach ($router->getRoutes() as $route) {
+            /** @var Route $route */
+
             /** @var array<string, string> $locales */
             $locales = $route->action['localized_path'] ?? [];
 

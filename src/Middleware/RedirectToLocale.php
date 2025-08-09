@@ -16,9 +16,9 @@ class RedirectToLocale
 
         $routeLocale = $route->getAction('locale') ?: App::getFallbackLocale();
 
-        $redirect = preg_replace("/.$routeLocale$/", '', "{$route->getName()}." . App::getLocale());
+        $redirect = preg_replace("/.$routeLocale$/", '', "{$route->getName()}.".App::getLocale());
 
-        if (Route::has($redirect) && !App::isLocale($routeLocale)) {
+        if (Route::has($redirect) && ! App::isLocale($routeLocale)) {
             return redirect()->route($redirect, $route->parameters());
         }
 
