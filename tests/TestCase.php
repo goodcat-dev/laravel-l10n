@@ -2,14 +2,14 @@
 
 namespace Goodcat\L10n\Tests;
 
-use Goodcat\L10n\LocalizationServiceProvider;
+use Goodcat\L10n\L10nServiceProvider;
 
 class TestCase extends \Orchestra\Testbench\TestCase
 {
     protected function getPackageProviders($app): array
     {
         return [
-            LocalizationServiceProvider::class,
+            L10nServiceProvider::class,
         ];
     }
 }
