@@ -35,9 +35,10 @@ class L10n
 
         if (
             $locale !== App::getFallbackLocale()
-            && RouteFacades::has("$name.$locale")
+            && RouteFacades::has("$name@$locale")
+
         ) {
-            $name .= ".$locale";
+            $name .= "@$locale";
         }
 
         return app('url')->route($name, $parameters, $absolute);
@@ -49,9 +50,9 @@ class L10n
 
         if (
             $locale !== App::getFallbackLocale()
-            && RouteFacades::has("$route.$locale")
+            && RouteFacades::has("$route@$locale")
         ) {
-            $route .= ".$locale";
+            $route .= "@$locale";
         }
 
         return redirect()->route($route, $parameters, $status, $headers);
@@ -80,7 +81,7 @@ class L10n
                 $localized->prefix($locale);
 
                 if ($route->getName()) {
-                    $localized->name(".$locale");
+                    $localized->name("@$locale");
                 }
 
                 $router->addRoute($localized->methods, $uri, $localized->action);
