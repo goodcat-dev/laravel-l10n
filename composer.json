@@ -21,7 +21,7 @@
     "extra": {
         "laravel": {
             "providers": [
-              "L10nServiceProvider"
+              "Goodcat\\L10n\\L10nServiceProvider"
             ]
         }
     },
