@@ -14,11 +14,11 @@ class L10nServiceProvider extends ServiceProvider
 
     public function register(): void
     {
-        $this->app->singleton(L10n::class, fn () => new L10n());
+        $this->app->singleton(L10n::class, fn () => new L10n);
 
         Route::macro('lang', function (array $translations = []) {
             /** @var Route $this */
-            $this->action['localized_path'] = $translations;
+            $this->action['lang'] = $translations;
 
             return $this;
         });

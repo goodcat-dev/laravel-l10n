@@ -2,60 +2,26 @@
 
 namespace Goodcat\L10n;
 
-use Goodcat\L10n\LocaleResolvers\BrowserLocale;
-use Goodcat\L10n\LocaleResolvers\LocaleResolverInterface;
-use Goodcat\L10n\LocaleResolvers\RouteLocale;
-use Goodcat\L10n\LocaleResolvers\SessionLocale;
-use Illuminate\Http\RedirectResponse;
+use Goodcat\L10n\Matching\LocalizedUriValidator;
+use Illuminate\Routing\Matching\UriValidator;
+use Illuminate\Routing\Matching\ValidatorInterface;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Route as RouteFacades;
 
 class L10n
 {
-    /** @var LocaleResolverInterface[] */
-    public static array $localeResolvers = [];
-
     /**
-     * @return LocaleResolverInterface[]
+     * @return ValidatorInterface[]
      */
-    public static function getLocaleResolvers(): array
+    public static function routeValidators(): array
     {
-        if (! static::$localeResolvers) {
-            return [new SessionLocale, new RouteLocale, new BrowserLocale];
-        }
-
-        return static::$localeResolvers;
-    }
-
-    public static function route(string $name, mixed $parameters = [], bool $absolute = true, ?string $locale = null): string
-    {
-        $locale ??= App::getLocale();
-
-        if (
-            $locale !== App::getFallbackLocale()
-            && RouteFacades::has("$name@$locale")
-
-        ) {
-            $name .= "@$locale";
-        }
-
-        return app('url')->route($name, $parameters, $absolute);
-    }
-
-    public static function toRoute(string $route, mixed $parameters = [], int $status = 302, array $headers = [], ?string $locale = null): RedirectResponse
-    {
-        $locale ??= App::getLocale();
-
-        if (
-            $locale !== App::getFallbackLocale()
-            && RouteFacades::has("$route@$locale")
-        ) {
-            $route .= "@$locale";
-        }
-
-        return redirect()->route($route, $parameters, $status, $headers);
+        return array_map(
+            fn ($validator) => $validator instanceof UriValidator
+                ? new LocalizedUriValidator
+                : $validator,
+            Route::getValidators()
+        );
     }
 
     public static function registerTranslatedRoutes(): void
@@ -70,21 +36,20 @@ class L10n
         foreach ($router->getRoutes() as $route) {
             /** @var Route $route */
 
-            /** @var array<string, string> $locales */
-            $locales = $route->action['localized_path'] ?? [];
+            $locales = $route->getAction('lang') ?? [];
+
+            $constraints = [];
 
             foreach ($locales as $locale => $uri) {
-                $localized = clone $route;
-
-                $localized->action['locale'] = $locale;
-
-                $localized->prefix($locale);
-
-                if ($route->getName()) {
-                    $localized->name("@$locale");
+                if (is_int($locale)) {
+                    $constraints[] = $uri;
                 }
+            }
 
-                $router->addRoute($localized->methods, $uri, $localized->action);
+            if ($constraints) {
+                $constraints[] = App::getFallbackLocale();
+
+                $route->whereIn('lang', $constraints);
             }
         }
     }
