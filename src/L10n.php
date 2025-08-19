@@ -52,8 +52,12 @@ class L10n
                     : $locales[$locale] = $uri;
             }
 
+            unset($route->action['lang']);
+
             if ($locales) {
-                $route->action['lang'] = $locales;
+                $locales += ['en' => null];
+
+                $route->action['lang'] = $locales + ['en' => null];
 
                 $route->whereIn('lang', array_keys($locales));
             }

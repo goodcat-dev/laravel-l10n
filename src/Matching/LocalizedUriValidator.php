@@ -13,16 +13,34 @@ class LocalizedUriValidator extends UriValidator
     {
         $matches = parent::matches($route, $request);
 
+        $availableLocales = $route->getAction('lang');
+
+        if ($matches || !$availableLocales) {
+            return $matches;
+        }
+
         $segments = count(explode('/', $route->uri));
 
         $path = rtrim($request->getPathInfo(), '/') ?: '/';
 
+        if (count($request->segments()) <= --$segments) {
+            $path = substr_replace($path, '/' . App::getFallbackLocale(), strpos($route->uri, '{lang}'), 0);
+
+            $matches = preg_match($route->getCompiled()->getRegex(), rawurldecode($path));
+        }
+
+        $locale = $this->guessLocaleFromPath($route, $request->getPathInfo());
+
         if (
             !$matches
-            && $route->getAction('lang')
-            && count($request->segments()) <= --$segments
+            && $locale
+            && $uri = $availableLocales[$locale]
         ) {
-            $path = substr_replace($path, '/' . App::getFallbackLocale(), strpos($route->uri, '{lang}'), 0);
+            $localized = new Route($route->methods, $uri, $route->action);
+
+            $route->setUri($localized->uri());
+
+            $route->compiled = $route->toSymfonyRoute()->compile();
 
             $matches = preg_match($route->getCompiled()->getRegex(), rawurldecode($path));
         }
@@ -30,4 +48,20 @@ class LocalizedUriValidator extends UriValidator
         return $matches;
     }
 
+    protected function guessLocaleFromPath(Route $route, string $path): ?string
+    {
+        $locales = array_keys($route->getAction('lang'));
+
+        $length = max(array_map('strlen', $locales));
+
+        $portion = substr($path, strpos($route->uri, '/{lang}'), $length + 2);
+
+        foreach ($locales as $locale) {
+            if (str_contains($portion, "/$locale/")) {
+                return $locale;
+            }
+        }
+
+        return null;
+    }
 }
