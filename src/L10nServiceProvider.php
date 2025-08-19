@@ -18,7 +18,10 @@ class L10nServiceProvider extends ServiceProvider
 
         Route::macro('lang', function (array $translations = []) {
             /** @var Route $this */
-            $this->action['lang'] = $translations;
+
+            $locales = $this->getAction('lang') ?? [];
+
+            $this->action['lang'] = array_merge($locales, $translations);
 
             return $this;
         });

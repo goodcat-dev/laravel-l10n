@@ -36,20 +36,26 @@ class L10n
         foreach ($router->getRoutes() as $route) {
             /** @var Route $route */
 
-            $locales = $route->getAction('lang') ?? [];
-
-            $constraints = [];
-
-            foreach ($locales as $locale => $uri) {
-                if (is_int($locale)) {
-                    $constraints[] = $uri;
-                }
+            if (
+                isset($route->action['lang'])
+                && !$route->hasParameter('lang')
+            ) {
+                // TODO: Throw an exception.
+                // A route with action['lang'] must have the parameter {lang}.
             }
 
-            if ($constraints) {
-                $constraints[] = App::getFallbackLocale();
+            $locales = [];
 
-                $route->whereIn('lang', $constraints);
+            foreach ($route->getAction('lang') ?? [] as $locale => $uri) {
+                is_int($locale)
+                    ? $locales[$uri] = null
+                    : $locales[$locale] = $uri;
+            }
+
+            if ($locales) {
+                $route->action['lang'] = $locales;
+
+                $route->whereIn('lang', array_keys($locales));
             }
         }
     }

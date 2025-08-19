@@ -20,7 +20,7 @@ class LocalizedUriValidator extends UriValidator
         if (
             !$matches
             && $route->getAction('lang')
-            && count($request->segments()) === --$segments
+            && count($request->segments()) <= --$segments
         ) {
             $path = substr_replace($path, '/' . App::getFallbackLocale(), strpos($route->uri, '{lang}'), 0);
 
