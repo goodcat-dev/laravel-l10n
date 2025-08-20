@@ -5,7 +5,6 @@ namespace Goodcat\L10n\Matching;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Matching\UriValidator;
 use Illuminate\Routing\Route;
-use Illuminate\Support\Facades\App;
 
 class LocalizedUriValidator extends UriValidator
 {
@@ -24,28 +23,39 @@ class LocalizedUriValidator extends UriValidator
         $path = rtrim($request->getPathInfo(), '/') ?: '/';
 
         if (count($request->segments()) <= --$segments) {
-            $path = substr_replace($path, '/' . App::getFallbackLocale(), strpos($route->uri, '{lang}'), 0);
-
-            $matches = preg_match($route->getCompiled()->getRegex(), rawurldecode($path));
-        }
-
-        $locale = $this->guessLocaleFromPath($route, $request->getPathInfo());
-
-        if (
-            !$matches
-            && $locale
-            && $uri = $availableLocales[$locale]
-        ) {
-            $localized = new Route($route->methods, $uri, $route->action);
-
-            $route->setUri($localized->uri());
+            $route->setUri(str_replace('{lang}/', '', $route->uri));
 
             $route->compiled = $route->toSymfonyRoute()->compile();
 
             $matches = preg_match($route->getCompiled()->getRegex(), rawurldecode($path));
         }
 
+        $locale = $this->guessLocaleFromPath($route, $request->getPathInfo());
+
+        if (!$matches && $locale) {
+            $this->replaceUriWithTranslation($route, $locale);
+
+            $matches = preg_match($route->getCompiled()->getRegex(), rawurldecode($path));
+        }
+
         return $matches;
+    }
+
+    protected function replaceUriWithTranslation(Route $route, string $locale): void
+    {
+        $uri = $route->action['lang'][$locale];
+
+        if (!$uri) {
+            return;
+        }
+
+        $localized = new Route($route->methods, $uri, $route->action);
+
+        $route->action['original_uri'] = $route->uri;
+
+        $route->setUri($localized->uri);
+
+        $route->compiled = $route->toSymfonyRoute()->compile();
     }
 
     protected function guessLocaleFromPath(Route $route, string $path): ?string
@@ -54,7 +64,7 @@ class LocalizedUriValidator extends UriValidator
 
         $length = max(array_map('strlen', $locales));
 
-        $portion = substr($path, strpos($route->uri, '/{lang}'), $length + 2);
+        $portion = substr($path, strpos("/$route->uri", '/{lang}'), $length + 2);
 
         foreach ($locales as $locale) {
             if (str_contains($portion, "/$locale/")) {
