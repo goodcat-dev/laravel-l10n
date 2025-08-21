@@ -2,6 +2,7 @@
 
 namespace Goodcat\L10n;
 
+use Goodcat\L10n\Routing\RouteTranslations;
 use Illuminate\Routing\Route;
 use Illuminate\Support\ServiceProvider;
 
@@ -16,30 +17,22 @@ class L10nServiceProvider extends ServiceProvider
     {
         $this->app->singleton(L10n::class, fn () => new L10n);
 
-        Route::macro('lang', function (array $translations = []) {
+        Route::macro('lang', function (?array $translations = null): Route|RouteTranslations {
             /** @var Route $this */
 
-            $this->action['lang'] = array_merge($this->getAction('lang') ?? [], $translations);
+            $lang = $this->action['lang'] ?? [];
 
-            $locales = [];
-
-            foreach ($this->getAction('lang') ?? [] as $locale => $uri) {
-                is_int($locale)
-                    ? $locales[$uri] = null
-                    : $locales[$locale] = $uri;
+            if (is_array($lang)) {
+                $lang = new RouteTranslations($lang);
             }
 
-            unset($this->action['lang']);
+            $lang->addTranslations($translations ?? []);
 
-            if ($locales) {
-                $locales += ['en' => null];
+            $this->whereIn('lang', $lang->locales());
 
-                $this->action['lang'] = $locales + ['en' => null];
+            $this->action['lang'] = $lang;
 
-                $this->whereIn('lang', array_keys($locales));
-            }
-
-            return $this;
+            return $translations === null ? $lang : $this;
         });
     }
 }
