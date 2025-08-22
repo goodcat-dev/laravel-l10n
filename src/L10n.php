@@ -31,30 +31,43 @@ class L10n
                 continue;
             }
 
-            if (!str_contains($route->getPrefix(), '{lang}')) {
-                throw new \LogicException("Missing {lang} parameter in the route prefix \"$route->uri\"");
-            }
+            $hasLangParameter = in_array('lang', $route->parameterNames());
 
-            if (L10n::$hideDefaultLocale) {
-                $uri = str_replace(trim($route->getPrefix(), '/'), '', $route->uri);
-
-                $action = [
-                    'prefix' => trim(str_replace('{lang}', '', $route->getPrefix()), '/'),
-                    'as' => $route->getName() . '@' . App::getFallbackLocale(),
-                ];
-
-                $router->addRoute($route->methods, $uri, array_merge($route->action, $action));
+            if (!$hasLangParameter && in_array(null, $translations)) {
+                throw new \LogicException("Missing {lang} parameter in the localized route \"$route->uri\"");
             }
 
             foreach (array_filter($translations) as $locale => $uri) {
-                $action = ['as' => $route->getName() . "@$locale",];
+                $action = $route->action;
 
-                $router
-                    ->addRoute($route->methods, $uri, array_merge($route->action, $action))
-                    ->where('lang', $locale);
+                if ($route->getName()) {
+                    $action['as'] =  "{$route->getName()}@$locale";
+                }
+
+                $action['prefix'] = str_replace('{lang}', $locale, $route->getPrefix());
+
+                $router->addRoute($route->methods, $uri, $action);
             }
 
-            $route->whereIn('lang', array_keys(array_filter($translations, fn (?string $path) => $path === null)));
+            if (L10n::$hideDefaultLocale && $hasLangParameter) {
+                $action = $route->action;
+
+                if ($route->getName()) {
+                    $action['as'] = "{$route->getName()}@" . App::getFallbackLocale();
+                }
+
+                $action['prefix'] = '';
+
+                $router->addRoute(
+                    $route->methods,
+                    str_replace('{lang}/', '', $route->uri),
+                    $action
+                );
+            }
+
+            if ($hasLangParameter) {
+                $route->whereIn('lang', array_keys(array_filter($translations, fn ($path) => $path === null)));
+            }
         }
     }
 }
