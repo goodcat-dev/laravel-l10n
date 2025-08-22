@@ -2,8 +2,6 @@
 
 namespace Goodcat\L10n\Routing;
 
-use Illuminate\Routing\Route;
-
 class RouteTranslations
 {
     protected array $lang = [];
@@ -24,14 +22,14 @@ class RouteTranslations
         return $this;
     }
 
-    public function hasTranslation(string $locale): bool
-    {
-        return in_array($locale, $this->locales());
-    }
-
     public function get(string $locale): ?string
     {
         return $this->lang[$locale] ?? null;
+    }
+
+    public function all(): array
+    {
+        return $this->lang;
     }
 
     /**
@@ -50,41 +48,5 @@ class RouteTranslations
     public static function __set_state(array $attributes): self
     {
         return new self($attributes['lang']);
-    }
-
-    public function guessLocaleFromPath(string $uri, string $path): ?string
-    {
-        $locales = $this->locales();
-
-        if (!$locales) {
-            return null;
-        }
-
-        $length = max(array_map('strlen', $locales));
-
-        $portion = substr($path, strpos("/$uri", '/{lang}'), $length + 2);
-
-        foreach ($locales as $locale) {
-            if (str_contains($portion, "/$locale/")) {
-                return $locale;
-            }
-        }
-
-        return null;
-    }
-
-    public function replaceUriWithTranslation(Route $route, string $locale): void
-    {
-        if (! $uri = $this->get($locale)) {
-            return;
-        }
-
-        $localized = new Route($route->methods, $uri, $route->action);
-
-        $route->action['original_uri'] = $route->uri;
-
-        $route->setUri($localized->uri);
-
-        $route->compiled = $route->toSymfonyRoute()->compile();
     }
 }

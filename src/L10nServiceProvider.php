@@ -10,7 +10,7 @@ class L10nServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
-        //
+        $this->app->booted(fn () => L10n::registerLocalizedRoute());
     }
 
     public function register(): void
@@ -28,11 +28,9 @@ class L10nServiceProvider extends ServiceProvider
 
             $lang->addTranslations($translations ?? []);
 
-            $this->whereIn('lang', $lang->locales());
-
             $this->action['lang'] = $lang;
 
-            return $translations === null ? $lang : $this;
+            return is_null($translations) ? $lang : $this;
         });
     }
 }

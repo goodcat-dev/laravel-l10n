@@ -2,25 +2,59 @@
 
 namespace Goodcat\L10n;
 
-use Goodcat\L10n\Matching\LocalizedUriValidator;
-use Illuminate\Routing\Matching\UriValidator;
-use Illuminate\Routing\Matching\ValidatorInterface;
 use Illuminate\Routing\Route;
+use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\App;
 
 class L10n
 {
     public static bool $hideDefaultLocale = true;
 
     /**
-     * @return ValidatorInterface[]
+     * @throws \Throwable
      */
-    public static function routeValidators(): array
+    public static function registerLocalizedRoute(): void
     {
-        return array_map(
-            fn ($validator) => $validator instanceof UriValidator
-                ? new LocalizedUriValidator
-                : $validator,
-            Route::getValidators()
-        );
+        if (App::routesAreCached()) {
+            return;
+        }
+
+        /** @var Router $router */
+        $router = App::make(Router::class);
+
+        foreach ($router->getRoutes() as $route) {
+            /** @var Route $route */
+
+            $translations = $route->lang()->all();
+
+            if (!$translations) {
+                continue;
+            }
+
+            if (!str_contains($route->getPrefix(), '{lang}')) {
+                throw new \LogicException("Missing {lang} parameter in the route prefix \"$route->uri\"");
+            }
+
+            if (L10n::$hideDefaultLocale) {
+                $uri = str_replace(trim($route->getPrefix(), '/'), '', $route->uri);
+
+                $action = [
+                    'prefix' => trim(str_replace('{lang}', '', $route->getPrefix()), '/'),
+                    'as' => $route->getName() . '@' . App::getFallbackLocale(),
+                ];
+
+                $router->addRoute($route->methods, $uri, array_merge($route->action, $action));
+            }
+
+            foreach (array_filter($translations) as $locale => $uri) {
+                $action = ['as' => $route->getName() . "@$locale",];
+
+                $router
+                    ->addRoute($route->methods, $uri, array_merge($route->action, $action))
+                    ->where('lang', $locale);
+            }
+
+            $route->whereIn('lang', array_keys(array_filter($translations, fn (?string $path) => $path === null)));
+        }
     }
 }
