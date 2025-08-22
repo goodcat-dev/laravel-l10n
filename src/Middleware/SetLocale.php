@@ -11,7 +11,11 @@ class SetLocale
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $locale = $request->route()->parameter('lang', App::getFallbackLocale());
+        $route = $request->route();
+
+        $locale = $route->getAction('locale')
+            ?? $route->parameter('lang')
+            ?? App::getFallbackLocale();
 
         App::setLocale($locale);
 

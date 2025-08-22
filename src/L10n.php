@@ -41,10 +41,11 @@ class L10n
                 $action = $route->action;
 
                 if ($route->getName()) {
-                    $action['as'] =  "{$route->getName()}@$locale";
+                    $action['as'] =  "{$route->getName()}#$locale";
                 }
 
                 $action['prefix'] = str_replace('{lang}', $locale, $route->getPrefix());
+                $action['locale'] = $locale;
 
                 $router->addRoute($route->methods, $uri, $action);
             }
@@ -53,10 +54,11 @@ class L10n
                 $action = $route->action;
 
                 if ($route->getName()) {
-                    $action['as'] = "{$route->getName()}@" . App::getFallbackLocale();
+                    $action['as'] = "{$route->getName()}#" . App::getFallbackLocale();
                 }
 
                 $action['prefix'] = '';
+                $action['locale'] = App::getFallbackLocale();
 
                 $router->addRoute(
                     $route->methods,
