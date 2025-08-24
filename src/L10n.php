@@ -10,9 +10,6 @@ class L10n
 {
     public static bool $hideDefaultLocale = true;
 
-    /**
-     * @throws \Throwable
-     */
     public static function registerLocalizedRoute(): void
     {
         if (App::routesAreCached()) {

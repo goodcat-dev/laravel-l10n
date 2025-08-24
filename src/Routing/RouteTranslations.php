@@ -27,6 +27,16 @@ class RouteTranslations
         return $this->lang[$locale] ?? null;
     }
 
+    public function has(string $locale): bool
+    {
+        return array_key_exists($locale, $this->lang);
+    }
+
+    public function hasAlias(string $locale): bool
+    {
+        return array_key_exists($locale, array_filter($this->lang));
+    }
+
     public function all(): array
     {
         return $this->lang;
