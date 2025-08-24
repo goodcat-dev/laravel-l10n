@@ -31,6 +31,10 @@ class LocalizedUrlGenerator extends UrlGenerator
                 $route = $this->routes->getByName($localized);
             }
 
+            if ($route->hasParameter('lang')) {
+                $parameters['lang'] = $locale;
+            }
+
             return $this->toRoute($route, $parameters, $absolute);
         }
 
@@ -44,7 +48,7 @@ class LocalizedUrlGenerator extends UrlGenerator
 
     protected function guessLocalizedRouteName(Route $route, string $locale): string
     {
-        $lang = $route->getAction('locale') ?? App::getLocale();
+        $lang = $route->getAction('locale');
 
         $name = preg_replace("/#$lang$/", '', $route->getName());
 
