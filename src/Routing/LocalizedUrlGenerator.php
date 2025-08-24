@@ -18,14 +18,20 @@ class LocalizedUrlGenerator extends UrlGenerator
      */
     public function route($name, $parameters = [], $absolute = true, ?string $locale = null): string
     {
-        $locale ??= App::getLocale();
-
         if ($name instanceof BackedEnum && ! is_string($name = $name->value)) {
             throw new InvalidArgumentException('Attribute [name] expects a string backed enum.');
         }
 
+        $locale ??= App::getLocale();
+
         if (! is_null($route = $this->routes->getByName($name))) {
-            return $this->toRoute($route, $parameters, $absolute, $locale);
+            $localized = $this->guessLocalizedRouteName($route, $locale);
+
+            if ($localized !== $name) {
+                $route = $this->routes->getByName($localized);
+            }
+
+            return $this->toRoute($route, $parameters, $absolute);
         }
 
         if (! is_null($this->missingNamedRouteResolver) &&
@@ -34,21 +40,6 @@ class LocalizedUrlGenerator extends UrlGenerator
         }
 
         throw new RouteNotFoundException("Route [{$name}] not defined.");
-    }
-
-    public function toRoute($route, $parameters, $absolute, ?string $locale = null): string
-    {
-        $locale ??= App::getLocale();
-
-        $name = $this->guessLocalizedRouteName($route, $locale);
-
-        if ($name !== $route->getName()) {
-            $route = $this->routes->getByName($name);
-        }
-
-        return $this->routeUrl()->to(
-            $route, $parameters, $absolute
-        );
     }
 
     protected function guessLocalizedRouteName(Route $route, string $locale): string

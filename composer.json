@@ -3,6 +3,9 @@
     "description": "An opinionated Laravel package for app localization",
     "license": "MIT",
     "autoload": {
+        "files": [
+          "src/helpers.php"
+        ],
         "psr-4": {
             "Goodcat\\L10n\\": "src/"
         }
