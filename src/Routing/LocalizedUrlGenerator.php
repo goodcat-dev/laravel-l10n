@@ -4,7 +4,6 @@ namespace Goodcat\L10n\Routing;
 
 use BackedEnum;
 use Illuminate\Routing\Exceptions\UrlGenerationException;
-use Illuminate\Routing\Route;
 use Illuminate\Routing\UrlGenerator;
 use InvalidArgumentException;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
@@ -16,14 +15,14 @@ class LocalizedUrlGenerator extends UrlGenerator
      */
     public function route($name, $parameters = [], $absolute = true): string
     {
-        if ($name instanceof BackedEnum && ! is_string($name = $name->value)) {
+        if ($name instanceof BackedEnum && !is_string($name = $name->value)) {
             throw new InvalidArgumentException('Attribute [name] expects a string backed enum.');
         }
 
         $locale = $parameters['lang'] ?? \app()->getLocale();
 
-        if (! is_null($route = $this->routes->getByName($name))) {
-            $localized = $this->guessLocalizedRouteName($route, $locale);
+        if (!is_null($route = $this->routes->getByName($name))) {
+            $localized = $route->getLocalizedName($locale);
 
             if ($localized !== $name) {
                 $route = $this->routes->getByName($localized);
@@ -36,24 +35,11 @@ class LocalizedUrlGenerator extends UrlGenerator
             return $this->toRoute($route, $parameters, $absolute);
         }
 
-        if (! is_null($this->missingNamedRouteResolver) &&
-            ! is_null($url = call_user_func($this->missingNamedRouteResolver, $name, $parameters, $absolute, $locale))) {
+        if (!is_null($this->missingNamedRouteResolver) &&
+            !is_null($url = call_user_func($this->missingNamedRouteResolver, $name, $parameters, $absolute, $locale))) {
             return $url;
         }
 
         throw new RouteNotFoundException("Route [{$name}] not defined.");
-    }
-
-    protected function guessLocalizedRouteName(Route $route, string $locale): string
-    {
-        $lang = $route->getAction('locale');
-
-        $name = preg_replace("/#$lang$/", '', $route->getName());
-
-        if ($route->lang()->hasAlias($locale)) {
-            return "$name#$locale";
-        }
-
-        return $name;
     }
 }
