@@ -8,7 +8,6 @@ use Illuminate\Routing\Events\RouteMatched;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class L10nServiceProvider extends ServiceProvider
@@ -26,8 +25,6 @@ class L10nServiceProvider extends ServiceProvider
             if ($locale) {
                 App::setLocale($locale);
             }
-
-            app(LocalizedUrlGenerator::class)->defaults(['lang' => App::getLocale()]);
         });
     }
 

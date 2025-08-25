@@ -3,7 +3,6 @@
 namespace Goodcat\L10n\Routing;
 
 use BackedEnum;
-use Goodcat\L10n\L10n;
 use Illuminate\Routing\Exceptions\UrlGenerationException;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\UrlGenerator;
@@ -31,7 +30,7 @@ class LocalizedUrlGenerator extends UrlGenerator
                 $route = $this->routes->getByName($localized);
             }
 
-            if ($route->hasParameter('lang')) {
+            if (in_array('lang', $route->parameterNames())) {
                 $parameters['lang'] = $locale;
             }
 
@@ -53,13 +52,6 @@ class LocalizedUrlGenerator extends UrlGenerator
         $name = preg_replace("/#$lang$/", '', $route->getName());
 
         if ($route->lang()->hasAlias($locale)) {
-            return "$name#$locale";
-        }
-
-        if (
-            L10n::$hideDefaultLocale
-            && $locale === App::getFallbackLocale()
-        ) {
             return "$name#$locale";
         }
 

@@ -4,7 +4,6 @@ namespace Goodcat\L10n;
 
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
-use Illuminate\Support\Facades\App;
 
 class L10n
 {
@@ -12,12 +11,11 @@ class L10n
 
     public static function registerLocalizedRoute(): void
     {
-        if (App::routesAreCached()) {
+        if (\app()->routesAreCached()) {
             return;
         }
 
-        /** @var Router $router */
-        $router = App::make(Router::class);
+        $router = \app(Router::class);
 
         foreach ($router->getRoutes() as $route) {
             /** @var Route $route */
@@ -28,17 +26,19 @@ class L10n
                 continue;
             }
 
+            $fallback = \app()->getFallbackLocale();
+
             $hasLangParameter = in_array('lang', $route->parameterNames());
 
             if (!$hasLangParameter && in_array(null, $translations)) {
-                throw new \LogicException("Missing {lang} parameter in the localized route \"$route->uri\"");
+                throw new \LogicException("Localized route \"$route->uri\" requires {lang} parameter.");
             }
 
             foreach (array_filter($translations) as $locale => $uri) {
                 $action = $route->action;
 
                 if ($route->getName()) {
-                    $action['as'] =  "{$route->getName()}#$locale";
+                    $action['as'] = "{$route->getName()}#$locale";
                 }
 
                 $action['prefix'] = str_replace('{lang}', $locale, $route->getPrefix());
@@ -47,21 +47,21 @@ class L10n
                 $router->addRoute($route->methods, $uri, $action);
             }
 
-            if (L10n::$hideDefaultLocale && $hasLangParameter) {
+            if (self::$hideDefaultLocale && $hasLangParameter) {
                 $action = $route->action;
 
                 if ($route->getName()) {
-                    $action['as'] = "{$route->getName()}#" . App::getFallbackLocale();
+                    $action['as'] = "{$route->getName()}#$fallback";
                 }
 
                 $action['prefix'] = '';
-                $action['locale'] = App::getFallbackLocale();
+                $action['locale'] = $fallback;
 
-                $router->addRoute(
-                    $route->methods,
-                    str_replace('{lang}/', '', $route->uri),
-                    $action
-                );
+                $uri = str_replace("{lang}/", '', $route->uri);
+
+                $router->addRoute($route->methods, $uri, $action);
+
+                $route->lang()->addTranslations([$fallback => $uri]);
             }
 
             if ($hasLangParameter) {
