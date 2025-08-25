@@ -6,7 +6,6 @@ use BackedEnum;
 use Illuminate\Routing\Exceptions\UrlGenerationException;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\UrlGenerator;
-use Illuminate\Support\Facades\App;
 use InvalidArgumentException;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
 
@@ -15,13 +14,13 @@ class LocalizedUrlGenerator extends UrlGenerator
     /**
      * @throws UrlGenerationException
      */
-    public function route($name, $parameters = [], $absolute = true, ?string $locale = null): string
+    public function route($name, $parameters = [], $absolute = true): string
     {
         if ($name instanceof BackedEnum && ! is_string($name = $name->value)) {
             throw new InvalidArgumentException('Attribute [name] expects a string backed enum.');
         }
 
-        $locale ??= App::getLocale();
+        $locale = $parameters['lang'] ?? \app()->getLocale();
 
         if (! is_null($route = $this->routes->getByName($name))) {
             $localized = $this->guessLocalizedRouteName($route, $locale);
@@ -30,8 +29,8 @@ class LocalizedUrlGenerator extends UrlGenerator
                 $route = $this->routes->getByName($localized);
             }
 
-            if (in_array('lang', $route->parameterNames())) {
-                $parameters['lang'] = $locale;
+            if (!in_array('lang', $route->parameterNames())) {
+                unset($parameters['lang']);
             }
 
             return $this->toRoute($route, $parameters, $absolute);
