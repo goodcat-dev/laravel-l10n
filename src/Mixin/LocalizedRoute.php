@@ -32,7 +32,7 @@ class LocalizedRoute
         return function (string $locale): ?string {
             /** @var Route $this */
 
-            if (!$name = $this->getName()) {
+            if (!($name = $this->getName()) || !$this->lang()->has($locale)) {
                 return null;
             }
 

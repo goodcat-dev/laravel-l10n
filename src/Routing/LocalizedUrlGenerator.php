@@ -24,7 +24,7 @@ class LocalizedUrlGenerator extends UrlGenerator
         if (!is_null($route = $this->routes->getByName($name))) {
             $localized = $route->getLocalizedName($parameters['lang']);
 
-            if ($localized !== $name) {
+            if ($localized !== null && $localized !== $name) {
                 $route = $this->routes->getByName($localized);
             }
 
@@ -36,7 +36,7 @@ class LocalizedUrlGenerator extends UrlGenerator
         }
 
         if (!is_null($this->missingNamedRouteResolver) &&
-            !is_null($url = call_user_func($this->missingNamedRouteResolver, $name, $parameters, $absolute, $locale))) {
+            !is_null($url = call_user_func($this->missingNamedRouteResolver, $name, $parameters, $absolute))) {
             return $url;
         }
 
