@@ -9,6 +9,8 @@ class L10n
 {
     public static bool $hideDefaultLocale = true;
 
+    public static string $localizedViewsPath = '';
+
     public static function registerLocalizedRoute(): void
     {
         if (\app()->routesAreCached()) {
