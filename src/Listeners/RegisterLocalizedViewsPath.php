@@ -31,5 +31,4 @@ class RegisterLocalizedViewsPath
             $views->prependLocation($newPath);
         }
     }
-
 }
