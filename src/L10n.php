@@ -2,6 +2,8 @@
 
 namespace Goodcat\L10n;
 
+use Goodcat\L10n\Resolvers\BrowserLocale;
+use Goodcat\L10n\Resolvers\UserPreferredLocale;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
 
@@ -10,6 +12,8 @@ class L10n
     public static bool $hideDefaultLocale = true;
 
     public static string $localizedViewsPath = '';
+
+    public static array $preferredLocaleResolvers;
 
     public static function registerLocalizedRoute(): void
     {
@@ -70,5 +74,17 @@ class L10n
                 $route->whereIn('lang', array_keys(array_filter($translations, fn ($path) => $path === null)));
             }
         }
+    }
+
+    public static function getPreferredLocaleResolvers(): array
+    {
+        if (!isset(self::$preferredLocaleResolvers)) {
+            self::$preferredLocaleResolvers = [
+                new UserPreferredLocale,
+                new BrowserLocale,
+            ];
+        }
+
+        return self::$preferredLocaleResolvers;
     }
 }

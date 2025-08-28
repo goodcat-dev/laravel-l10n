@@ -32,6 +32,17 @@ class RouteTranslations
         return array_key_exists($locale, array_filter($this->lang));
     }
 
+    /**
+     * @return list<string>
+     */
+    public function locales(): array
+    {
+        return array_keys($this->lang);
+    }
+
+    /**
+     * @return array<string, ?string>
+     */
     public function all(): array
     {
         return $this->lang;

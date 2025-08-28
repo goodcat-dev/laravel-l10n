@@ -3,6 +3,7 @@
 namespace Goodcat\L10n;
 
 use Goodcat\L10n\Listeners\RegisterLocalizedViewsPath;
+use Goodcat\L10n\Mixin\LocalizedApplication;
 use Goodcat\L10n\Mixin\LocalizedRoute;
 use Goodcat\L10n\Routing\LocalizedUrlGenerator;
 use Illuminate\Foundation\Application;
@@ -36,6 +37,8 @@ class L10nServiceProvider extends ServiceProvider
                 $app['config']['app.asset_url']
             );
         });
+
+        Application::mixin(new LocalizedApplication);
 
         Route::mixin(new LocalizedRoute);
     }
