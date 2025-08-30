@@ -1,7 +1,7 @@
 # Laravel L10n
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/goodcat/laravel-l10n.svg?style=flat-square)](https://packagist.org/packages/goodcat/laravel-l10n)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/goodcat-dev/laravel-l10n/test.yml?branch=main&label=tests&style=flat-square)](https://github.com/goodcat-dev/laravel-l10n/actions?query=workflow%3Atest+branch%3Amain)
+[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/goodcat-dev/laravel-l10n/test.yml?branch=main&label=test&style=flat-square)](https://github.com/goodcat-dev/laravel-l10n/actions?query=workflow%3Atest+branch%3Amain)
 
 An opinionated Laravel package for app localization.
 
