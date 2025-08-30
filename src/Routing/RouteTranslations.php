@@ -27,9 +27,26 @@ class RouteTranslations
         return isset($this->lang[$locale]);
     }
 
-    public function hasAlias(string $locale): bool
+    public function hasAlias(?string $locale = null): bool
     {
-        return array_key_exists($locale, array_filter($this->lang));
+        $aliases = array_filter($this->lang);
+
+        if ($locale === null) {
+            return !empty($aliases);
+        }
+
+        return array_key_exists($locale, $aliases);
+    }
+
+    public function hasGeneric(?string $locale = null): bool
+    {
+        $generics = array_filter($this->lang, fn ($translation) => $translation === null);
+
+        if ($locale === null) {
+            return !empty($generics);
+        }
+
+        return array_key_exists($locale, $generics);
     }
 
     public function isEmpty(): bool
@@ -43,6 +60,22 @@ class RouteTranslations
     public function locales(): array
     {
         return array_keys($this->lang);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function genericLocales(): array
+    {
+        return array_keys(array_filter($this->lang, fn ($translation) => $translation === null));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function aliasLocales(): array
+    {
+        return array_keys(array_filter($this->lang));
     }
 
     /**

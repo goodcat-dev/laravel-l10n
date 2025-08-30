@@ -40,7 +40,7 @@ class L10n
 
             $hasLangParameter = in_array('lang', $route->parameterNames());
 
-            if (!$hasLangParameter && in_array(null, $translations->all())) {
+            if (!$hasLangParameter && $translations->hasGeneric()) {
                 throw new \LogicException("Localized route \"$route->uri\" requires {lang} parameter.");
             }
 
@@ -75,7 +75,7 @@ class L10n
             }
 
             if ($hasLangParameter) {
-                $route->whereIn('lang', array_keys(array_filter($translations->all(), fn ($path) => $path === null)));
+                $route->whereIn('lang', $translations->genericLocales());
             }
         }
     }
