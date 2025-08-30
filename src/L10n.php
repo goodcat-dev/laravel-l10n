@@ -4,6 +4,7 @@ namespace Goodcat\L10n;
 
 use Goodcat\L10n\Resolvers\BrowserLocale;
 use Goodcat\L10n\Resolvers\UserPreferredLocale;
+use Goodcat\L10n\Routing\RouteTranslations;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
 
@@ -26,21 +27,24 @@ class L10n
         foreach ($router->getRoutes() as $route) {
             /** @var Route $route */
 
-            $translations = $route->lang()->all();
+            /** @var RouteTranslations $translations */
+            $translations = $route->lang();
 
-            if (!$translations) {
+            if ($translations->isEmpty()) {
                 continue;
             }
 
             $fallback = \app()->getFallbackLocale();
 
+            $translations->addTranslations([$fallback]);
+
             $hasLangParameter = in_array('lang', $route->parameterNames());
 
-            if (!$hasLangParameter && in_array(null, $translations)) {
+            if (!$hasLangParameter && in_array(null, $translations->all())) {
                 throw new \LogicException("Localized route \"$route->uri\" requires {lang} parameter.");
             }
 
-            foreach (array_filter($translations) as $locale => $uri) {
+            foreach (array_filter($translations->all()) as $locale => $uri) {
                 $action = $route->action;
 
                 if ($route->getName()) {
@@ -67,11 +71,11 @@ class L10n
 
                 $router->addRoute($route->methods, $uri, $action);
 
-                $route->lang()->addTranslations([$fallback => $uri]);
+                $translations->addTranslations([$fallback => $uri]);
             }
 
             if ($hasLangParameter) {
-                $route->whereIn('lang', array_keys(array_filter($translations, fn ($path) => $path === null)));
+                $route->whereIn('lang', array_keys(array_filter($translations->all(), fn ($path) => $path === null)));
             }
         }
     }

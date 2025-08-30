@@ -32,6 +32,11 @@ class RouteTranslations
         return array_key_exists($locale, array_filter($this->lang));
     }
 
+    public function isEmpty(): bool
+    {
+        return empty($this->lang);
+    }
+
     /**
      * @return list<string>
      */

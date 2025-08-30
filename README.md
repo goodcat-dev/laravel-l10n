@@ -28,8 +28,8 @@ Get started with `laravel-l10n` in three steps.
    Route::get('{lang}/example', Controller::class)
        ->lang([
             'fr', 'de',
-            'it' => 'esempio',
-            'es' => 'ejemplo'
+            'it' => 'it/esempio',
+            'es' => 'es/ejemplo'
        ]);
    ```
 
@@ -54,8 +54,8 @@ The `lang()` method accepts an array where you can specify your translations.
 Route::get('{lang}/example', Controller::class)
     ->lang([
         'fr', 'de',
-        'it' => 'esempio',
-        'es' => 'ejemplo'
+        'it' => 'it/esempio',
+        'es' => 'es/ejemplo'
     ]);
 ```
 
@@ -76,6 +76,11 @@ Route::group([
         ->lang(['it' => 'esempio']);
 });
 ```
+
+> [!NOTE]
+> The lang() method is not designed to be a standalone group method. 
+> The syntax `Route::lang()->group()` is not supported. 
+> Instead, you must define the lang key directly inside the `Route::group()` array, as shown in the example above.
 
 ### Hiding the Default Locale
 
