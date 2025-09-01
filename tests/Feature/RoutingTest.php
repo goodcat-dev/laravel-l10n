@@ -1,6 +1,7 @@
 <?php
 
 use Goodcat\L10n\L10n;
+use Goodcat\L10n\Middleware\SetLocale;
 use Goodcat\L10n\Routing\LocalizedUrlGenerator;
 use Illuminate\Support\Facades\Route;
 
@@ -97,4 +98,25 @@ it('can generate translated urls', function () {
     $url = $urlGenerator->route('home');
 
     expect($url)->toBe('http://localhost');
+});
+
+it('detects and set the route locale', function () {
+    Route::get('{lang}/example', fn () => 'Hello, World!')
+        ->middleware(SetLocale::class)
+        ->name('example')
+        ->lang([
+            'fr', 'de',
+            'es' => 'es/ejemplo',
+            'it' => 'it/esempio'
+        ]);
+
+    L10N::registerLocalizedRoute();
+
+    $this->get('es/ejemplo');
+
+    expect(app()->getLocale())->toBe('es');
+
+    $this->get('de/example');
+
+    expect(app()->getLocale())->toBe('de');
 });
