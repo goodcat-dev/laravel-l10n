@@ -5,6 +5,7 @@ namespace Goodcat\L10n\Mixin;
 use Closure;
 use Goodcat\L10n\Routing\RouteTranslations;
 use Illuminate\Routing\Route;
+use Illuminate\Routing\Router;
 
 class LocalizedRoute
 {
@@ -32,7 +33,9 @@ class LocalizedRoute
         return function (string $locale): ?string {
             /** @var Route $this */
 
-            if (!($name = $this->getName()) || !$this->lang()->has($locale)) {
+            $name = $this->getName();
+
+            if (!$name || !$this->lang()->has($locale)) {
                 return null;
             }
 

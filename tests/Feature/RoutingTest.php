@@ -47,3 +47,27 @@ it('hides default locale', function () {
 
     $this->get('/en/example')->assertOk();
 });
+
+it('guess localized route name', function () {
+    $route = Route::get('{lang}/example', fn () => 'Hello, World!')
+        ->name('example')
+        ->lang([
+            'fr', 'de',
+            'es' => 'es/ejemplo',
+            'it' => 'it/esempio'
+        ]);
+
+    L10N::registerLocalizedRoute();
+
+    $localizedName = $route->getLocalizedName('it');
+
+    expect($localizedName)->toBe('example#it');
+
+    $missingName = $route->getLocalizedName('gr');
+
+    expect($missingName)->toBeNull();
+
+    $baseName = $route->getLocalizedName('fr');
+
+    expect($baseName)->toBe('example');
+});

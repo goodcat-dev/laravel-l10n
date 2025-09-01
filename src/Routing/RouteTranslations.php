@@ -24,7 +24,7 @@ class RouteTranslations
 
     public function has(string $locale): bool
     {
-        return isset($this->lang[$locale]);
+        return array_key_exists($locale, $this->lang);
     }
 
     public function hasAlias(?string $locale = null): bool
