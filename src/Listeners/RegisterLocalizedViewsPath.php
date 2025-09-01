@@ -23,7 +23,7 @@ class RegisterLocalizedViewsPath
             $views->getFinder()->setPaths($paths);
         }
 
-        $newPath = \resource_path('views/' . $event->locale);
+        $newPath = \resource_path('views/'.$event->locale);
 
         L10n::$localizedViewsPath = is_dir($newPath) ? $newPath : '';
 

@@ -32,7 +32,7 @@ class RouteTranslations
         $aliases = array_filter($this->lang);
 
         if ($locale === null) {
-            return !empty($aliases);
+            return ! empty($aliases);
         }
 
         return array_key_exists($locale, $aliases);
@@ -43,7 +43,7 @@ class RouteTranslations
         $generics = array_filter($this->lang, fn ($translation) => $translation === null);
 
         if ($locale === null) {
-            return !empty($generics);
+            return ! empty($generics);
         }
 
         return array_key_exists($locale, $generics);

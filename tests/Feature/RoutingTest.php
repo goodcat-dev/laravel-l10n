@@ -10,7 +10,7 @@ it('generates localized routes', function () {
         ->lang([
             'fr', 'de',
             'es' => 'es/ejemplo',
-            'it' => 'it/esempio'
+            'it' => 'it/esempio',
         ]);
 
     L10n::registerLocalizedRoute();
@@ -28,7 +28,7 @@ it('generates localized routes with lang prefix', function () {
         Route::get('/example', fn () => 'Hello, World!')
             ->lang([
                 'it' => '/esempio',
-                'es' => '/ejemplo'
+                'es' => '/ejemplo',
             ]);
     });
 
@@ -56,7 +56,7 @@ it('guess localized route name', function () {
         ->lang([
             'fr', 'de',
             'es' => 'es/ejemplo',
-            'it' => 'it/esempio'
+            'it' => 'it/esempio',
         ]);
 
     L10N::registerLocalizedRoute();
@@ -80,7 +80,7 @@ it('can generate translated urls', function () {
         ->lang([
             'fr', 'de',
             'es' => 'es/ejemplo',
-            'it' => 'it/esempio'
+            'it' => 'it/esempio',
         ]);
 
     Route::get('/', fn () => 'Hello, World!')
@@ -107,7 +107,7 @@ it('detects and set the route locale', function () {
         ->lang([
             'fr', 'de',
             'es' => 'es/ejemplo',
-            'it' => 'it/esempio'
+            'it' => 'it/esempio',
         ]);
 
     L10N::registerLocalizedRoute();

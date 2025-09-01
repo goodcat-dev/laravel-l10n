@@ -44,7 +44,7 @@ class L10n
 
             $hasLangParameter = in_array('lang', $route->parameterNames());
 
-            if (!$hasLangParameter && $translations->hasGeneric()) {
+            if (! $hasLangParameter && $translations->hasGeneric()) {
                 throw new \LogicException("Localized route \"$route->uri\" requires {lang} parameter.");
             }
 
@@ -71,7 +71,7 @@ class L10n
                 $action['prefix'] = '';
                 $action['locale'] = $fallback;
 
-                $uri = str_replace("{lang}/", '', $route->uri);
+                $uri = str_replace('{lang}/', '', $route->uri);
 
                 $router->addRoute($route->methods, $uri, $action);
 
@@ -86,7 +86,7 @@ class L10n
 
     public static function getPreferredLocaleResolvers(): array
     {
-        if (!isset(self::$preferredLocaleResolvers)) {
+        if (! isset(self::$preferredLocaleResolvers)) {
             self::$preferredLocaleResolvers = [
                 new UserPreferredLocale,
                 new BrowserLocale,

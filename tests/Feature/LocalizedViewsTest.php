@@ -4,9 +4,9 @@ use Goodcat\L10n\L10n;
 use Illuminate\View\Factory;
 
 it('register localized views path', function () {
-    $path = \resource_path('views/' . 'es');
+    $path = \resource_path('views/'.'es');
 
-    if (!file_exists($path)) {
+    if (! file_exists($path)) {
         mkdir($path);
     }
 
@@ -23,17 +23,17 @@ it('register localized views path', function () {
 });
 
 it('replace localized views path', function () {
-    $path = \resource_path('views/' . 'es');
+    $path = \resource_path('views/'.'es');
 
-    if (!file_exists($path)) {
+    if (! file_exists($path)) {
         mkdir($path);
     }
 
     app()->setLocale('es');
 
-    $replace = \resource_path('views/' . 'it');
+    $replace = \resource_path('views/'.'it');
 
-    if (!file_exists($replace)) {
+    if (! file_exists($replace)) {
         mkdir($replace);
     }
 

@@ -10,7 +10,7 @@ class LocalizedApplication
 {
     public function getPreferredLocale(): Closure
     {
-        return function(): ?string {
+        return function (): ?string {
             /** @var Application $this */
 
             return $this['config']->get('app.preferred_locale');
@@ -21,7 +21,6 @@ class LocalizedApplication
     {
         return function (string $locale): void {
             /** @var Application $this */
-
             $this['config']->set('app.preferred_locale', $locale);
 
             $this['events']->dispatch(new PreferredLocaleUpdated($locale));
