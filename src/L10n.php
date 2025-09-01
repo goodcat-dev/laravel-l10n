@@ -22,7 +22,11 @@ class L10n
             return;
         }
 
+        /** @var Router $router */
         $router = \app(Router::class);
+
+        $router->getRoutes()->refreshNameLookups();
+        $router->getRoutes()->refreshActionLookups();
 
         foreach ($router->getRoutes() as $route) {
             /** @var Route $route */
