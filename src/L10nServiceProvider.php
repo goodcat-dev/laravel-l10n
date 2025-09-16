@@ -16,7 +16,7 @@ class L10nServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
-        $this->app->booted(fn () => L10n::registerLocalizedRoute());
+        $this->app->booted(fn () => app(L10n::class)->registerLocalizedRoutes());
 
         Event::listen(LocaleUpdated::class, RegisterLocalizedViewsPath::class);
     }

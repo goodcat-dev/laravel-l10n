@@ -16,21 +16,18 @@ class L10n
 
     public static array $preferredLocaleResolvers;
 
-    public static function registerLocalizedRoute(): void
+    public function registerLocalizedRoutes(): void
     {
         if (\app()->routesAreCached()) {
             return;
         }
 
-        /** @var Router $router */
-        $router = \app(Router::class);
+        $routeCollection = app(Router::class)->getRoutes();
 
-        $router->getRoutes()->refreshNameLookups();
-        $router->getRoutes()->refreshActionLookups();
+        $routeCollection->refreshNameLookups();
 
-        foreach ($router->getRoutes() as $route) {
-            /** @var Route $route */
-
+        /** @var Route $route */
+        foreach ($routeCollection as $route) {
             /** @var RouteTranslations $translations */
             $translations = $route->lang();
 
@@ -38,9 +35,7 @@ class L10n
                 continue;
             }
 
-            $fallback = \app()->getFallbackLocale();
-
-            $translations->addTranslations([$fallback]);
+            $translations->addTranslations([app()->getFallbackLocale()]);
 
             $hasLangParameter = in_array('lang', $route->parameterNames());
 
@@ -48,40 +43,58 @@ class L10n
                 throw new \LogicException("Localized route \"$route->uri\" requires {lang} parameter.");
             }
 
-            foreach (array_filter($translations->all()) as $locale => $uri) {
-                $action = $route->action;
-
-                if ($route->getName()) {
-                    $action['as'] = "{$route->getName()}#$locale";
-                }
-
-                $action['prefix'] = str_replace('{lang}', $locale, $route->getPrefix());
-                $action['locale'] = $locale;
-
-                $router->addRoute($route->methods, $uri, $action);
-            }
+            $this->registerAliasRoutes($route);
 
             if (self::$hideDefaultLocale && $hasLangParameter) {
-                $action = $route->action;
-
-                if ($route->getName()) {
-                    $action['as'] = "{$route->getName()}#$fallback";
-                }
-
-                $action['prefix'] = '';
-                $action['locale'] = $fallback;
-
-                $uri = str_replace('{lang}/', '', $route->uri);
-
-                $router->addRoute($route->methods, $uri, $action);
-
-                $translations->addTranslations([$fallback => $uri]);
+                $this->registerFallbackRoute($route);
             }
 
             if ($hasLangParameter) {
                 $route->whereIn('lang', $translations->genericLocales());
             }
         }
+    }
+
+    protected function registerAliasRoutes(Route $route)
+    {
+        /** @var RouteTranslations $translations */
+        $translations = $route->lang();
+
+        foreach (array_filter($translations->all()) as $locale => $uri) {
+            $action = $route->action;
+
+            if ($route->getName()) {
+                $action['as'] = "{$route->getName()}#$locale";
+            }
+
+            $action['prefix'] = str_replace('{lang}', $locale, $route->getPrefix());
+            $action['locale'] = $locale;
+
+            app(Router::class)->addRoute($route->methods, $uri, $action);
+        }
+    }
+
+    protected function registerFallbackRoute(Route $route): void
+    {
+        $action = $route->action;
+
+        $fallback = app()->getFallbackLocale();
+
+        if ($route->getName()) {
+            $action['as'] = "{$route->getName()}#$fallback";
+        }
+
+        $action['prefix'] = '';
+        $action['locale'] = $fallback;
+
+        $uri = str_replace('{lang}/', '', $route->uri);
+
+        app(Router::class)->addRoute($route->methods, $uri, $action);
+
+        /** @var RouteTranslations $translations */
+        $translations = $route->lang();
+
+        $translations->addTranslations([$fallback => $uri]);
     }
 
     public static function getPreferredLocaleResolvers(): array

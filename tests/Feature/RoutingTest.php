@@ -13,7 +13,7 @@ it('generates localized routes', function () {
             'it' => 'it/esempio',
         ]);
 
-    L10n::registerLocalizedRoute();
+    app(L10n::class)->registerLocalizedRoutes();
 
     foreach (['/example', '/fr/example', '/de/example', '/es/ejemplo', '/it/esempio'] as $url) {
         $this->get($url)->assertOk();
@@ -32,7 +32,7 @@ it('generates localized routes with lang prefix', function () {
             ]);
     });
 
-    L10n::registerLocalizedRoute();
+    app(L10n::class)->registerLocalizedRoutes();
 
     foreach (['/example', '/fr/example', '/de/example', '/es/ejemplo', '/it/esempio'] as $url) {
         $this->get($url)->assertOk();
@@ -45,7 +45,7 @@ it('hides default locale', function () {
     Route::get('{lang}/example', fn () => 'Hello, World!')
         ->lang(['de']);
 
-    L10n::registerLocalizedRoute();
+    app(L10n::class)->registerLocalizedRoutes();
 
     $this->get('/en/example')->assertOk();
 });
@@ -59,7 +59,7 @@ it('guess localized route name', function () {
             'it' => 'it/esempio',
         ]);
 
-    L10N::registerLocalizedRoute();
+    app(L10n::class)->registerLocalizedRoutes();
 
     $localizedName = $route->getLocalizedName('it');
 
@@ -86,7 +86,7 @@ it('can generate translated urls', function () {
     Route::get('/', fn () => 'Hello, World!')
         ->name('home');
 
-    L10N::registerLocalizedRoute();
+    app(L10n::class)->registerLocalizedRoutes();
 
     /** @var LocalizedUrlGenerator $urlGenerator */
     $urlGenerator = app(LocalizedUrlGenerator::class);
@@ -110,7 +110,7 @@ it('detects and set the route locale', function () {
             'it' => 'it/esempio',
         ]);
 
-    L10N::registerLocalizedRoute();
+    app(L10n::class)->registerLocalizedRoutes();
 
     $this->get('es/ejemplo');
 
