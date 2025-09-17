@@ -35,13 +35,23 @@ class L10n
                 continue;
             }
 
-            $translations->addTranslations([app()->getFallbackLocale()]);
+            foreach ($translations->genericLocales() as $locale) {
+                $key = "routes.{$route->uri()}";
+
+                if (trans()->hasForLocale($key, $locale)) {
+                    $translations->addTranslations([
+                        $locale => trans($key, locale: $locale),
+                    ]);
+                }
+            }
 
             $hasLangParameter = in_array('lang', $route->parameterNames());
 
             if (! $hasLangParameter && $translations->hasGeneric()) {
                 throw new \LogicException("Localized route \"$route->uri\" requires {lang} parameter.");
             }
+
+            $translations->addTranslations([app()->getFallbackLocale()]);
 
             $this->registerAliasRoutes($route);
 
