@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+### Added
+
+- Supports lang files.
+
 ## v0.1.1
 
 Released on _**2025-09-01**_.

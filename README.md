@@ -105,6 +105,30 @@ class AppServiceProvider extends ServiceProvider
 
 After this change, the `{lang}/example` route will be served by `en/example` for the default locale and `fr/example` for French, ensuring a consistent URL structure across all languages.
 
+### Translations via Language Files
+
+In addition to defining route translations inline, you can also manage them in dedicated language files. 
+This approach keeps your routes clean and centralizes your translations, making them easier to manage.
+The expected file structure is as follows:
+
+```txt
+/lang
+├── /fr
+│   └── /routes.php
+```
+
+Inside your routes.php file, you can map the original route URI to a translated slug.
+For example, given the route `Route::get('/example')->lang(['fr'])`, your translation file would look like this:
+
+```php
+return [
+    'example' => 'exemple'
+]
+```
+
+> [!NOTE]
+> The key should be the route URI **without the prefix** defined using the `prefix()` method, and the value is the translated slug.
+
 ## URL Generation
 
 To seamlessly generate localized URLs, you must swap Laravel's default URL generator with the one provided by this package. 
