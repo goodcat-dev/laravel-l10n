@@ -38,6 +38,8 @@ class L10n
             foreach ($translations->genericLocales() as $locale) {
                 $key = "routes.{$route->uri()}";
 
+                $key = 'routes.' . ltrim($route->uri(), "{$route->getPrefix()}/");
+
                 if (trans()->hasForLocale($key, $locale)) {
                     $translations->addTranslations([
                         $locale => trans($key, locale: $locale),

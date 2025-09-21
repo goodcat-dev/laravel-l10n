@@ -4,8 +4,11 @@ use Goodcat\L10n\L10n;
 use Goodcat\L10n\Middleware\SetLocale;
 use Goodcat\L10n\Routing\LocalizedUrlGenerator;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Translation\Translator;
 
 it('generates localized routes', function () {
+    app(Translator::class)->addPath(__DIR__ . '/../Support/lang');
+
     Route::get('{lang}/example', fn () => 'Hello, World!')
         ->lang([
             'fr', 'de',
@@ -15,12 +18,14 @@ it('generates localized routes', function () {
 
     app(L10n::class)->registerLocalizedRoutes();
 
-    foreach (['/example', '/fr/example', '/de/example', '/es/ejemplo', '/it/esempio'] as $url) {
+    foreach (['/example', '/fr/exemple', '/de/example', '/es/ejemplo', '/it/esempio'] as $url) {
         $this->get($url)->assertOk();
     }
 });
 
 it('generates localized routes with lang prefix', function () {
+    app(Translator::class)->addPath(__DIR__ . '/../Support/lang');
+
     Route::group([
         'prefix' => '{lang}',
         'lang' => ['fr', 'de', 'es', 'it'],
@@ -34,7 +39,7 @@ it('generates localized routes with lang prefix', function () {
 
     app(L10n::class)->registerLocalizedRoutes();
 
-    foreach (['/example', '/fr/example', '/de/example', '/es/ejemplo', '/it/esempio'] as $url) {
+    foreach (['/example', '/fr/exemple', '/de/example', '/es/ejemplo', '/it/esempio'] as $url) {
         $this->get($url)->assertOk();
     }
 });
