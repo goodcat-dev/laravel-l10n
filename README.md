@@ -115,19 +115,22 @@ The expected file structure is as follows:
 /lang
 ├── /fr
 │   └── /routes.php
+├── /de
+│   └── /routes.php
 ```
 
 Inside your routes.php file, you can map the original route URI to a translated slug.
-For example, given the route `Route::get('/example')->lang(['fr'])`, your translation file would look like this:
+For example, given the route `Route::get('{lang}/example')->lang(['fr'])`, your translation file would look like this:
 
 ```php
 return [
-    'example' => 'exemple'
+    '{lang}/example' => 'fr/exemple'
 ]
 ```
 
 > [!NOTE]
-> The key should be the route URI **without the prefix** defined using the `prefix()` method, and the value is the translated slug.
+> The key should be the route URI **without the prefix**, and the value is the translated slug.
+> For example, given the route `Route::get('/example')->prefix('{lang}')`, the key should be `example`.
 
 ## URL Generation
 
