@@ -19,9 +19,13 @@ class LocalizedUrlGenerator extends UrlGenerator
             throw new InvalidArgumentException('Attribute [name] expects a string backed enum.');
         }
 
-        $parameters['lang'] ??= \app()->getLocale();
+        $locale = app()->getLocale();
+
+        $parameters['lang'] ??= $locale;
 
         if (! is_null($route = $this->routes->getByName($name))) {
+            app()->setLocale($parameters['lang']);
+
             $localized = $route->getLocalizedName($parameters['lang']);
 
             if ($localized !== null && $localized !== $name) {
@@ -32,7 +36,11 @@ class LocalizedUrlGenerator extends UrlGenerator
                 unset($parameters['lang']);
             }
 
-            return $this->toRoute($route, $parameters, $absolute);
+            $url = parent::toRoute($route, $parameters, $absolute);
+
+            app()->setLocale($locale);
+
+            return $url;
         }
 
         if (! is_null($this->missingNamedRouteResolver) &&
