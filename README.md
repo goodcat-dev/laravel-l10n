@@ -25,11 +25,11 @@ Get started with `laravel-l10n` in three steps.
    ```
 3. Define localized routes using the `lang()` method.
    ```php
-   Route::get('{lang}/example', Controller::class)
+   Route::get('/example', Controller::class)
        ->lang([
             'fr', 'de',
-            'it' => 'it/esempio',
-            'es' => 'es/ejemplo'
+            'it' => 'esempio',
+            'es' => 'ejemplo'
        ]);
    ```
 
@@ -37,27 +37,8 @@ That's it. You're all set to start using `laravel-l10n`.
 
 ## Route translations
 
-Use the lang() method to define route translations for different locales. 
+Use the `lang()` method to define route translations for different locales. 
 This approach lets you manage multilingual URLs in an intuitive way.
-
-
-### Per-Route Translations
-
-The `lang()` method accepts an array where you can specify your translations.
-
-- For locales **without a custom translation**, like `fr` and `de` in the example, you must include the `{lang}` parameter in the route path. 
-  The resulting URL will be http://example.com/fr/example.
-- For locales **with a custom translation**, like `it` and `es`, the array key represents the language code, and the value is the translated slug. 
-  The URLs will be http://example.com/it/esempio and http://example.com/es/ejemplo.
-
-```php
-Route::get('{lang}/example', Controller::class)
-    ->lang([
-        'fr', 'de',
-        'it' => 'it/esempio',
-        'es' => 'es/ejemplo'
-    ]);
-```
 
 ### Route groups
 
@@ -120,11 +101,11 @@ The expected file structure is as follows:
 ```
 
 Inside your routes.php file, you can map the original route URI to a translated slug.
-For example, given the route `Route::get('{lang}/example')->lang(['fr'])`, your translation file would look like this:
+For example, given the route `Route::get('/example')->lang(['fr'])`, your translation file would look like this:
 
 ```php
 return [
-    '{lang}/example' => 'fr/exemple'
+    'example' => 'exemple'
 ]
 ```
 
