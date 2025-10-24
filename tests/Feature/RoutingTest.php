@@ -23,7 +23,7 @@ it('generates localized routes', function () {
     }
 });
 
-it('generates localized routes with lang prefix', function () {
+it('generates localized routes with {lang} prefix', function () {
     app(Translator::class)->addPath(__DIR__ . '/../Support/lang');
 
     Route::group([
@@ -44,6 +44,23 @@ it('generates localized routes with lang prefix', function () {
     }
 });
 
+it('appends {lang} parameter if missing', function () {
+    app(Translator::class)->addPath(__DIR__ . '/../Support/lang');
+
+    Route::get('/example', fn () => 'Hello, World!')
+        ->lang([
+            'fr', 'de',
+            'es' => 'ejemplo',
+            'it' => 'esempio',
+        ]);
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    foreach (['/example', '/fr/exemple', '/de/example', '/es/ejemplo', '/it/esempio'] as $url) {
+        $this->get($url)->assertOk();
+    }
+});
+
 it('hides default locale', function () {
     L10n::$hideDefaultLocale = false;
 
@@ -53,6 +70,8 @@ it('hides default locale', function () {
     app(L10n::class)->registerLocalizedRoutes();
 
     $this->get('/en/example')->assertOk();
+
+    $this->get('/example')->assertNotFound();
 });
 
 it('guess localized route name', function () {

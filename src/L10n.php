@@ -6,6 +6,7 @@ use Goodcat\L10n\Resolvers\BrowserLocale;
 use Goodcat\L10n\Resolvers\UserPreferredLocale;
 use Goodcat\L10n\Routing\RouteTranslations;
 use Illuminate\Routing\Route;
+use Illuminate\Routing\RouteCollection;
 use Illuminate\Routing\Router;
 
 class L10n
@@ -22,22 +23,22 @@ class L10n
             return;
         }
 
-        $routeCollection = app(Router::class)->getRoutes();
+        $collection = app(Router::class)->getRoutes();
 
-        $routeCollection->refreshNameLookups();
+        $newCollection = new RouteCollection();
 
         /** @var Route $route */
-        foreach ($routeCollection as $route) {
+        foreach ($collection as $route) {
             /** @var RouteTranslations $translations */
             $translations = $route->lang();
 
             if ($translations->isEmpty()) {
+                $newCollection->add($route);
+
                 continue;
             }
 
             foreach ($translations->genericLocales() as $locale) {
-                $key = "routes.{$route->uri()}";
-
                 $key = 'routes.' . ltrim($route->uri(), "{$route->getPrefix()}/");
 
                 if (trans()->hasForLocale($key, $locale)) {
@@ -50,24 +51,30 @@ class L10n
             $hasLangParameter = in_array('lang', $route->parameterNames());
 
             if (! $hasLangParameter && $translations->hasGeneric()) {
-                throw new \LogicException("Localized route \"$route->uri\" requires {lang} parameter.");
+                $route->prefix('{lang}');
+
+                $hasLangParameter = true;
             }
+
+            $newCollection->add($route);
 
             $translations->addTranslations([app()->getFallbackLocale()]);
 
-            $this->registerAliasRoutes($route);
+            $this->registerAliasRoutes($route, $newCollection);
 
             if (self::$hideDefaultLocale && $hasLangParameter) {
-                $this->registerFallbackRoute($route);
+                $this->registerFallbackRoute($route, $newCollection);
             }
 
             if ($hasLangParameter) {
                 $route->whereIn('lang', $translations->genericLocales());
             }
+
+            app(Router::class)->setRoutes($newCollection);
         }
     }
 
-    protected function registerAliasRoutes(Route $route)
+    protected function registerAliasRoutes(Route $route, RouteCollection $collection): void
     {
         /** @var RouteTranslations $translations */
         $translations = $route->lang();
@@ -82,11 +89,11 @@ class L10n
             $action['prefix'] = str_replace('{lang}', $locale, $route->getPrefix());
             $action['locale'] = $locale;
 
-            app(Router::class)->addRoute($route->methods, $uri, $action);
+            $collection->add(new Route($route->methods, $uri, $action));
         }
     }
 
-    protected function registerFallbackRoute(Route $route): void
+    protected function registerFallbackRoute(Route $route, RouteCollection $collection): void
     {
         $action = $route->action;
 
@@ -101,7 +108,7 @@ class L10n
 
         $uri = str_replace('{lang}/', '', $route->uri);
 
-        app(Router::class)->addRoute($route->methods, $uri, $action);
+        $collection->add(new Route($route->methods, $uri, $action));
 
         /** @var RouteTranslations $translations */
         $translations = $route->lang();
