@@ -53,6 +53,8 @@ class L10n
             if (! $hasLangParameter && $translations->hasGeneric()) {
                 $route->prefix('{lang}');
 
+                $route->parameterNames = null;
+
                 $hasLangParameter = true;
             }
 

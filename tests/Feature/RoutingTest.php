@@ -72,6 +72,8 @@ it('hides default locale', function () {
     $this->get('/en/example')->assertOk();
 
     $this->get('/example')->assertNotFound();
+
+    L10n::$hideDefaultLocale = true;
 });
 
 it('guess localized route name', function () {
