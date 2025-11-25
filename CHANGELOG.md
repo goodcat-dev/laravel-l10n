@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.1.3
+
+Released on _**2025-11-25**_.
+
+### Added
+
+- Makes `{lang}` parameter optional.
+- Sets route locale during url generation.
+- Makes `{lang}` parameter invisible to controllers.
+- Adds `L10n::forgetRoute()` method.
+
+### Fixed
+
+- Cached `{lang}` parameter during route registration.
+
 ## v0.1.2
 
 Released on _**2025-09-22**_.

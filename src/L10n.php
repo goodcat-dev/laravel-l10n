@@ -2,6 +2,7 @@
 
 namespace Goodcat\L10n;
 
+use Closure;
 use Goodcat\L10n\Resolvers\BrowserLocale;
 use Goodcat\L10n\Resolvers\UserPreferredLocale;
 use Goodcat\L10n\Routing\RouteTranslations;
@@ -25,22 +26,20 @@ class L10n
 
         $collection = app(Router::class)->getRoutes();
 
-        $newCollection = new RouteCollection();
-
         /** @var Route $route */
         foreach ($collection as $route) {
             /** @var RouteTranslations $translations */
             $translations = $route->lang();
 
             if ($translations->isEmpty()) {
-                $newCollection->add($route);
-
                 continue;
             }
 
-            foreach ($translations->genericLocales() as $locale) {
-                $key = 'routes.' . ltrim($route->uri(), "{$route->getPrefix()}/");
+            $this->forgetRoute($route, $collection);
 
+            $key = 'routes.' . ltrim($route->uri(), "{$route->getPrefix()}/");
+
+            foreach ($translations->genericLocales() as $locale) {
                 if (trans()->hasForLocale($key, $locale)) {
                     $translations->addTranslations([
                         $locale => trans($key, locale: $locale),
@@ -48,32 +47,38 @@ class L10n
                 }
             }
 
-            $hasLangParameter = in_array('lang', $route->parameterNames());
+            $translations->addTranslations([
+                app()->getFallbackLocale() => self::$hideDefaultLocale
+                    ? str_replace($route->getPrefix(), '', $route->uri())
+                    : null
+            ]);
 
-            if (! $hasLangParameter && $translations->hasGeneric()) {
-                $route->prefix('{lang}');
+            $this->registerGenericRoute($route, $collection);
 
-                $route->parameterNames = null;
-
-                $hasLangParameter = true;
-            }
-
-            $newCollection->add($route);
-
-            $translations->addTranslations([app()->getFallbackLocale()]);
-
-            $this->registerAliasRoutes($route, $newCollection);
-
-            if (self::$hideDefaultLocale && $hasLangParameter) {
-                $this->registerFallbackRoute($route, $newCollection);
-            }
-
-            if ($hasLangParameter) {
-                $route->whereIn('lang', $translations->genericLocales());
-            }
-
-            app(Router::class)->setRoutes($newCollection);
+            $this->registerAliasRoutes($route, $collection);
         }
+    }
+
+    protected function registerGenericRoute(Route $route, RouteCollection $collection): void
+    {
+        /** @var RouteTranslations $translations */
+        $translations = $route->lang();
+
+        if (! $translations->hasGeneric()) {
+            return;
+        }
+
+        $genericRoute = clone $route;
+
+        $hasLangParameter = in_array('lang', $route->parameterNames());
+
+        if (! $hasLangParameter) {
+            $genericRoute->prefix('{lang}');
+        }
+
+        $genericRoute->whereIn('lang', $translations->genericLocales());
+
+        $collection->add($genericRoute);
     }
 
     protected function registerAliasRoutes(Route $route, RouteCollection $collection): void
@@ -81,41 +86,32 @@ class L10n
         /** @var RouteTranslations $translations */
         $translations = $route->lang();
 
-        foreach (array_filter($translations->all()) as $locale => $uri) {
+        foreach ($translations->aliasLocales() as $locale) {
             $action = $route->action;
 
-            if ($route->getName()) {
-                $action['as'] = "{$route->getName()}#$locale";
-            }
-
-            $action['prefix'] = str_replace('{lang}', $locale, $route->getPrefix());
             $action['locale'] = $locale;
 
-            $collection->add(new Route($route->methods, $uri, $action));
+            if ($name = $route->getName()) {
+                $action['as'] = "$name#$locale";
+            }
+
+            $uri = str_replace('{lang}', $locale, $translations->all()[$locale]);
+
+            if ($prefix = $route->getPrefix()) {
+                $action['prefix'] = str_replace('{lang}', $locale, $prefix);
+            }
+
+            if (
+                self::$hideDefaultLocale
+                && app()->isFallbackLocale($locale)
+            ) {
+                $uri = preg_replace('#/+#', '/', str_replace($locale, '', $uri));
+
+                $action['prefix'] = preg_replace('#/+#', '/', str_replace($locale, '', $action['prefix'] ?? ''));
+            }
+
+            $collection->add(new Route($route->methods(), $uri, $action));
         }
-    }
-
-    protected function registerFallbackRoute(Route $route, RouteCollection $collection): void
-    {
-        $action = $route->action;
-
-        $fallback = app()->getFallbackLocale();
-
-        if ($route->getName()) {
-            $action['as'] = "{$route->getName()}#$fallback";
-        }
-
-        $action['prefix'] = '';
-        $action['locale'] = $fallback;
-
-        $uri = str_replace('{lang}/', '', $route->uri);
-
-        $collection->add(new Route($route->methods, $uri, $action));
-
-        /** @var RouteTranslations $translations */
-        $translations = $route->lang();
-
-        $translations->addTranslations([$fallback => $uri]);
     }
 
     public static function getPreferredLocaleResolvers(): array
@@ -128,5 +124,27 @@ class L10n
         }
 
         return self::$preferredLocaleResolvers;
+    }
+
+    public function forgetRoute(Route $route, RouteCollection $collection): void
+    {
+        $forget = Closure::bind(function (Route $route): void {
+            $methods = $route->methods();
+            $domainAndUri = $route->getDomain().$route->uri();
+
+            foreach ($methods as $method) {
+                unset($this->routes[$method][$domainAndUri]);
+            }
+
+            unset($this->allRoutes[implode('|', $methods).$domainAndUri]);
+
+            if ($name = $route->getName()) {
+                unset($this->nameList[$name]);
+            }
+
+            unset($this->actionList[$route->getActionName()]);
+        }, $collection, RouteCollection::class);
+
+        $forget($route);
     }
 }

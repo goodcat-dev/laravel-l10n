@@ -3,6 +3,8 @@
 use Goodcat\L10n\L10n;
 use Goodcat\L10n\Middleware\SetLocale;
 use Goodcat\L10n\Routing\LocalizedUrlGenerator;
+use Goodcat\L10n\Tests\Support\Controller;
+use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Translation\Translator;
 
@@ -45,8 +47,6 @@ it('generates localized routes with {lang} prefix', function () {
 });
 
 it('appends {lang} parameter if missing', function () {
-    app(Translator::class)->addPath(__DIR__ . '/../Support/lang');
-
     Route::get('/example', fn () => 'Hello, World!')
         ->lang([
             'fr', 'de',
@@ -56,7 +56,7 @@ it('appends {lang} parameter if missing', function () {
 
     app(L10n::class)->registerLocalizedRoutes();
 
-    foreach (['/example', '/fr/exemple', '/de/example', '/es/ejemplo', '/it/esempio'] as $url) {
+    foreach (['/example', '/fr/example', '/de/example', '/ejemplo', '/esempio'] as $url) {
         $this->get($url)->assertOk();
     }
 });
@@ -112,6 +112,8 @@ it('can generate translated urls', function () {
     Route::get('/', fn () => 'Hello, World!')
         ->name('home');
 
+    Route::getRoutes()->refreshNameLookups();
+
     app(L10n::class)->registerLocalizedRoutes();
 
     /** @var LocalizedUrlGenerator $urlGenerator */
@@ -145,4 +147,20 @@ it('detects and set the route locale', function () {
     $this->get('de/example');
 
     expect(app()->getLocale())->toBe('de');
+});
+
+it('removes a route from the route collection', function () {
+    $route = Route::get('/example', Controller::class)->name('example');
+
+    $collection = app(Router::class)->getRoutes();
+
+    $collection->refreshNameLookups();
+    $collection->refreshActionLookups();
+
+    app(L10n::class)->forgetRoute($route, $collection);
+
+    expect($collection->hasNamedRoute('example'))
+        ->toBeFalse()
+        ->and($collection->getByAction($route->getActionName()))
+        ->toBeNull();
 });

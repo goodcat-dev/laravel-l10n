@@ -21,9 +21,19 @@ class LocalizedApplication
     {
         return function (string $locale): void {
             /** @var Application $this */
+
             $this['config']->set('app.preferred_locale', $locale);
 
             $this['events']->dispatch(new PreferredLocaleUpdated($locale));
+        };
+    }
+
+    public function isFallbackLocale(): Closure
+    {
+        return function (string $locale): bool {
+            /** @var Application $this */
+
+            return $this->getFallbackLocale() === $locale;
         };
     }
 }

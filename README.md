@@ -5,6 +5,9 @@
 
 An opinionated Laravel package for app localization.
 
+> [!NOTE]
+> This package is in early development. The API may change as features are refined. Feedback and contributions are welcome.
+
 ## Quickstart
 
 Get started with `laravel-l10n` in three steps.
