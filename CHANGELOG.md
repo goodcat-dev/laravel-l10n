@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+### Added
+
+- Adds support for `Route::lang()->group()` syntax.
+
 ## v0.1.3
 
 Released on _**2025-11-25**_.

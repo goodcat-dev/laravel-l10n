@@ -52,19 +52,17 @@ In the example below, the route group defines the supported locales (`fr`, `de`,
 Inside the group, the `example` route inherits these settings, but you can add specific translations with the `lang()` method.
 
 ```php
-Route::group([
-    'lang' => ['fr', 'de', 'it', 'es'],
-    'prefix' => '{lang}'
-], function () {
-    Route::get('/example', Controller::class)
-        ->lang(['it' => 'esempio']);
-});
+Route::prefix('{lang}')
+    ->lang(['fr', 'de', 'it', 'es'])
+    ->group(function () {
+        Route::get('/example', Controller::class)
+            ->lang(['it' => 'esempio']);
+    });
 ```
 
 > [!NOTE]
-> The lang() method is not designed to be a standalone group method. 
-> The syntax `Route::lang()->group()` is not supported. 
-> Instead, you must define the lang key directly inside the `Route::group()` array, as shown in the example above.
+> When using `lang()` on a route group, you should only specify generic locales `['fr', 'de']`, not aliases `['it' => 'esempio']`.
+> Aliases are meant for individual routes and don't make sense at the group level, as they would apply the same translation to all routes in the group.
 
 ### Hiding the Default Locale
 

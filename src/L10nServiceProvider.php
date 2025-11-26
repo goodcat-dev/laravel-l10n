@@ -5,10 +5,13 @@ namespace Goodcat\L10n;
 use Goodcat\L10n\Listeners\RegisterLocalizedViewsPath;
 use Goodcat\L10n\Mixin\LocalizedApplication;
 use Goodcat\L10n\Mixin\LocalizedRoute;
+use Goodcat\L10n\Mixin\LangMixin;
 use Goodcat\L10n\Routing\LocalizedUrlGenerator;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Events\LocaleUpdated;
 use Illuminate\Routing\Route;
+use Illuminate\Routing\Router;
+use Illuminate\Routing\RouteRegistrar;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 
@@ -39,8 +42,12 @@ class L10nServiceProvider extends ServiceProvider
         });
 
         Application::mixin(new LocalizedApplication);
-
         Route::mixin(new LocalizedRoute);
+
+        $langMixin = new LangMixin;
+
+        RouteRegistrar::mixin($langMixin);
+        Router::mixin($langMixin);
     }
 
     protected function requestRebinder(): \Closure
