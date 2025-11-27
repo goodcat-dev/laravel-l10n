@@ -12,8 +12,6 @@ class BrowserLocale implements PreferredLocaleResolver
         /** @var RouteTranslations $route */
         $translations = $request->route()->lang();
 
-        $locales = array_intersect($request->getLanguages(), $translations->locales());
-
-        return array_pop($locales);
+        return $request->getPreferredLanguage($translations->locales());
     }
 }

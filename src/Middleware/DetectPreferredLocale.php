@@ -18,7 +18,7 @@ class DetectPreferredLocale
 
         foreach ($resolvers as $resolver) {
             if ($locale = $resolver->resolve($request)) {
-                \app()->setPreferredLocale($locale);
+                app()->setPreferredLocale($locale);
 
                 break;
             }

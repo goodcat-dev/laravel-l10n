@@ -48,7 +48,7 @@ class L10nServiceProvider extends ServiceProvider
        */
 
 //        $langMixin = new LangMixin;
-//        
+
 //        RouteRegistrar::mixin($langMixin);
 //        Router::mixin($langMixin);
     }

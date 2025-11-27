@@ -20,8 +20,10 @@ class SetLocale
         if ($locale) {
             app()->setLocale($locale);
 
-            $route->forgetParameter('lang');
+            $request->setLocale($locale);
         }
+
+        $route->forgetParameter('lang');
 
         return $next($request);
     }
