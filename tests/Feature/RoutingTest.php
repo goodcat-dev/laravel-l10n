@@ -28,15 +28,16 @@ it('generates localized routes', function () {
 it('generates localized routes with {lang} prefix', function () {
     app(Translator::class)->addPath(__DIR__ . '/../Support/lang');
 
-    Route::lang(['fr', 'de', 'es', 'it'])
-        ->prefix('{lang}')
-        ->group(function () {
-            Route::get('/example', fn () => 'Hello, World!')
-                ->lang([
-                    'it' => '/esempio',
-                    'es' => '/ejemplo',
-                ]);
-        });
+    Route::group([
+        'lang' => ['fr', 'de', 'es', 'it'],
+        'prefix' => '{lang}',
+    ], function () {
+        Route::get('/example', fn () => 'Hello, World!')
+            ->lang([
+                'it' => '/esempio',
+                'es' => '/ejemplo',
+            ]);
+    });
 
     app(L10n::class)->registerLocalizedRoutes();
 
