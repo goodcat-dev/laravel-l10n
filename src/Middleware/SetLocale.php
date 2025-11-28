@@ -15,16 +15,11 @@ class SetLocale
     {
         $route = $request->route();
 
-        /** @var ?string $locale */
-        $locale = $route->parameter('lang', $route->getAction('locale'));
-
-        if ($locale) {
+        if ($locale = $route->getAction('locale')) {
             app()->setLocale($locale);
 
             $request->setLocale($locale);
         }
-
-        $route->forgetParameter('lang');
 
         return $next($request);
     }
