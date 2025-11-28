@@ -42,6 +42,7 @@ it('generates localized routes with {lang} prefix', function () {
     app(L10n::class)->registerLocalizedRoutes();
 
     foreach (['/example', '/fr/exemple', '/de/example', '/es/ejemplo', '/it/esempio'] as $url) {
+
         $this->get($url)->assertOk();
     }
 });

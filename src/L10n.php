@@ -4,6 +4,7 @@ namespace Goodcat\L10n;
 
 use Closure;
 use Goodcat\L10n\Resolvers\BrowserLocale;
+use Goodcat\L10n\Resolvers\PreferredLocaleResolver;
 use Goodcat\L10n\Resolvers\UserPreferredLocale;
 use Goodcat\L10n\Routing\RouteTranslations;
 use Illuminate\Routing\Route;
@@ -16,6 +17,7 @@ class L10n
 
     public static string $localizedViewsPath = '';
 
+    /** @var PreferredLocaleResolver[] */
     public static array $preferredLocaleResolvers;
 
     public function registerLocalizedRoutes(): void
@@ -24,10 +26,10 @@ class L10n
             return;
         }
 
+        /** @var RouteCollection $collection */
         $collection = app(Router::class)->getRoutes();
 
-        /** @var Route $route */
-        foreach ($collection as $route) {
+        foreach ($collection->getRoutes() as $route) {
             /** @var RouteTranslations $translations */
             $translations = $route->lang();
 
@@ -114,6 +116,9 @@ class L10n
         }
     }
 
+    /**
+     * @return PreferredLocaleResolver[]
+     */
     public static function getPreferredLocaleResolvers(): array
     {
         if (! isset(self::$preferredLocaleResolvers)) {

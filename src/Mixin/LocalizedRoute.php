@@ -12,6 +12,7 @@ class LocalizedRoute
     {
         return function (?array $translations = null): Route|RouteTranslations {
             /** @var Route $this */
+
             $lang = $this->action['lang'] ?? [];
 
             if (is_array($lang)) {

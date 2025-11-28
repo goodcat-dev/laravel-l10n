@@ -4,13 +4,21 @@ namespace Goodcat\L10n\Routing;
 
 class RouteTranslations
 {
+    /** @var array<string, ?string> */
     protected array $lang = [];
 
+    /**
+     * @param array<array-key, string> $translations
+     */
     public function __construct(array $translations)
     {
         $this->addTranslations($translations);
     }
 
+    /**
+     * @param array<array-key, string> $translations
+     * @return $this
+     */
     public function addTranslations(array $translations = []): self
     {
         foreach ($translations as $locale => $translation) {

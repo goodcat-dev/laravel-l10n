@@ -9,3 +9,10 @@ parameters:
         - tests/
 
     level: 7
+
+    ignoreErrors:
+        - '#Call to an undefined method Illuminate\\Routing\\Route::lang\(\)#'
+        - '#Call to an undefined method Illuminate\\Foundation\\Application::isFallbackLocale\(\)#'
+        - '#Call to an undefined method Illuminate\\Routing\\Route::getLocalizedName\(\)#'
+        - '#Call to an undefined method Illuminate\\Routing\\RouteRegistrar::lang\(\)#'
+        - '#Call to an undefined method Illuminate\\Foundation\\Application::setPreferredLocale\(\)#'
