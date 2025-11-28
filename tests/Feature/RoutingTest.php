@@ -57,7 +57,7 @@ it('appends {lang} parameter if missing', function () {
 
     app(L10n::class)->registerLocalizedRoutes();
 
-    foreach (['/example', '/fr/example', '/de/example', '/ejemplo', '/esempio'] as $url) {
+    foreach (['/example', '/fr/example', '/de/example', 'es/ejemplo', 'it/esempio'] as $url) {
         $this->get($url)->assertOk();
     }
 });

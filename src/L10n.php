@@ -14,6 +14,7 @@ use Illuminate\Routing\Router;
 class L10n
 {
     public static bool $hideDefaultLocale = true;
+    public static bool $hideAliasLocale = false;
 
     public static string $localizedViewsPath = '';
 
@@ -39,6 +40,10 @@ class L10n
 
             $this->forgetRoute($route, $collection);
 
+            if (! in_array('lang', $route->parameterNames())) {
+                $route->prefix('{lang}');
+            }
+
             $key = 'routes.' . ltrim($route->uri(), "{$route->getPrefix()}/");
 
             foreach ($translations->genericLocales() as $locale) {
@@ -55,62 +60,40 @@ class L10n
                     : null
             ]);
 
-            $this->registerGenericRoute($route, $collection);
-
-            $this->registerAliasRoutes($route, $collection);
+            $this->registerRoutes($route, $collection);
         }
     }
 
-    protected function registerGenericRoute(Route $route, RouteCollection $collection): void
+    protected function registerRoutes(Route $route, RouteCollection $collection): void
     {
         /** @var RouteTranslations $translations */
         $translations = $route->lang();
 
-        if (! $translations->hasGeneric()) {
-            return;
-        }
+        $prefix = $route->getPrefix() ?? '';
 
-        $genericRoute = clone $route;
-
-        $hasLangParameter = in_array('lang', $route->parameterNames());
-
-        if (! $hasLangParameter) {
-            $genericRoute->prefix('{lang}');
-        }
-
-        $genericRoute->whereIn('lang', $translations->genericLocales());
-
-        $collection->add($genericRoute);
-    }
-
-    protected function registerAliasRoutes(Route $route, RouteCollection $collection): void
-    {
-        /** @var RouteTranslations $translations */
-        $translations = $route->lang();
-
-        foreach ($translations->aliasLocales() as $locale) {
+        foreach ($translations->all() as $locale => $uri) {
             $action = $route->action;
 
             $action['locale'] = $locale;
 
-            if ($name = $route->getName()) {
+            $uri ??= preg_replace("#^$prefix#", '', $route->uri());
+
+            $isFallbackLocale = app()->isFallbackLocale($locale);
+
+            if (($name = $route->getName()) && ! $isFallbackLocale) {
                 $action['as'] = "$name#$locale";
             }
 
-            $uri = str_replace('{lang}', $locale, $translations->all()[$locale]);
-
-            if ($prefix = $route->getPrefix()) {
-                $action['prefix'] = str_replace('{lang}', $locale, $prefix);
-            }
-
             if (
-                self::$hideDefaultLocale
-                && app()->isFallbackLocale($locale)
+                (self::$hideAliasLocale && $translations->hasAlias($locale))
+                || ($isFallbackLocale && self::$hideDefaultLocale)
             ) {
-                $uri = preg_replace('#/+#', '/', str_replace($locale, '', $uri));
-
-                $action['prefix'] = preg_replace('#/+#', '/', str_replace($locale, '', $action['prefix'] ?? ''));
+                $locale = '';
             }
+
+            $uri = preg_replace('#/+#', '/', str_replace('{lang}', $locale, $uri));
+
+            $action['prefix'] = preg_replace('#/+#', '/', str_replace('{lang}', $locale, $prefix));
 
             $collection->add(new Route($route->methods(), $uri, $action));
         }

@@ -75,15 +75,33 @@ class RouteTranslations
      */
     public function genericLocales(): array
     {
-        return array_keys(array_filter($this->lang, fn ($translation) => $translation === null));
+        $genericLocales = array_keys(array_filter($this->lang, fn ($translation) => $translation === null));
+
+        unset($genericLocales[app()->getFallbackLocale()]);
+
+        return $genericLocales;
     }
 
     /**
-     * @return list<string>
+     * @return array<string, string>
      */
     public function aliasLocales(): array
     {
-        return array_keys(array_filter($this->lang));
+        $aliasLocales = array_filter($this->lang);
+
+        unset($aliasLocales[app()->getFallbackLocale()]);
+
+        return $aliasLocales;
+    }
+
+    /**
+     * @return array{string, ?string}
+     */
+    public function fallbackLocale(): array
+    {
+        $fallbackLocale = app()->getFallbackLocale();
+
+        return [$fallbackLocale, $this->lang[$fallbackLocale]];
     }
 
     /**
