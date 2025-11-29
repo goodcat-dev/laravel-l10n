@@ -2,7 +2,6 @@
 
 use Goodcat\L10n\L10n;
 use Goodcat\L10n\Middleware\SetLocale;
-use Goodcat\L10n\Routing\LocalizedUrlGenerator;
 use Goodcat\L10n\Tests\Support\Controller;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Config;
@@ -105,7 +104,7 @@ it('guess localized route name', function () {
         ->and($route->getLocalizedName('gr'))
         ->toBeNull()
         ->and($route->getLocalizedName('fr'))
-        ->toBe('example');
+        ->toBe('example#fr');
 
 });
 
