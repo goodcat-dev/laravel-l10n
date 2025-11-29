@@ -16,6 +16,10 @@ class L10nServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
+        $this->publishes([
+            __DIR__.'/../config/l10n.php' => config_path('l10n.php'),
+        ]);
+
         $this->app->booted(fn () => app(L10n::class)->registerLocalizedRoutes());
 
         Event::listen(LocaleUpdated::class, RegisterLocalizedViewsPath::class);
@@ -26,6 +30,8 @@ class L10nServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->mergeConfigFrom(__DIR__.'/../config/l10n.php', 'l10n');
+
         $this->app->singleton(LocalizedUrlGenerator::class, function (Application $app) {
             $routes = $app['router']->getRoutes();
 

@@ -6,7 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- Adds support for `Route::lang()->group()` syntax.
+- Removes `{lang}` parameter from routes.
+- Adds `l10n.php` config file.
 
 ## v0.1.3
 

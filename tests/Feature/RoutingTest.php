@@ -5,6 +5,7 @@ use Goodcat\L10n\Middleware\SetLocale;
 use Goodcat\L10n\Routing\LocalizedUrlGenerator;
 use Goodcat\L10n\Tests\Support\Controller;
 use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Translation\Translator;
 
@@ -63,7 +64,7 @@ it('appends {lang} parameter if missing', function () {
 });
 
 it('hides default locale', function () {
-    L10n::$hideDefaultLocale = false;
+    Config::set('l10n.hide_default_locale', false);
 
     Route::get('{lang}/example', fn () => 'Hello, World!')
         ->lang(['de']);
@@ -73,8 +74,6 @@ it('hides default locale', function () {
     $this->get('/en/example')->assertOk();
 
     $this->get('/example')->assertNotFound();
-
-    L10n::$hideDefaultLocale = true;
 });
 
 it('guess localized route name', function () {

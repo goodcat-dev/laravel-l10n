@@ -13,9 +13,6 @@ use Illuminate\Routing\Router;
 
 class L10n
 {
-    public static bool $hideDefaultLocale = true;
-    public static bool $hideAliasLocale = false;
-
     public static string $localizedViewsPath = '';
 
     /** @var PreferredLocaleResolver[] */
@@ -55,7 +52,7 @@ class L10n
             }
 
             $translations->addTranslations([
-                app()->getFallbackLocale() => self::$hideDefaultLocale
+                app()->getFallbackLocale() => config('l10n.hide_default_locale')
                     ? str_replace($route->getPrefix(), '', $route->uri())
                     : null
             ]);
@@ -85,8 +82,8 @@ class L10n
             }
 
             if (
-                (self::$hideAliasLocale && $translations->hasAlias($locale))
-                || ($isFallbackLocale && self::$hideDefaultLocale)
+                (config('l10n.hide_alias_locale') && $translations->hasAlias($locale))
+                || ($isFallbackLocale && config('l10n.hide_default_locale'))
             ) {
                 $locale = '';
             }
