@@ -125,27 +125,10 @@ return [
 
 ## URL Generation
 
-To seamlessly generate localized URLs, you must swap Laravel's default URL generator with the one provided by this package.
-This ensures that the `route()` helper automatically generates the correct URLs for the current locale without any extra steps.
+The package automatically replaces Laravel's default URL generator with `LocalizedUrlGenerator`, ensuring that the `route()` helper generates the correct URLs for the current locale without any extra configuration.
 
-### Registering the Localized URL Generator
-
-In the `register()` method of your `AppServiceProvider`, replace the default `UrlGenerator` instance with `LocalizedUrlGenerator`.
-
-```php
-use Goodcat\L10n\Routing\LocalizedUrlGenerator;
-use Illuminate\Support\ServiceProvider;
-
-class AppServiceProvider extends ServiceProvider
-{
-    public function register(): void
-    {
-        $this->app->alias(LocalizedUrlGenerator::class, 'url');
-    }
-}
-```
-
-By aliasing the class to `url`, any use of the `route()` helper will now use the localized generator.
+> [!NOTE]
+> If you need to use a custom URL generator, you can override it in your `AppServiceProvider` by aliasing your own implementation to the `url` service.
 
 ### Using the `route()` Helper
 

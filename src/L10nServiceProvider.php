@@ -44,6 +44,8 @@ class L10nServiceProvider extends ServiceProvider
             );
         });
 
+        $this->app->alias(LocalizedUrlGenerator::class, 'url');
+
         Application::mixin(new LocalizedApplication);
         Route::mixin(new LocalizedRoute);
 

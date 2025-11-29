@@ -100,17 +100,13 @@ it('guess localized route name', function () {
 
     app(L10n::class)->registerLocalizedRoutes();
 
-    $localizedName = $route->getLocalizedName('it');
+    expect($route->getLocalizedName('it'))
+        ->toBe('example#it')
+        ->and($route->getLocalizedName('gr'))
+        ->toBeNull()
+        ->and($route->getLocalizedName('fr'))
+        ->toBe('example');
 
-    expect($localizedName)->toBe('example#it');
-
-    $missingName = $route->getLocalizedName('gr');
-
-    expect($missingName)->toBeNull();
-
-    $baseName = $route->getLocalizedName('fr');
-
-    expect($baseName)->toBe('example');
 });
 
 it('can generate translated urls', function () {
@@ -125,20 +121,16 @@ it('can generate translated urls', function () {
     Route::get('/', fn () => 'Hello, World!')
         ->name('home');
 
-    Route::getRoutes()->refreshNameLookups();
-
     app(L10n::class)->registerLocalizedRoutes();
 
-    /** @var LocalizedUrlGenerator $urlGenerator */
-    $urlGenerator = app(LocalizedUrlGenerator::class);
+    app()->setLocale('de');
 
-    $localizedUrl = $urlGenerator->route('example', ['lang' => 'it']);
-
-    expect($localizedUrl)->toBe('http://localhost/it/esempio');
-
-    $url = $urlGenerator->route('home');
-
-    expect($url)->toBe('http://localhost');
+    expect(route('example', ['lang' => 'it']))
+        ->toBe('http://localhost/it/esempio')
+        ->and(route('example'))
+        ->toBe('http://localhost/de/example')
+        ->and(route('home'))
+        ->toBe('http://localhost');
 });
 
 it('detects and set the route locale', function () {

@@ -32,8 +32,10 @@ class LocalizedRoute
         return function (string $locale): ?string {
             /** @var Route $this */
             $name = $this->getName();
+            /** @var RouteTranslations $translations */
+            $translations = $this->lang();
 
-            if (! $name || ! $this->lang()->has($locale)) {
+            if (! $name || ! $translations->has($locale)) {
                 return null;
             }
 
@@ -41,11 +43,11 @@ class LocalizedRoute
                 $name = preg_replace("/#$lang$/", '', $name);
             }
 
-            if ($this->lang()->hasAlias($locale)) {
-                $name .= "#$locale";
+            if (app()->isFallbackLocale($locale)) {
+                return $name;
             }
 
-            return $name;
+            return "$name#$locale";
         };
     }
 }

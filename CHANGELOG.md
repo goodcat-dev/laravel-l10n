@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - Removes `{lang}` parameter from routes.
 - Adds `l10n.php` config file.
+- Auto-registers `LocalizedUrlGenerator` as `url`.
 
 ## v0.1.3
 
