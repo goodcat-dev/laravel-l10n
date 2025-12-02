@@ -18,7 +18,7 @@ class L10n
 
     public function registerLocalizedRoutes(): void
     {
-        if (\app()->routesAreCached()) {
+        if (app()->routesAreCached()) {
             return;
         }
 

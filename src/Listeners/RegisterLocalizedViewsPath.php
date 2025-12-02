@@ -2,7 +2,6 @@
 
 namespace Goodcat\L10n\Listeners;
 
-use Goodcat\L10n\L10n;
 use Illuminate\Foundation\Events\LocaleUpdated;
 use Illuminate\View\Factory;
 

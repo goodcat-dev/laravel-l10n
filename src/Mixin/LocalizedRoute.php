@@ -43,11 +43,11 @@ class LocalizedRoute
                 $name = preg_replace("/#$lang$/", '', $name);
             }
 
-            if (app()->isFallbackLocale($locale)) {
-                return $name;
+            if (! app()->isFallbackLocale($locale)) {
+                $name .= "#$locale";
             }
 
-            return "$name#$locale";
+            return $name;
         };
     }
 }

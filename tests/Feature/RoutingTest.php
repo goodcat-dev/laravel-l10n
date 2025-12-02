@@ -76,14 +76,14 @@ it('hides default locale', function () {
 });
 
 it('hides alias locale', function () {
-    Config::set('l10n.hide_alias_locale', false);
+    Config::set('l10n.hide_alias_locale', true);
 
     Route::get('/example', fn () => 'Hello, World!')
         ->lang(['es', 'it' => 'esempio']);
 
     app(L10n::class)->registerLocalizedRoutes();
 
-    foreach (['/example', '/es/example', 'it/esempio'] as $url) {
+    foreach (['/example', '/es/example', '/esempio'] as $url) {
         $this->get($url)->assertOk();
     }
 });
