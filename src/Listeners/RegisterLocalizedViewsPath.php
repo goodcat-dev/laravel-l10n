@@ -8,6 +8,8 @@ use Illuminate\View\Factory;
 
 class RegisterLocalizedViewsPath
 {
+    protected string $currentPath = '';
+
     public function __invoke(LocaleUpdated $event): void
     {
         /** @var Factory $views */
@@ -15,7 +17,7 @@ class RegisterLocalizedViewsPath
 
         $paths = $views->getFinder()->getPaths();
 
-        $index = array_search(L10n::$localizedViewsPath, $paths, true);
+        $index = array_search($this->currentPath, $paths, true);
 
         if ($index !== false) {
             unset($paths[$index]);
@@ -25,9 +27,9 @@ class RegisterLocalizedViewsPath
 
         $newPath = \resource_path('views/'.$event->locale);
 
-        L10n::$localizedViewsPath = is_dir($newPath) ? $newPath : '';
+        $this->currentPath = is_dir($newPath) ? $newPath : '';
 
-        if (L10n::$localizedViewsPath) {
+        if ($this->currentPath) {
             $views->prependLocation($newPath);
         }
     }

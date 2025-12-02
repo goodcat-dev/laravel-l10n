@@ -1,10 +1,12 @@
 <?php
 
 use Goodcat\L10n\L10n;
+use Goodcat\L10n\Listeners\RegisterLocalizedViewsPath;
 use Illuminate\View\Factory;
+use Illuminate\View\FileViewFinder;
 
 it('register localized views path', function () {
-    $path = \resource_path('views/'.'es');
+    $path = resource_path('views/es');
 
     if (! file_exists($path)) {
         mkdir($path);
@@ -12,26 +14,13 @@ it('register localized views path', function () {
 
     app()->setLocale('es');
 
-    expect(L10n::$localizedViewsPath)->toBe($path);
+    $paths = app('view')->getFinder()->getPaths();
 
-    /** @var Factory $views */
-    $views = \app('view');
-
-    $this->assertContains($path, $views->getFinder()->getPaths());
+    expect($paths)->toContain($path);
 
     rmdir($path);
-});
 
-it('replace localized views path', function () {
-    $path = \resource_path('views/'.'es');
-
-    if (! file_exists($path)) {
-        mkdir($path);
-    }
-
-    app()->setLocale('es');
-
-    $replace = \resource_path('views/'.'it');
+    $replace = resource_path('views/it');
 
     if (! file_exists($replace)) {
         mkdir($replace);
@@ -39,16 +28,11 @@ it('replace localized views path', function () {
 
     app()->setLocale('it');
 
-    expect(L10n::$localizedViewsPath)->toBe($replace);
+    $paths = app('view')->getFinder()->getPaths();
 
-    /** @var Factory $views */
-    $views = \app('view');
-
-    $this->assertContains($replace, $views->getFinder()->getPaths());
-
-    $this->assertNotContains($path, $views->getFinder()->getPaths());
-
-    rmdir($path);
+    expect($paths)
+        ->toContain($replace)
+        ->not->toContain($path);
 
     rmdir($replace);
 });

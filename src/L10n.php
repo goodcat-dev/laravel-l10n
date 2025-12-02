@@ -13,8 +13,6 @@ use Illuminate\Routing\Router;
 
 class L10n
 {
-    public static string $localizedViewsPath = '';
-
     /** @var PreferredLocaleResolver[] */
     public static array $preferredLocaleResolvers;
 
