@@ -2,13 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## v0.2.0
+
+Released on _**2025-12-04**_.
 
 ### Added
 
 - Removes `{lang}` parameter from routes.
 - Adds `l10n.php` config file.
 - Auto-registers `LocalizedUrlGenerator` as `url`.
+
+### Changed
+
+- Moves `$localizedViewsPath` to `RegisterLocalizedViewsPath::class`.
 
 ## v0.1.3
 
