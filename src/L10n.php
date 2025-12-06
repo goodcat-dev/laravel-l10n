@@ -3,6 +3,7 @@
 namespace Goodcat\L10n;
 
 use Closure;
+use Goodcat\L10n\Mixin\LocalizedRoute;
 use Goodcat\L10n\Resolvers\BrowserLocale;
 use Goodcat\L10n\Resolvers\PreferredLocaleResolver;
 use Goodcat\L10n\Resolvers\UserPreferredLocale;
@@ -26,6 +27,8 @@ class L10n
         $collection = app(Router::class)->getRoutes();
 
         foreach ($collection->getRoutes() as $route) {
+            /** @var Route|LocalizedRoute $route */
+
             /** @var RouteTranslations $translations */
             $translations = $route->lang();
 
@@ -34,10 +37,6 @@ class L10n
             }
 
             $this->forgetRoute($route, $collection);
-
-            if (! in_array('lang', $route->parameterNames())) {
-                $route->prefix('{lang}');
-            }
 
             $key = 'routes.' . ltrim($route->uri(), "{$route->getPrefix()}/");
 
@@ -55,42 +54,9 @@ class L10n
                     : null
             ]);
 
-            $this->registerRoutes($route, $collection);
-        }
-    }
-
-    protected function registerRoutes(Route $route, RouteCollection $collection): void
-    {
-        /** @var RouteTranslations $translations */
-        $translations = $route->lang();
-
-        $prefix = $route->getPrefix() ?? '';
-
-        foreach ($translations->all() as $locale => $uri) {
-            $action = $route->action;
-
-            $action['locale'] = $locale;
-
-            $uri ??= preg_replace("#^$prefix#", '', $route->uri());
-
-            $isFallbackLocale = app()->isFallbackLocale($locale);
-
-            if (($name = $route->getName()) && ! $isFallbackLocale) {
-                $action['as'] = "$name#$locale";
+            foreach ($route->makeTranslations() as $localizedRoute) {
+                $collection->add($localizedRoute);
             }
-
-            if (
-                (config('l10n.hide_alias_locale') && $translations->hasAlias($locale))
-                || ($isFallbackLocale && config('l10n.hide_default_locale'))
-            ) {
-                $locale = '';
-            }
-
-            $uri = preg_replace('#/+#', '/', str_replace('{lang}', $locale, $uri));
-
-            $action['prefix'] = preg_replace('#/+#', '/', str_replace('{lang}', $locale, $prefix));
-
-            $collection->add(new Route($route->methods(), $uri, $action));
         }
     }
 
