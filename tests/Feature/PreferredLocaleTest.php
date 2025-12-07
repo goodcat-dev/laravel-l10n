@@ -2,7 +2,7 @@
 
 use Goodcat\L10n\L10n;
 use Goodcat\L10n\Middleware\DetectPreferredLocale;
-use Goodcat\L10n\Resolvers\BrowserLocale;
+use Goodcat\L10n\Resolvers\BrowserPreferredLocale;
 use Goodcat\L10n\Resolvers\UserPreferredLocale;
 use Goodcat\L10n\Tests\Support\User;
 use Illuminate\Support\Facades\Route;
@@ -12,12 +12,12 @@ it('has default resolvers', function () {
 
     expect($resolvers)->toMatchArray([
         new UserPreferredLocale,
-        new BrowserLocale,
+        new BrowserPreferredLocale,
     ]);
 });
 
 it('detects preferred locale from browser', function () {
-    L10n::$preferredLocaleResolvers = [new BrowserLocale];
+    L10n::$preferredLocaleResolvers = [new BrowserPreferredLocale];
 
     Route::get('{lang}/example', fn () => 'Hello, World!')
         ->lang(['en'])

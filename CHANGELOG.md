@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Adds contracts for better type hinting.
 
+### Changed
+
+- Renames `BrowserLocale` to `BrowserPreferredLocale`.
+
 ## v0.2.0
 
 Released on _**2025-12-04**_.

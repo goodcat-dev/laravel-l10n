@@ -4,7 +4,7 @@ namespace Goodcat\L10n;
 
 use Goodcat\L10n\Contracts\LocalizedRoute;
 use Goodcat\L10n\Contracts\LocalizedRouter;
-use Goodcat\L10n\Resolvers\BrowserLocale;
+use Goodcat\L10n\Resolvers\BrowserPreferredLocale;
 use Goodcat\L10n\Resolvers\PreferredLocaleResolver;
 use Goodcat\L10n\Resolvers\UserPreferredLocale;
 use Goodcat\L10n\Routing\RouteTranslations;
@@ -68,7 +68,7 @@ class L10n
         if (!isset(self::$preferredLocaleResolvers)) {
             self::$preferredLocaleResolvers = [
                 new UserPreferredLocale,
-                new BrowserLocale,
+                new BrowserPreferredLocale,
             ];
         }
 
