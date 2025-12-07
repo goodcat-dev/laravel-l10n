@@ -3,9 +3,11 @@
 namespace Goodcat\L10n\Routing;
 
 use BackedEnum;
+use Goodcat\L10n\Contracts\LocalizedRoute;
 use Illuminate\Routing\Exceptions\UrlGenerationException;
 use Illuminate\Routing\UrlGenerator;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Route;
 use InvalidArgumentException;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
 
@@ -23,6 +25,7 @@ class LocalizedUrlGenerator extends UrlGenerator
         $locale = Arr::pull($parameters, 'lang', app()->getLocale());
 
         if (! is_null($route = $this->routes->getByName($name))) {
+            /** @var Route&LocalizedRoute  $route */
             $localized = $route->getLocalizedName($locale);
 
             if ($localized !== null && $localized !== $name) {

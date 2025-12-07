@@ -2,14 +2,13 @@
 
 namespace Goodcat\L10n;
 
-use Closure;
-use Goodcat\L10n\Mixin\LocalizedRoute;
+use Goodcat\L10n\Contracts\LocalizedRoute;
+use Goodcat\L10n\Contracts\LocalizedRouter;
 use Goodcat\L10n\Resolvers\BrowserLocale;
 use Goodcat\L10n\Resolvers\PreferredLocaleResolver;
 use Goodcat\L10n\Resolvers\UserPreferredLocale;
 use Goodcat\L10n\Routing\RouteTranslations;
 use Illuminate\Routing\Route;
-use Illuminate\Routing\RouteCollection;
 use Illuminate\Routing\Router;
 
 class L10n
@@ -23,12 +22,13 @@ class L10n
             return;
         }
 
-        /** @var RouteCollection $collection */
-        $collection = app(Router::class)->getRoutes();
+        /** @var Router&LocalizedRouter $router */
+        $router = app(Router::class);
 
+        $collection = $router->getRoutes();
+
+        /** @var Route&LocalizedRoute $route */
         foreach ($collection->getRoutes() as $route) {
-            /** @var Route|LocalizedRoute $route */
-
             /** @var RouteTranslations $translations */
             $translations = $route->lang();
 
@@ -36,7 +36,7 @@ class L10n
                 continue;
             }
 
-            $this->forgetRoute($route, $collection);
+            $router->forget($route);
 
             $key = 'routes.' . ltrim($route->uri(), "{$route->getPrefix()}/");
 
@@ -65,7 +65,7 @@ class L10n
      */
     public static function getPreferredLocaleResolvers(): array
     {
-        if (! isset(self::$preferredLocaleResolvers)) {
+        if (!isset(self::$preferredLocaleResolvers)) {
             self::$preferredLocaleResolvers = [
                 new UserPreferredLocale,
                 new BrowserLocale,
@@ -73,27 +73,5 @@ class L10n
         }
 
         return self::$preferredLocaleResolvers;
-    }
-
-    public function forgetRoute(Route $route, RouteCollection $collection): void
-    {
-        $forget = Closure::bind(function (Route $route): void {
-            $methods = $route->methods();
-            $domainAndUri = $route->getDomain().$route->uri();
-
-            foreach ($methods as $method) {
-                unset($this->routes[$method][$domainAndUri]);
-            }
-
-            unset($this->allRoutes[implode('|', $methods).$domainAndUri]);
-
-            if ($name = $route->getName()) {
-                unset($this->nameList[$name]);
-            }
-
-            unset($this->actionList[$route->getActionName()]);
-        }, $collection, RouteCollection::class);
-
-        $forget($route);
     }
 }

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+### Added
+
+- Adds contracts for better type hinting.
+
 ## v0.2.0
 
 Released on _**2025-12-04**_.

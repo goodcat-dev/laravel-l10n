@@ -1,5 +1,6 @@
 <?php
 
+use Goodcat\L10n\Contracts\LocalizedRouter;
 use Goodcat\L10n\L10n;
 use Goodcat\L10n\Middleware\SetLocale;
 use Goodcat\L10n\Tests\Support\Controller;
@@ -156,12 +157,15 @@ it('detects and set the route locale', function () {
 it('removes a route from the route collection', function () {
     $route = Route::get('/example', Controller::class)->name('example');
 
+    /** @var Router&LocalizedRouter $router */
+    $router = app(Router::class);
+
     $collection = app(Router::class)->getRoutes();
 
     $collection->refreshNameLookups();
     $collection->refreshActionLookups();
 
-    app(L10n::class)->forgetRoute($route, $collection);
+    $router->forget($route);
 
     expect($collection->hasNamedRoute('example'))
         ->toBeFalse()
