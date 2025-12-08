@@ -33,7 +33,7 @@ class LocalizedRoute
         return function (): string {
             /** @var Route $this */
 
-            $prefix = preg_quote($this->getPrefix(), '#');
+            $prefix = preg_quote(trim($this->getPrefix(), '/'), '#');
 
             $uriWithoutPrefix = preg_replace("#^$prefix#", '', $this->uri());
 

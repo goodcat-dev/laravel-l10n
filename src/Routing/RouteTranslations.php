@@ -25,6 +25,10 @@ class RouteTranslations
     public function addTranslations(array $translations = []): self
     {
         foreach ($translations as $locale => $translation) {
+            if ($translation !== null) {
+                $translation = trim($translation, '/');
+            }
+
             is_int($locale)
                 ? $this->lang[$translation] = null
                 : $this->lang[$locale] = $translation;
@@ -62,11 +66,6 @@ class RouteTranslations
         $this->addTranslations($translations);
 
         return $this;
-    }
-
-    public function has(string $locale): bool
-    {
-        return array_key_exists($locale, $this->lang);
     }
 
     public function hasAlias(string $locale): bool
