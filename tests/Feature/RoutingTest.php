@@ -89,26 +89,6 @@ it('hides alias locale', function () {
     }
 });
 
-it('guess localized route name', function () {
-    $route = Route::get('{lang}/example', fn () => 'Hello, World!')
-        ->name('example')
-        ->lang([
-            'fr', 'de',
-            'es' => 'es/ejemplo',
-            'it' => 'it/esempio',
-        ]);
-
-    app(L10n::class)->registerLocalizedRoutes();
-
-    expect($route->getLocalizedName('it'))
-        ->toBe('example#it')
-        ->and($route->getLocalizedName('gr'))
-        ->toBeNull()
-        ->and($route->getLocalizedName('fr'))
-        ->toBe('example#fr');
-
-});
-
 it('can generate translated urls', function () {
     Route::get('{lang}/example', fn () => 'Hello, World!')
         ->name('example')

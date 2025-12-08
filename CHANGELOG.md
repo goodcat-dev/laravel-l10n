@@ -12,6 +12,11 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - Renames `BrowserLocale` to `BrowserPreferredLocale`.
+- Uses `.` instead of `#` as separator for route names.
+
+### Removed
+
+- Removes `LocalizedRoute::getLocalizedName()` method.
 
 ## v0.2.0
 

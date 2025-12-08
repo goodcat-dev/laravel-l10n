@@ -41,31 +41,6 @@ class LocalizedRoute
         };
     }
 
-    public function getLocalizedName(): Closure
-    {
-        return function (string $locale): ?string {
-            /** @var Localized&Route $this */
-
-            $name = $this->getName();
-            /** @var RouteTranslations $translations */
-            $translations = $this->lang();
-
-            if (! $name || ! $translations->has($locale)) {
-                return null;
-            }
-
-            if ($lang = $this->getAction('locale')) {
-                $name = preg_replace("/#$lang$/", '', $name);
-            }
-
-            if (! app()->isFallbackLocale($locale)) {
-                $name .= "#$locale";
-            }
-
-            return $name;
-        };
-    }
-
     public function makeTranslations(): Closure
     {
         return function (): array {
@@ -92,8 +67,8 @@ class LocalizedRoute
 
                 $isFallbackLocale = app()->isFallbackLocale($locale);
 
-                if (($name = $route->getName()) && ! $isFallbackLocale) {
-                    $action['as'] = "$name#$locale";
+                if (($name = $route->getName())) {
+                    $action['as'] = "$name.$locale";
                 }
 
                 if (
