@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Adds contracts for better type hinting.
+- Adds `LocalizedRoute::uriWithoutPrefix()` method.
 
 ### Changed
 

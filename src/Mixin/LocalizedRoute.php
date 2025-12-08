@@ -3,6 +3,7 @@
 namespace Goodcat\L10n\Mixin;
 
 use Closure;
+use Goodcat\L10n\Contracts\LocalizedRoute as Localized;
 use Goodcat\L10n\Routing\RouteTranslations;
 use Illuminate\Routing\Route;
 
@@ -27,10 +28,23 @@ class LocalizedRoute
         };
     }
 
+    public function uriWithoutPrefix(): Closure
+    {
+        return function (): string {
+            /** @var Route $this */
+
+            $prefix = preg_quote($this->getPrefix(), '#');
+
+            $uriWithoutPrefix = preg_replace("#^$prefix#", '', $this->uri());
+
+            return trim($uriWithoutPrefix, '/');
+        };
+    }
+
     public function getLocalizedName(): Closure
     {
         return function (string $locale): ?string {
-            /** @var Route $this */
+            /** @var Localized&Route $this */
 
             $name = $this->getName();
             /** @var RouteTranslations $translations */
@@ -55,7 +69,7 @@ class LocalizedRoute
     public function makeTranslations(): Closure
     {
         return function (): array {
-            /** @var Route $route */
+            /** @var Localized&Route $this */
             $route = clone $this;
 
             /** @var RouteTranslations $translations */
@@ -74,7 +88,7 @@ class LocalizedRoute
 
                 $action['locale'] = $locale;
 
-                $uri ??= preg_replace("#^$prefix#", '', $route->uri());
+                $uri ??= $route->uriWithoutPrefix();
 
                 $isFallbackLocale = app()->isFallbackLocale($locale);
 

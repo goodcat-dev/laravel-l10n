@@ -2,6 +2,9 @@
 
 namespace Goodcat\L10n\Routing;
 
+use Goodcat\L10n\Contracts\LocalizedRoute;
+use Illuminate\Routing\Route;
+
 class RouteTranslations
 {
     /** @var array<string, ?string> */
@@ -30,6 +33,37 @@ class RouteTranslations
         return $this;
     }
 
+    /**
+     * @param Route&LocalizedRoute $route
+     * @return $this
+     */
+    public function fillMissing(Route $route): self
+    {
+        if ($this->isEmpty()) {
+            return $this;
+        }
+
+        $uri = $route->uriWithoutPrefix();
+
+        $key = "routes.$uri";
+
+        $translations = [
+            app()->getFallbackLocale() => config('l10n.hide_default_locale') ? $uri : null
+        ];
+
+        $genericLocales = array_keys(array_filter($this->lang, fn ($translation) => $translation === null));
+
+        foreach ($genericLocales as $locale) {
+            if (trans()->hasForLocale($key, $locale)) {
+                $translations[$locale] = trans($key, locale: $locale);
+            }
+        }
+
+        $this->addTranslations($translations);
+
+        return $this;
+    }
+
     public function has(string $locale): bool
     {
         return array_key_exists($locale, $this->lang);
@@ -53,18 +87,6 @@ class RouteTranslations
     public function locales(): array
     {
         return array_keys($this->lang);
-    }
-
-    /**
-     * @return list<string>
-     */
-    public function genericLocales(): array
-    {
-        $genericLocales = array_keys(array_filter($this->lang, fn ($translation) => $translation === null));
-
-        unset($genericLocales[app()->getFallbackLocale()]);
-
-        return $genericLocales;
     }
 
     /**
