@@ -43,23 +43,24 @@ class LocalizedRoute
                 return $translations;
             }
 
+            $this->action['locale'] = app()->getFallbackLocale();
+
             $action = $this->action;
 
             unset($action['as']);
             unset($action['prefix']);
 
             foreach ($this->lang() as $locale) {
-                if ($locale === app()->getFallbackLocale()) {
-                    continue;
-                }
-
                 $key = "routes.$this->uri";
 
                 $uri = trans()->hasForLocale($key, $locale)
                     ? trans($key, locale: $locale)
                     : $this->uri;
 
-                $translations[$locale] = new Route($this->methods(), $uri, $action + ['locale' => $locale]);
+                $translations[$locale] = new Route($this->methods(), $uri, array_merge($action, [
+                    'locale' => $locale,
+                    'canonical' => '',
+                ]));
 
                 if (config('l10n.add_locale_prefix')) {
                     $translations[$locale]->prefix($locale);
