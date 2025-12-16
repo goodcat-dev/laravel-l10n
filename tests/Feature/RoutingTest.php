@@ -29,11 +29,23 @@ it('detects and set the route locale', function () {
 
     app(L10n::class)->registerLocalizedRoutes();
 
-    $this->get('es/ejemplo');
+    foreach (['en' => '/example', 'es' => '/es/ejemplo', 'it' => '/it/example'] as $locale => $url) {
+        $this->get($url)->assertOk();
 
-    expect(app()->getLocale())->toBe('es');
+        expect(app()->getLocale())->toBe($locale);
+    }
+});
 
-    $this->get('it/example');
+it('generates localized routes without prefix', function () {
+    app(Translator::class)->addPath(__DIR__ . '/../Support/lang');
 
-    expect(app()->getLocale())->toBe('it');
+    config(['l10n.add_locale_prefix' => false]);
+
+    Route::get('/example', fn () => 'Hello, World!')
+        ->lang(['es'])
+        ->name('example');
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    $this->get('/ejemplo')->assertOk();
 });

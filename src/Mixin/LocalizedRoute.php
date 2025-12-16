@@ -66,8 +66,6 @@ class LocalizedRoute
                 }
             }
 
-            $translations[app()->getFallbackLocale()] = $this;
-
             return $translations;
         };
     }
