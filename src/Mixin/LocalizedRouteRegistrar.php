@@ -3,17 +3,18 @@
 namespace Goodcat\L10n\Mixin;
 
 use Closure;
-use Illuminate\Routing\Router;
 use Illuminate\Routing\RouteRegistrar;
 
-class LocalizedRouter
+class LocalizedRouteRegistrar
 {
     public function lang(): Closure
     {
         return function (array $translations = []): RouteRegistrar {
-            /** @var Router $this */
+            /** @var RouteRegistrar $this */
 
-            return (new RouteRegistrar($this))->lang($translations);
+            $this->attributes['lang'] = $translations;
+
+            return $this;
         };
     }
 }

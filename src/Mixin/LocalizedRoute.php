@@ -4,40 +4,31 @@ namespace Goodcat\L10n\Mixin;
 
 use Closure;
 use Goodcat\L10n\Contracts\LocalizedRoute as Localized;
-use Goodcat\L10n\Routing\RouteTranslations;
 use Illuminate\Routing\Route;
 
 class LocalizedRoute
 {
     public function lang(): Closure
     {
-        return function (?array $translations = null): Route|RouteTranslations {
-            /** @var Route $this */
+        return function (?array $translations = null): Route|array {
+            /** @var Localized&Route $this */
 
             $lang = $this->action['lang'] ?? [];
 
-            if (is_array($lang)) {
-                $lang = new RouteTranslations($lang);
+            if (is_null($translations)) {
+                return $lang;
             }
 
-            $lang->addTranslations($translations ?? []);
+            $this->action['lang'] = array_unique(array_merge($lang, $translations));
 
-            $this->action['lang'] = $lang;
-
-            return is_null($translations) ? $lang : $this;
+            return $this;
         };
     }
 
-    public function uriWithoutPrefix(): Closure
+    public function locale(): Closure
     {
         return function (): string {
-            /** @var Route $this */
-
-            $prefix = preg_quote(trim($this->getPrefix(), '/'), '#');
-
-            $uriWithoutPrefix = preg_replace("#^$prefix#", '', $this->uri());
-
-            return trim($uriWithoutPrefix, '/');
+            return $this->action['locale'] ?? app()->getFallbackLocale();
         };
     }
 
@@ -45,47 +36,39 @@ class LocalizedRoute
     {
         return function (): array {
             /** @var Localized&Route $this */
-            $route = clone $this;
 
-            /** @var RouteTranslations $translations */
-            $translations = $this->lang();
+            $translations = [];
 
-            $localizedRoutes = [];
-
-            if (! in_array('lang', $route->parameterNames(), true)) {
-                $route->prefix('{lang}');
+            if (! $this->lang()) {
+                return $translations;
             }
 
-            $prefix = $route->getPrefix() ?? '';
+            $action = $this->action;
 
-            foreach ($translations->all() as $locale => $uri) {
-                $action = $route->action;
+            unset($action['as']);
+            unset($action['prefix']);
 
-                $action['locale'] = $locale;
-
-                $uri ??= $route->uriWithoutPrefix();
-
-                $isFallbackLocale = app()->isFallbackLocale($locale);
-
-                if (($name = $route->getName())) {
-                    $action['as'] = "$name.$locale";
+            foreach ($this->lang() as $locale) {
+                if ($locale === app()->getFallbackLocale()) {
+                    continue;
                 }
 
-                if (
-                    (config('l10n.hide_alias_locale') && $translations->hasAlias($locale))
-                    || ($isFallbackLocale && config('l10n.hide_default_locale'))
-                ) {
-                    $locale = '';
+                $key = "routes.$this->uri";
+
+                $uri = trans()->hasForLocale($key, $locale)
+                    ? trans($key, locale: $locale)
+                    : $this->uri;
+
+                $translations[$locale] = new Route($this->methods(), $uri, $action + ['locale' => $locale]);
+
+                if (config('l10n.add_locale_prefix')) {
+                    $translations[$locale]->prefix($locale);
                 }
-
-                $uri = preg_replace('#/+#', '/', str_replace('{lang}', $locale, $uri));
-
-                $action['prefix'] = preg_replace('#/+#', '/', str_replace('{lang}', $locale, $prefix));
-
-                $localizedRoutes[] = new Route($route->methods(), $uri, $action);
             }
 
-            return $localizedRoutes;
+            $translations[app()->getFallbackLocale()] = $this;
+
+            return $translations;
         };
     }
 }

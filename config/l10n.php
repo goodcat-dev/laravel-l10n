@@ -4,26 +4,14 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Hide default locale
+    | Add locale prefix
     |--------------------------------------------------------------------------
     |
-    | Determines whether to omit the locale segment from URLs for
-    | the fallback language. E.g., forces /example instead of /en/example.
+    | Automatically prepends the locale code to translated routes, except
+    | for the fallback locale. E.g. /example, /it/example.
     |
     */
 
-    'hide_default_locale' => true,
-
-    /*
-    |--------------------------------------------------------------------------
-    | Hide alias locale
-    |--------------------------------------------------------------------------
-    |
-    | Hides the locale prefix for defined aliases. E.g., ['it' => 'esempio]
-    | generates /esempio instead of /it/esempio.
-    |
-    */
-
-    'hide_alias_locale' => false,
+    'add_locale_prefix' => true,
 
 ];

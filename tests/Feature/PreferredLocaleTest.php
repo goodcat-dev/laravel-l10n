@@ -19,11 +19,11 @@ it('has default resolvers', function () {
 it('detects preferred locale from browser', function () {
     L10n::$preferredLocaleResolvers = [new BrowserPreferredLocale];
 
-    Route::get('{lang}/example', fn () => 'Hello, World!')
-        ->lang(['en'])
+    Route::get('/example', fn () => 'Hello, World!')
+        ->lang(['it'])
         ->middleware(DetectPreferredLocale::class);
 
-    $this->withHeader('Accept-Language', 'en')->get('en/example');
+    $this->withHeader('Accept-Language', 'en')->get('/example');
 
     expect(app()->getPreferredLocale())->toBe('en');
 });

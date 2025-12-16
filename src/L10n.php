@@ -3,7 +3,6 @@
 namespace Goodcat\L10n;
 
 use Goodcat\L10n\Contracts\LocalizedRoute;
-use Goodcat\L10n\Contracts\LocalizedRouter;
 use Goodcat\L10n\Resolvers\BrowserPreferredLocale;
 use Goodcat\L10n\Resolvers\PreferredLocaleResolver;
 use Goodcat\L10n\Resolvers\UserPreferredLocale;
@@ -21,24 +20,16 @@ class L10n
             return;
         }
 
-        /** @var Router&LocalizedRouter $router */
-        $router = app(Router::class);
+        $collection = app(Router::class)->getRoutes();
 
-        $collection = $router->getRoutes();
-
-        /** @var Route&LocalizedRoute $route */
         foreach ($collection->getRoutes() as $route) {
-            $translations = $route->lang()->fillMissing($route);
-
-            if ($translations->isEmpty()) {
-                continue;
-            }
-
-            $router->forget($route);
+            /** @var Route&LocalizedRoute $route */
 
             foreach ($route->makeTranslations() as $localizedRoute) {
                 $collection->add($localizedRoute);
             }
+
+            $collection->add($route);
         }
     }
 

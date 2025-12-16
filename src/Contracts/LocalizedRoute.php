@@ -2,13 +2,12 @@
 
 namespace Goodcat\L10n\Contracts;
 
-use Goodcat\L10n\Routing\RouteTranslations;
 use Illuminate\Routing\Route;
 
 interface LocalizedRoute
 {
     /** @see \Goodcat\L10n\Mixin\LocalizedRoute::lang */
-    public function lang(): Route|RouteTranslations;
+    public function lang(): Route;
 
     /**
      * @return Route[]
@@ -16,6 +15,6 @@ interface LocalizedRoute
      */
     public function makeTranslations(): array;
 
-    /** @see \Goodcat\L10n\Mixin\LocalizedRoute::uriWithoutPrefix */
-    public function uriWithoutPrefix(): string;
+    /** @see \Goodcat\L10n\Mixin\LocalizedRoute::locale */
+    public function locale(): string;
 }

@@ -9,9 +9,11 @@ class BrowserPreferredLocale implements PreferredLocaleResolver
 {
     public function resolve(Request $request): ?string
     {
-        /** @var RouteTranslations $translations */
-        $translations = $request->route()->lang();
+        /** @var string[] $translations */
+        $locales = $request->route()->lang();
 
-        return $request->getPreferredLanguage($translations->locales());
+        $locales[] = app()->getFallbackLocale();
+
+        return $request->getPreferredLanguage($locales);
     }
 }
