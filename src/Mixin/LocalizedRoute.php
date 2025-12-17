@@ -39,7 +39,7 @@ class LocalizedRoute
 
             $translations = [];
 
-            if (! $this->lang()) {
+            if (!$this->lang()) {
                 return $translations;
             }
 
@@ -57,10 +57,7 @@ class LocalizedRoute
                     ? trans($key, locale: $locale)
                     : $this->uri;
 
-                $translations[$locale] = new Route($this->methods(), $uri, array_merge($action, [
-                    'locale' => $locale,
-                    'canonical' => '',
-                ]));
+                $translations[$locale] = new Route($this->methods(), $uri, ['locale' => $locale] + $action);
 
                 if (config('l10n.add_locale_prefix')) {
                     $translations[$locale]->prefix($locale);

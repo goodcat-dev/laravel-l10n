@@ -49,3 +49,15 @@ it('generates localized routes without prefix', function () {
 
     $this->get('/ejemplo')->assertOk();
 });
+
+it('generates localized uri', function () {
+    app(Translator::class)->addPath(__DIR__ . '/../Support/lang');
+
+    Route::get('/example', fn () => 'Hello, World!')
+        ->name('example')
+        ->lang(['es']);
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    expect(route('example', ['lang' => 'es']))->toBe('http://localhost/es/ejemplo');
+});
