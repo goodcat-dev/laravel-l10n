@@ -2,6 +2,7 @@
 
 use Goodcat\L10n\L10n;
 use Goodcat\L10n\Middleware\SetLocale;
+use Goodcat\L10n\Tests\Support\Controller;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Translation\Translator;
 
@@ -50,14 +51,17 @@ it('generates localized routes without prefix', function () {
     $this->get('/ejemplo')->assertOk();
 });
 
-it('generates localized uri', function () {
+it('generates localized uri via helpers', function () {
     app(Translator::class)->addPath(__DIR__ . '/../Support/lang');
 
-    Route::get('/example', fn () => 'Hello, World!')
+    Route::get('/example', Controller::class)
         ->name('example')
         ->lang(['es']);
 
     app(L10n::class)->registerLocalizedRoutes();
 
-    expect(route('example', ['lang' => 'es']))->toBe('http://localhost/es/ejemplo');
+    expect(route('example', ['lang' => 'es']))
+        ->toBe('http://localhost/es/ejemplo')
+        ->and(action(Controller::class, ['lang' => 'es']))
+        ->toBe('http://localhost/es/ejemplo');
 });

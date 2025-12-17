@@ -31,4 +31,17 @@ class LocalizedUrlGenerator extends UrlGenerator
 
         throw new RouteNotFoundException("Route [{$name}] not defined.");
     }
+
+    public function action($action, $parameters = [], $absolute = true): string
+    {
+        if (is_null($route = $this->routes->getByAction($action = $this->formatAction($action)))) {
+            throw new InvalidArgumentException("Action {$action} not defined.");
+        }
+
+        $locale = Arr::pull($parameters, 'lang', app()->getLocale());
+
+        $route = $route->makeTranslations()[$locale] ?? $route;
+
+        return $this->toRoute($route, $parameters, $absolute);
+    }
 }
