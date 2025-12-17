@@ -25,13 +25,6 @@ class LocalizedRoute
         };
     }
 
-    public function locale(): Closure
-    {
-        return function (): string {
-            return $this->action['locale'] ?? app()->getFallbackLocale();
-        };
-    }
-
     public function makeTranslations(): Closure
     {
         return function (): array {
@@ -39,32 +32,41 @@ class LocalizedRoute
 
             $translations = [];
 
-            if (!$this->lang()) {
-                return $translations;
+            foreach ($this->lang() as $locale) {
+                $translations[$locale] = $this->makeTranslation($locale);
             }
 
-            $this->action['locale'] = app()->getFallbackLocale();
+            return $translations;
+        };
+    }
+
+    public function makeTranslation(): Closure
+    {
+        return function (string $locale): ?Route {
+            /** @var Localized&Route $this */
+
+            if (!in_array($locale, $this->lang(), true)) {
+                return null;
+            }
 
             $action = $this->action;
 
             unset($action['as']);
             unset($action['prefix']);
 
-            foreach ($this->lang() as $locale) {
-                $key = "routes.$this->uri";
+            $key = "routes.$this->uri";
 
-                $uri = trans()->hasForLocale($key, $locale)
-                    ? trans($key, locale: $locale)
-                    : $this->uri;
+            $uri = trans()->hasForLocale($key, $locale)
+                ? trans($key, locale: $locale)
+                : $this->uri;
 
-                $translations[$locale] = new Route($this->methods(), $uri, ['locale' => $locale] + $action);
+            $route = new Route($this->methods(), $uri, ['locale' => $locale] + $action);
 
-                if (config('l10n.add_locale_prefix')) {
-                    $translations[$locale]->prefix($locale);
-                }
+            if (config('l10n.add_locale_prefix')) {
+                $route->prefix($locale);
             }
 
-            return $translations;
+            return $route;
         };
     }
 }

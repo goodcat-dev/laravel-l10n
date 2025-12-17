@@ -15,6 +15,6 @@ interface LocalizedRoute
      */
     public function makeTranslations(): array;
 
-    /** @see \Goodcat\L10n\Mixin\LocalizedRoute::locale */
-    public function locale(): string;
+    /** @see \Goodcat\L10n\Mixin\LocalizedRoute::makeTranslation */
+    public function makeTranslation(string $locale): ?Route;
 }

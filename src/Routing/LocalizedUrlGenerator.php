@@ -19,7 +19,7 @@ class LocalizedUrlGenerator extends UrlGenerator
         $locale = Arr::pull($parameters, 'lang', app()->getLocale());
 
         if (! is_null($route = $this->routes->getByName($name))) {
-            $route = $route->makeTranslations()[$locale] ?? $route;
+            $route = $route->makeTranslation($locale) ?? $route;
 
             return $this->toRoute($route, $parameters, $absolute);
         }
@@ -40,7 +40,7 @@ class LocalizedUrlGenerator extends UrlGenerator
 
         $locale = Arr::pull($parameters, 'lang', app()->getLocale());
 
-        $route = $route->makeTranslations()[$locale] ?? $route;
+        $route = $route->makeTranslation($locale) ?? $route;
 
         return $this->toRoute($route, $parameters, $absolute);
     }
