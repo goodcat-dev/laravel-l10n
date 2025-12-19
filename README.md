@@ -5,9 +5,6 @@
 
 An opinionated Laravel package for app localization.
 
-> [!NOTE]
-> This package is in early development. The API may change as features are refined. Feedback and contributions are welcome.
-
 ## Quickstart
 
 Get started with `laravel-l10n` in three steps.
@@ -22,18 +19,14 @@ Get started with `laravel-l10n` in three steps.
        ->withMiddleware(function (Middleware $middleware): void {
            $middleware->web(prepend: [
                \Goodcat\L10n\Middleware\SetLocale::class,
-               \Goodcat\L10n\Middleware\DetectPreferredLocale::class,
+               \Goodcat\L10n\Middleware\setPreferredLocale::class,
            ]);
        });
    ```
 3. Define localized routes using the `lang()` method.
    ```php
    Route::get('/example', Controller::class)
-       ->lang([
-            'fr', 'de',
-            'it' => 'esempio',
-            'es' => 'ejemplo'
-       ]);
+       ->lang(['fr', 'de', 'it', 'es']);
    ```
 
 That's it. You're all set to start using `laravel-l10n`.
@@ -46,82 +39,80 @@ To customize the package behavior, publish the configuration file:
 php artisan vendor:publish --provider="Goodcat\L10n\L10nServiceProvider"
 ```
 
-### Hide Default Locale
+### Add Locale Prefix
 
-By default, this package **hides the default locale** from your application's URLs. The default locale is the `fallback_locale` defined in your `config/app.php` file.
+By default, this package **adds the locale prefix** to translated routes, except for the fallback locale.
 
-This means a route like `{lang}/example` will be served by the clean URL `/example` for the default language (e.g. English), while other locales will still include their prefix (e.g. `fr/example`).
+This means a route like `/example` will be served by the clean URL `/example` for the default language (e.g. English), while other locales will include their prefix (e.g. `/es/ejemplo`, `/it/esempio`).
 
-If you prefer to include the locale prefix for all languages, set `hide_default_locale` to `false` in your `config/l10n.php` file. 
-After this change, the `{lang}/example` route will be served by `en/example` for the default locale and `fr/example` for French, ensuring a consistent URL structure across all languages.
+If you prefer to hide the locale prefix for all languages, set `add_locale_prefix` to `false` in your `config/l10n.php` file.
 
-### Hide Alias Locale
+```php
+// config/l10n.php
+return [
+    'add_locale_prefix' => false,
+];
+```
 
-When you define route aliases (e.g., `'it' => 'esempio'`), by default the locale prefix is still included in the URL (`/it/esempio`).
-
-If you want to hide the locale prefix for aliased routes, set `hide_alias_locale` to `true`. 
-This will generate `/esempio` instead of `/it/esempio`, creating cleaner URLs for your translated routes.
-
-> [!WARNING]
-> When `hide_alias_locale` is set to `true`, be careful to avoid route collisions. 
-> For example, if you define `['it' => 'esempio']`, the package will generate the URL `/esempio` without the locale prefix. 
-> Make sure this doesn't conflict with other routes in your application (e.g., an existing `/esempio` route for the default locale). 
-> Always verify your route list with `php artisan route:list` after enabling this option.
+After this change, routes will use translated URIs without locale prefixes (e.g. `/ejemplo` instead of `/es/ejemplo`).
 
 ## Route translations
 
-Use the `lang()` method to define route translations for different locales.
-This approach lets you manage multilingual URLs in an intuitive way.
-
-### Route groups
-
-To avoid repetitive language definitions on every single route, you can use a **route group**.
-This approach is useful when you have multiple routes that share the same set of locales.
-
-In the example below, the route group defines the supported locales (`fr`, `de`, `it`, `es`) and a `{lang}` URL prefix.
-Inside the group, the `example` route inherits these settings, but you can add specific translations with the `lang()` method.
-
-```php
-Route::group([
-    'lang' => ['fr', 'de', 'it', 'es'],
-    'prefix' => '{lang}'
-], function () {
-    Route::get('/example', Controller::class)
-        ->lang(['it' => 'esempio']);
-});
-```
-
-> [!NOTE]
-> The lang() method is not designed to be a standalone group method.
-> The syntax `Route::lang()->group()` is not supported.
-> Instead, you must define the lang key directly inside the `Route::group()` array, as shown in the example above.
+Use the `lang()` method to define which locales a route should support. Route translations are managed via language files.
 
 ### Translations via Language Files
 
-In addition to defining route translations inline, you can also manage them in dedicated language files.
-This approach keeps your routes clean and centralizes your translations, making them easier to manage.
+Manage route translations in dedicated language files. This approach keeps your routes clean and centralizes your translations, making them easier to manage.
+
 The expected file structure is as follows:
 
 ```txt
 /lang
+├── /es
+│   └── routes.php
 ├── /fr
-│   └── /routes.php
-├── /de
-│   └── /routes.php
+│   └── routes.php
+├── /it
+│   └── routes.php
 ```
 
-Inside your routes.php file, you can map the original route URI to a translated slug.
-For example, given the route `Route::get('/example')->lang(['fr'])`, your translation file would look like this:
+Inside your `routes.php` file, map the original route URI to a translated slug:
 
 ```php
+// lang/es/routes.php
 return [
-    'example' => 'exemple'
-]
+    'example' => 'ejemplo',
+];
 ```
 
+Then define the route with the locales it should support:
+
+```php
+Route::get('/example', Controller::class)
+    ->lang(['es', 'fr', 'it']);
+```
+
+This will generate:
+- `/example` (fallback locale)
+- `/es/ejemplo` (Spanish, translated via language file)
+- `/fr/example` (French, no translation defined)
+- `/it/example` (Italian, no translation defined)
+
 > [!NOTE]
-> The key should be the route URI **without the prefix**, and the value is the translated slug.
-> For example, given the route `Route::get('/example')->prefix('{lang}')`, the key should be `example`.
+> The key should be the route URI **without** the leading slash. For example, for `Route::get('/example')`, the key should be `example`.
+
+### Route groups
+
+To avoid repetitive language definitions on every single route, you can use `Route::lang()->group()`:
+
+```php
+Route::lang(['es', 'it'])->group(function () {
+    Route::get('/example', fn () => 'Hello, World!');
+    Route::get('/another', fn () => 'Another route');
+});
+```
+
+All routes inside the group will inherit the locale definitions.
 
 ## URL Generation
 
@@ -130,7 +121,7 @@ The package automatically replaces Laravel's default URL generator with `Localiz
 > [!NOTE]
 > If you need to use a custom URL generator, you can override it in your `AppServiceProvider` by aliasing your own implementation to the `url` service.
 
-### Using the `route()` Helper
+### Using the `route()` and `action()` Helpers
 
 Once the generator is registered, the `route()` helper will intelligently create URLs based on the current application locale.
 
@@ -144,8 +135,14 @@ route('example'); // Returns "/example"
 // To generate a URL for a different locale
 route('example', ['lang' => 'fr']); // Returns "/fr/example"
 
-// If a translation exists for 'it', the translated slug is used
-route('example', ['lang' => 'it']); // Returns "/it/esempio"
+// If a translation exists for 'es' in lang/es/routes.php, the translated slug is used
+route('example', ['lang' => 'es']); // Returns "/es/ejemplo"
+```
+
+The `action()` helper works the same way:
+
+```php
+action(Controller::class, ['lang' => 'es']); // Returns "/es/ejemplo"
 ```
 
 ## Localized views
@@ -175,54 +172,32 @@ The `example.blade.php` file in the root views folder can serve as your default 
 ## User Locale Preference
 
 This package provides a robust mechanism for automatically detecting a user's preferred language.
-It adds the `\app()->getPreferredLocale()` and `\app()->setPreferredLocale()` methods to your Laravel application.
+It adds the `app()->getPreferredLocale()` and `app()->setPreferredLocale()` methods to your Laravel application.
 
-The `DetectPreferredLocale` middleware is responsible for populating the preferred locale. It does this by checking a series of configurable **preferred locale resolvers**.
+The `setPreferredLocale` middleware is responsible for populating the preferred locale. It does this by checking a series of configurable **preferred locale resolvers**.
 
 By default, the package checks the following sources in order:
 
-1. **User-defined preference**: It first looks for a preferredLocale() method on the authenticated user model. To use this, your user model must implement the HasLocalePreference interface.
-   This allows logged-in users to have a persistent language setting.
-2. **Browser language**: If no user-defined preference is found, it inspects the `Accept-Language` header of the user's browser (e.g. `en-US,en;q=0.9`).
+1. **UserPreferredLocale**: Checks if the authenticated user has a preferred locale (the user model must implement a `preferredLocale()` method).
+2. **BrowserPreferredLocale**: Falls back to the browser's `Accept-Language` header.
 
-### Custom Locale Resolvers
+### Customizing Resolvers
 
-If you need a different way to determine the preferred locale, you can create a custom resolver.
-This is useful for more specific logic, such as checking a session value, a cookie, or a query parameter.
-
-To create a custom resolver, simply implement the `PreferredLocaleResolver` interface.
-The `resolve()` method receives the current request and should return the locale string or `null` if it can't be determined.
-
-```php
-use Goodcat\L10n\Resolvers\PreferredLocaleResolver;
-use Illuminate\Http\Request;
-
-class CookieLocaleResolver implements PreferredLocaleResolver
-{
-    public function resolve(Request $request): ?string
-    {
-        return $request->cookie('locale');
-    }
-}
-```
-
-Then, you must register your custom resolver in the `boot()` method of your `AppServiceProvider`.
-By placing it at the beginning of the array, your resolver will be checked before the default ones.
+You can customize the resolvers by setting the static property on the `L10n` class:
 
 ```php
 use Goodcat\L10n\L10n;
-use Illuminate\Support\ServiceProvider
+use Goodcat\L10n\Resolvers\BrowserPreferredLocale;
 
-class AppServiceProvider extends ServiceProvider
-{
-    public function boot()
-    {
-        L10n::$preferredLocaleResolvers = [
-            new CookieLocaleResolver,
-            ...L10n::getPreferredLocaleResolvers(),
-        ];
-    }
-}
+L10n::$preferredLocaleResolvers = [
+    new BrowserPreferredLocale,
+];
 ```
 
-This flexible approach ensures you have full control over how your application detects and manages a user's language preferences.
+### Checking Fallback Locale
+
+The package also adds a helper method to check if a locale is the fallback locale:
+
+```php
+app()->isFallbackLocale('en'); // true if 'en' is the fallback locale
+```

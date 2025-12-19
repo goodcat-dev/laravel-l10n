@@ -2,21 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## v0.3.0
+
+Released on _**2025-12-19**_.
 
 ### Added
 
 - Adds contracts for better type hinting.
-- Adds `LocalizedRoute::uriWithoutPrefix()` method.
+- Adds `action()` helper.
+- Adds `LocalizedRoute::makeTranslations()` method.
+- Adds fluent `->lang()` method.
 
 ### Changed
 
 - Renames `BrowserLocale` to `BrowserPreferredLocale`.
-- Uses `.` instead of `#` as separator for route names.
+- Renames `DetectPreferredLocale` to `SetPreferredLocale`.
 
 ### Removed
 
+- Drops support for Laravel 11.
+- Removes `RouteTranslations` class.
 - Removes `LocalizedRoute::getLocalizedName()` method.
+- Removes localized name.
+- Removes inline translations. E.g. `Route::get()->lang(['es' => 'ejemplo])`
 
 ## v0.2.0
 

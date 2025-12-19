@@ -1,7 +1,7 @@
 <?php
 
 use Goodcat\L10n\L10n;
-use Goodcat\L10n\Middleware\DetectPreferredLocale;
+use Goodcat\L10n\Middleware\SetPreferredLocale;
 use Goodcat\L10n\Resolvers\BrowserPreferredLocale;
 use Goodcat\L10n\Resolvers\UserPreferredLocale;
 use Goodcat\L10n\Tests\Support\User;
@@ -21,7 +21,7 @@ it('detects preferred locale from browser', function () {
 
     Route::get('/example', fn () => 'Hello, World!')
         ->lang(['it'])
-        ->middleware(DetectPreferredLocale::class);
+        ->middleware(SetPreferredLocale::class);
 
     $this->withHeader('Accept-Language', 'en')->get('/example');
 
@@ -33,7 +33,7 @@ it('detects preferred locale from user', function () {
 
     Route::get('{lang}/example', fn () => 'Hello, World!')
         ->lang(['en'])
-        ->middleware(DetectPreferredLocale::class);
+        ->middleware(SetPreferredLocale::class);
 
     $this->actingAs(new User)->get('en/example');
 

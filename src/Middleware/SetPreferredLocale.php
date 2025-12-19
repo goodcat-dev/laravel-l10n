@@ -7,7 +7,7 @@ use Goodcat\L10n\L10n;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class DetectPreferredLocale
+class SetPreferredLocale
 {
     /**
      * @param  Closure(Request): (Response)  $next
