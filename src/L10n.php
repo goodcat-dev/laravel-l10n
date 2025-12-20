@@ -15,6 +15,9 @@ class L10n
     /** @var PreferredLocaleResolver[] */
     public static array $preferredLocaleResolvers;
 
+    /** @var array<string, Route>  */
+    protected array $canonicalRoutes;
+
     public function registerLocalizedRoutes(): void
     {
         if (app()->routesAreCached()) {
@@ -42,10 +45,30 @@ class L10n
         $route = $router->current();
 
         if ($canonical = $route?->getAction('canonical')) {
-            $route = $router->getByKey($canonical);
+            $route = $this->getByKey($canonical);
         }
 
         return $route && $route->named(...$patterns);
+    }
+
+    public function getByKey(string $key): ?Route
+    {
+        if (! isset($this->canonicalRoutes)) {
+            $this->refreshCanonicalLookups();
+        }
+
+        return $this->canonicalRoutes[$key] ?? null;
+    }
+
+    public function refreshCanonicalLookups(): void
+    {
+        $this->canonicalRoutes = [];
+
+        foreach (app(Router::class)->getRoutes()->getRoutes() as $route) {
+            if (! $route->getAction('canonical')) {
+                $this->canonicalRoutes[$route->getKey()] = $route;
+            }
+        }
     }
 
     /**

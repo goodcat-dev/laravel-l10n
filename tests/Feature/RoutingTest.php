@@ -65,3 +65,19 @@ it('generates localized uri via helpers', function () {
         ->and(action(Controller::class, ['lang' => 'es']))
         ->toBe('http://localhost/es/ejemplo');
 });
+
+it('matches route name against canonical route', function () {
+    $matches = false;
+
+    Route::get('/example', function (L10n $l10n) use (&$matches) {
+        $matches = $l10n->is('example');
+    })
+        ->name('example')
+        ->lang(['es']);
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    $this->get('es/example')->assertOk();
+
+    expect($matches)->toBeTrue();
+});

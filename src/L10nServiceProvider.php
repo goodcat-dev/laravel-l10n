@@ -37,6 +37,8 @@ class L10nServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__.'/../config/l10n.php', 'l10n');
 
+        $this->app->singleton(L10n::class);
+
         $this->app->singleton(LocalizedUrlGenerator::class, function (Application $app) {
             $routes = $app['router']->getRoutes();
 
