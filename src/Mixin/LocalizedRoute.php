@@ -25,6 +25,15 @@ class LocalizedRoute
         };
     }
 
+    public function getKey(): Closure
+    {
+        return function (): string {
+            /** @var Localized&Route $this */
+
+            return implode('|', $this->methods()).$this->getDomain().$this->uri();
+        };
+    }
+
     public function makeTranslations(): Closure
     {
         return function (): array {
@@ -49,7 +58,7 @@ class LocalizedRoute
                 return null;
             }
 
-            $action = $this->action;
+            $action = ['locale' => $locale, 'canonical' => $this->getKey()] + $this->action;
 
             unset($action['as']);
             unset($action['prefix']);
@@ -60,7 +69,7 @@ class LocalizedRoute
                 ? trans($key, locale: $locale)
                 : $this->uri;
 
-            $route = new Route($this->methods(), $uri, ['locale' => $locale] + $action);
+            $route = new Route($this->methods(), $uri, $action);
 
             if (config('l10n.add_locale_prefix')) {
                 $route->prefix($locale);

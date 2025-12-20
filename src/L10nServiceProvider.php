@@ -15,6 +15,7 @@ use Illuminate\Routing\Router;
 use Illuminate\Routing\RouteRegistrar;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use ReflectionException;
 
 class L10nServiceProvider extends ServiceProvider
 {
@@ -30,7 +31,7 @@ class L10nServiceProvider extends ServiceProvider
     }
 
     /**
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     public function register(): void
     {
