@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Adds `L10n::is()` method for localized route matching.
+- Adds `L10n` facade.
 
 ## v0.3.0
 

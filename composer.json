@@ -22,7 +22,10 @@
         "laravel": {
             "providers": [
               "Goodcat\\L10n\\L10nServiceProvider"
-            ]
+            ],
+            "aliases": {
+              "L10n": "Goodcat\\L10n\\Facades\\L10n"
+            }
         }
     },
     "keywords": [

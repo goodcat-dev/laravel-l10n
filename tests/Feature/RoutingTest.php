@@ -69,8 +69,8 @@ it('generates localized uri via helpers', function () {
 it('matches route name against canonical route', function () {
     $matches = false;
 
-    Route::get('/example', function (L10n $l10n) use (&$matches) {
-        $matches = $l10n->is('example');
+    Route::get('/example', function () use (&$matches) {
+        $matches = \Goodcat\L10n\Facades\L10n::is('example');
     })
         ->name('example')
         ->lang(['es']);
