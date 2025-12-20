@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+### Added
+
+- Adds `L10n::is()` method for localized route matching.
+
 ## v0.3.0
 
 Released on _**2025-12-19**_.
