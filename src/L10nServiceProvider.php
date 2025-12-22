@@ -2,6 +2,7 @@
 
 namespace Goodcat\L10n;
 
+use Closure;
 use Goodcat\L10n\Listeners\RegisterLocalizedViewsPath;
 use Goodcat\L10n\Mixin\LocalizedApplication;
 use Goodcat\L10n\Mixin\LocalizedRoute;
@@ -21,9 +22,7 @@ class L10nServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
-        $this->publishes([
-            __DIR__.'/../config/l10n.php' => config_path('l10n.php'),
-        ]);
+        $this->publishes([__DIR__.'/../config/l10n.php' => config_path('l10n.php')], 'l10n-config');
 
         $this->app->booted(fn () => app(L10n::class)->registerLocalizedRoutes());
 
@@ -61,7 +60,7 @@ class L10nServiceProvider extends ServiceProvider
         Route::mixin(new LocalizedRoute);
     }
 
-    protected function requestRebinder(): \Closure
+    protected function requestRebinder(): Closure
     {
         return function ($app, $request) {
             $app['url']->setRequest($request);
