@@ -3,6 +3,7 @@
 use Goodcat\L10n\L10n;
 use Goodcat\L10n\Middleware\SetLocale;
 use Goodcat\L10n\Tests\Support\Controller;
+use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Translation\Translator;
 
@@ -80,4 +81,19 @@ it('matches route name against canonical route', function () {
     $this->get('es/example')->assertOk();
 
     expect($matches)->toBeTrue();
+});
+
+test('L10n::registerLocalizedRoutes is idempotent', function () {
+    Route::get('/example', fn () => 'Hello, World!')
+        ->middleware(SetLocale::class)
+        ->lang(['es', 'it'])
+        ->name('example');
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    $count = app(Router::class)->getRoutes()->count();
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    expect(app(Router::class)->getRoutes()->count())->toBe($count);
 });
