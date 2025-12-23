@@ -20,7 +20,6 @@ it('detects preferred locale from browser', function () {
     L10n::$preferredLocaleResolvers = [new BrowserPreferredLocale];
 
     Route::get('/example', fn () => 'Hello, World!')
-        ->lang(['it'])
         ->middleware(SetPreferredLocale::class);
 
     $this->withHeader('Accept-Language', 'en')->get('/example');
@@ -31,11 +30,10 @@ it('detects preferred locale from browser', function () {
 it('detects preferred locale from user', function () {
     L10n::$preferredLocaleResolvers = [new UserPreferredLocale];
 
-    Route::get('{lang}/example', fn () => 'Hello, World!')
-        ->lang(['en'])
+    Route::get('/example', fn () => 'Hello, World!')
         ->middleware(SetPreferredLocale::class);
 
-    $this->actingAs(new User)->get('en/example');
+    $this->actingAs(new User)->get('/example');
 
     expect(app()->getPreferredLocale())->toBe('en');
 });
