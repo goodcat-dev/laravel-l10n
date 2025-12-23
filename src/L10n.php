@@ -36,8 +36,6 @@ class L10n
             foreach ($route->makeTranslations() as $localizedRoute) {
                 $collection->add($localizedRoute);
             }
-
-            $collection->add($route);
         }
     }
 

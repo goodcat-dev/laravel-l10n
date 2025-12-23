@@ -61,12 +61,17 @@ class LocalizedRoute
             $action = ['locale' => $locale, 'canonical' => $this->getKey()] + $this->action;
 
             unset($action['as']);
+            unset($action['lang']);
             unset($action['prefix']);
 
-            $key = "routes.$this->uri";
+            if ($domain = $this->getDomain()) {
+                $action['domain'] = trans()->hasForLocale("routes.$domain", $locale)
+                    ? trans("routes.$domain", locale: $locale)
+                    : $domain;
+            }
 
-            $uri = trans()->hasForLocale($key, $locale)
-                ? trans($key, locale: $locale)
+            $uri = trans()->hasForLocale("routes.$this->uri", $locale)
+                ? trans("routes.$this->uri", locale: $locale)
                 : $this->uri;
 
             $route = new Route($this->methods(), $uri, $action);

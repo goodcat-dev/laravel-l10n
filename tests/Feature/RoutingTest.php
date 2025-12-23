@@ -67,6 +67,19 @@ it('generates localized uri via helpers', function () {
         ->toBe('http://localhost/es/ejemplo');
 });
 
+it('generates localized domains', function () {
+    app(Translator::class)->addPath(__DIR__ . '/../Support/lang');
+
+    Route::domain('example.com')->lang(['es', 'it'])->group(function () {
+        Route::get('/example', fn () => 'Hello, World!');
+    });
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    $this->get('http://es.example.com/es/ejemplo')->assertOk();
+    $this->get('http://example.com/it/example')->assertOk();
+});
+
 it('matches route name against canonical route', function () {
     $matches = false;
 
