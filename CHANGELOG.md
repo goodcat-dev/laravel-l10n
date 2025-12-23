@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - Adds `L10n::is()` method for localized route matching.
 - Adds `L10n` facade.
 - Adds domain translations.
+- Adds `SessionLocale` resolver.
 
 ## v0.3.0
 

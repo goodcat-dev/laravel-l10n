@@ -17,7 +17,7 @@ Get started with `laravel-l10n` in three steps.
    ```php
    return Application::configure(basePath: dirname(__DIR__))
        ->withMiddleware(function (Middleware $middleware): void {
-           $middleware->web(prepend: [
+           $middleware->web([
                \Goodcat\L10n\Middleware\SetLocale::class,
                \Goodcat\L10n\Middleware\SetPreferredLocale::class,
            ]);
@@ -184,8 +184,9 @@ The `SetPreferredLocale` middleware is responsible for populating the preferred 
 
 By default, the package checks the following sources in order:
 
-1. **UserPreferredLocale**: Checks if the authenticated user has a preferred locale (the user model must implement a `preferredLocale()` method).
-2. **BrowserPreferredLocale**: Falls back to the browser's `Accept-Language` header.
+1. **SessionLocale**: Checks if a locale was set in the session.
+2. **UserLocale**: Checks if the authenticated user has a preferred locale (the user model must implement a `preferredLocale()` method).
+3. **BrowserLocale**: Falls back to the browser's `Accept-Language` header.
 
 ### Customizing Resolvers
 
@@ -193,10 +194,10 @@ You can customize the resolvers by setting the static property on the `L10n` cla
 
 ```php
 use Goodcat\L10n\L10n;
-use Goodcat\L10n\Resolvers\BrowserPreferredLocale;
+use Goodcat\L10n\Resolvers\BrowserLocale;
 
 L10n::$preferredLocaleResolvers = [
-    new BrowserPreferredLocale,
+    new BrowserLocale,
 ];
 ```
 

@@ -4,15 +4,16 @@ namespace Goodcat\L10n;
 
 use Goodcat\L10n\Contracts\LocalizedRoute;
 use Goodcat\L10n\Contracts\LocalizedRouter;
-use Goodcat\L10n\Resolvers\BrowserPreferredLocale;
-use Goodcat\L10n\Resolvers\PreferredLocaleResolver;
-use Goodcat\L10n\Resolvers\UserPreferredLocale;
+use Goodcat\L10n\Resolvers\BrowserLocale;
+use Goodcat\L10n\Resolvers\LocaleResolver;
+use Goodcat\L10n\Resolvers\SessionLocale;
+use Goodcat\L10n\Resolvers\UserLocale;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
 
 class L10n
 {
-    /** @var PreferredLocaleResolver[] */
+    /** @var LocaleResolver[] */
     public static array $preferredLocaleResolvers;
 
     /** @var array<string, Route>  */
@@ -74,14 +75,15 @@ class L10n
     }
 
     /**
-     * @return PreferredLocaleResolver[]
+     * @return LocaleResolver[]
      */
     public static function getPreferredLocaleResolvers(): array
     {
         if (!isset(self::$preferredLocaleResolvers)) {
             self::$preferredLocaleResolvers = [
-                new UserPreferredLocale,
-                new BrowserPreferredLocale,
+                new SessionLocale,
+                new UserLocale,
+                new BrowserLocale,
             ];
         }
 

@@ -4,10 +4,10 @@ namespace Goodcat\L10n\Resolvers;
 
 use Illuminate\Http\Request;
 
-class BrowserPreferredLocale implements PreferredLocaleResolver
+class SessionLocale implements LocaleResolver
 {
     public function resolve(Request $request): ?string
     {
-        return $request->getPreferredLanguage();
+        return $request->session()->get('locale');
     }
 }
