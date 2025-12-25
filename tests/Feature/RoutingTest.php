@@ -80,7 +80,7 @@ it('generates localized domains', function () {
     $this->get('http://example.com/it/example')->assertOk();
 });
 
-it('matches route name against canonical route', function () {
+it('matches route name against canonical route', function (bool $withCachedRoutes) {
     $matches = false;
 
     Route::get('/example', function () use (&$matches) {
@@ -91,10 +91,19 @@ it('matches route name against canonical route', function () {
 
     app(L10n::class)->registerLocalizedRoutes();
 
+    if ($withCachedRoutes) {
+        app(Router::class)->setCompiledRoutes(
+            app(Router::class)->getRoutes()->compile()
+        );
+    }
+
     $this->get('es/example')->assertOk();
 
     expect($matches)->toBeTrue();
-});
+})->with([
+    'RouteCollection' => false,
+    'CompiledRouteCollection' => true
+]);
 
 test('L10n::registerLocalizedRoutes is idempotent', function () {
     Route::get('/example', fn () => 'Hello, World!')

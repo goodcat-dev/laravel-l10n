@@ -51,6 +51,7 @@ class LocalizedRoute
     {
         return function (string $locale): ?Route {
             /** @var Localized&Route $this */
+
             if (! in_array($locale, $this->lang(), true)) {
                 return null;
             }
