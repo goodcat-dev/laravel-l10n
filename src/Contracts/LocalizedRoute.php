@@ -14,6 +14,7 @@ interface LocalizedRoute
 
     /**
      * @return Route[]
+     *
      * @see \Goodcat\L10n\Mixin\LocalizedRoute::makeTranslations
      */
     public function makeTranslations(): array;

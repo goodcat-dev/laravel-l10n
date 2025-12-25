@@ -22,7 +22,7 @@ it('has default resolvers', function () {
 it('detects preferred locale from browser', function () {
     L10n::$preferredLocaleResolvers = [new BrowserLocale];
 
-    Route::get('/example', fn() => 'Hello, World!')
+    Route::get('/example', fn () => 'Hello, World!')
         ->middleware(SetPreferredLocale::class);
 
     $this->withHeader('Accept-Language', 'es')->get('/example');
@@ -33,7 +33,7 @@ it('detects preferred locale from browser', function () {
 it('detects preferred locale from user', function () {
     L10n::$preferredLocaleResolvers = [new UserLocale];
 
-    Route::get('/example', fn() => 'Hello, World!')
+    Route::get('/example', fn () => 'Hello, World!')
         ->middleware(SetPreferredLocale::class);
 
     $this->actingAs(new User)->get('/example');
@@ -44,7 +44,7 @@ it('detects preferred locale from user', function () {
 it('detects preferred locale from the session', function () {
     L10n::$preferredLocaleResolvers = [new SessionLocale];
 
-    Route::get('/example', fn() => 'Hello, World!')
+    Route::get('/example', fn () => 'Hello, World!')
         ->middleware([StartSession::class, SetPreferredLocale::class]);
 
     $this->withSession(['locale' => 'fr'])->get('/example');

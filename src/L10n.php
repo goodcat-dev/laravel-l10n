@@ -16,7 +16,7 @@ class L10n
     /** @var LocaleResolver[] */
     public static array $preferredLocaleResolvers;
 
-    /** @var array<string, Route>  */
+    /** @var array<string, Route> */
     protected array $canonicalRoutes;
 
     public function registerLocalizedRoutes(): void
@@ -29,7 +29,6 @@ class L10n
 
         foreach ($collection->getRoutes() as $route) {
             /** @var Route&LocalizedRoute $route */
-
             if ($route->getAction('canonical')) {
                 continue;
             }
@@ -79,7 +78,7 @@ class L10n
      */
     public static function getPreferredLocaleResolvers(): array
     {
-        if (!isset(self::$preferredLocaleResolvers)) {
+        if (! isset(self::$preferredLocaleResolvers)) {
             self::$preferredLocaleResolvers = [
                 new SessionLocale,
                 new UserLocale,

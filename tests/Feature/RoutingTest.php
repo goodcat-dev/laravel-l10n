@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Translation\Translator;
 
 it('generates localized routes', function () {
-    app(Translator::class)->addPath(__DIR__ . '/../Support/lang');
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
 
     Route::lang(['es', 'it'])->group(function () {
         Route::get('/example', fn () => 'Hello, World!');
@@ -22,7 +22,7 @@ it('generates localized routes', function () {
 });
 
 it('detects and set the route locale', function () {
-    app(Translator::class)->addPath(__DIR__ . '/../Support/lang');
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
 
     Route::get('/example', fn () => 'Hello, World!')
         ->middleware(SetLocale::class)
@@ -39,7 +39,7 @@ it('detects and set the route locale', function () {
 });
 
 it('generates localized routes without prefix', function () {
-    app(Translator::class)->addPath(__DIR__ . '/../Support/lang');
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
 
     config(['l10n.add_locale_prefix' => false]);
 
@@ -53,7 +53,7 @@ it('generates localized routes without prefix', function () {
 });
 
 it('generates localized uri via helpers', function () {
-    app(Translator::class)->addPath(__DIR__ . '/../Support/lang');
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
 
     Route::get('/example', Controller::class)
         ->name('example')
@@ -68,7 +68,7 @@ it('generates localized uri via helpers', function () {
 });
 
 it('generates localized domains', function () {
-    app(Translator::class)->addPath(__DIR__ . '/../Support/lang');
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
 
     Route::domain('example.com')->lang(['es', 'it'])->group(function () {
         Route::get('/example', fn () => 'Hello, World!');

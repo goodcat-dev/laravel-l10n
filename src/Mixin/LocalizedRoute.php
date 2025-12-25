@@ -12,7 +12,6 @@ class LocalizedRoute
     {
         return function (?array $translations = null): Route|array {
             /** @var Localized&Route $this */
-
             $lang = $this->action['lang'] ?? [];
 
             if (is_null($translations)) {
@@ -38,7 +37,6 @@ class LocalizedRoute
     {
         return function (): array {
             /** @var Localized&Route $this */
-
             $translations = [];
 
             foreach ($this->lang() as $locale) {
@@ -53,8 +51,7 @@ class LocalizedRoute
     {
         return function (string $locale): ?Route {
             /** @var Localized&Route $this */
-
-            if (!in_array($locale, $this->lang(), true)) {
+            if (! in_array($locale, $this->lang(), true)) {
                 return null;
             }
 

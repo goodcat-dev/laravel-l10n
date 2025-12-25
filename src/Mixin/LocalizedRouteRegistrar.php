@@ -11,7 +11,6 @@ class LocalizedRouteRegistrar
     {
         return function (array $translations = []): RouteRegistrar {
             /** @var RouteRegistrar $this */
-
             $this->attributes['lang'] = $translations;
 
             return $this;
