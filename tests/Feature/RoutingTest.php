@@ -92,9 +92,7 @@ it('matches route name against canonical route', function (bool $withCachedRoute
     app(L10n::class)->registerLocalizedRoutes();
 
     if ($withCachedRoutes) {
-        app(Router::class)->setCompiledRoutes(
-            app(Router::class)->getRoutes()->compile()
-        );
+        Route::setCompiledRoutes(Route::getRoutes()->compile());
     }
 
     $this->get('es/example')->assertOk();

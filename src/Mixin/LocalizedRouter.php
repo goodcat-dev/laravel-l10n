@@ -26,18 +26,18 @@ class LocalizedRouter
             $collection = $this->getRoutes();
 
             $getByKey = Closure::bind(function (string $key): ?Route {
-                return $this->allRoutes[$key] ?? null;
-            }, $collection, RouteCollection::class);
+                $attributes = array_find(
+                    $this->attributes,
+                    fn ($route) => $route['action']['key'] === $key
+                );
 
-            if ($collection instanceof CompiledRouteCollection) {
+                return $attributes ? $this->newRoute($attributes) : null;
+            }, $collection, CompiledRouteCollection::class);
+
+            if ($collection instanceof RouteCollection) {
                 $getByKey = Closure::bind(function (string $key): ?Route {
-                    $attributes = array_find(
-                        $this->attributes,
-                        fn ($route) => $route['action']['key'] === $key
-                    );
-
-                    return $attributes ? $this->newRoute($attributes) : null;
-                }, $collection, CompiledRouteCollection::class);
+                    return $this->allRoutes[$key] ?? null;
+                }, $collection, RouteCollection::class);
             }
 
             return $getByKey($key);
