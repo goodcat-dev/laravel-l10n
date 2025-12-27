@@ -6,6 +6,7 @@ use Goodcat\L10n\Resolvers\BrowserLocale;
 use Goodcat\L10n\Resolvers\SessionLocale;
 use Goodcat\L10n\Resolvers\UserLocale;
 use Goodcat\L10n\Tests\Support\User;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
 
@@ -30,16 +31,21 @@ it('detects preferred locale from browser', function () {
     expect(app()->getPreferredLocale())->toBe('es');
 });
 
-it('detects preferred locale from user', function () {
+it('detects preferred locale from user', function (Authenticatable $user) {
     L10n::$preferredLocaleResolvers = [new UserLocale];
 
     Route::get('/example', fn () => 'Hello, World!')
         ->middleware(SetPreferredLocale::class);
 
-    $this->actingAs(new User)->get('/example');
+    $this->actingAs($user)->get('/example');
 
-    expect(app()->getPreferredLocale())->toBe('en');
-});
+    $expected = $user instanceof User ? 'en' : null;
+
+    expect(app()->getPreferredLocale())->toBe($expected);
+})->with([
+    'withPreferredLocale' => new User,
+    'withoutPreferredLocale' => new Authenticatable,
+]);
 
 it('detects preferred locale from the session', function () {
     L10n::$preferredLocaleResolvers = [new SessionLocale];
