@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.3.2
+
+Released on _**2026-12-27**_.
+
+### Changed
+
+- Forces `defaults`, `wheres`, `container` and `middleware` on localized routes.
+
 ## v0.3.1
 
 Released on _**2026-12-27**_.

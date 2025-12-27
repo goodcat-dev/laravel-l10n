@@ -1,5 +1,6 @@
 <?php
 
+use Goodcat\L10n\Contracts\LocalizedRoute;
 use Goodcat\L10n\L10n;
 use Goodcat\L10n\Middleware\SetLocale;
 use Goodcat\L10n\Tests\Support\Controller;
@@ -116,4 +117,19 @@ test('L10n::registerLocalizedRoutes is idempotent', function () {
     app(L10n::class)->registerLocalizedRoutes();
 
     expect(app(Router::class)->getRoutes()->count())->toBe($count);
+});
+
+test('localized route inherit properties from canonical route', function () {
+    /** @var LocalizedRoute $canonical */
+    $canonical = Route::get('/example/{id}', fn () => 'Hello, World!')
+        ->lang(['it'])
+        ->where('id', '[0-9]+')
+        ->defaults('id', 1);
+
+    $localized = $canonical->makeTranslation('it');
+
+    expect($localized)
+        ->not->toBeNull()
+        ->and($localized->wheres)->toBe(['id' => '[0-9]+'])
+        ->and($localized->defaults)->toBe(['id' => 1]);
 });

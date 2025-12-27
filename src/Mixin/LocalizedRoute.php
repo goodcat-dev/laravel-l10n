@@ -77,7 +77,11 @@ class LocalizedRoute
                 $route->prefix($locale);
             }
 
-            return $route;
+            return $route
+                ->setDefaults($this->defaults)
+                ->setContainer($this->container)
+                ->setRouter($this->router)
+                ->where($this->wheres);
         };
     }
 }
