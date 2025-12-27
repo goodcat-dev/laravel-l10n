@@ -100,7 +100,7 @@ it('matches route name against canonical route', function (bool $withCachedRoute
     expect($matches)->toBeTrue();
 })->with([
     'RouteCollection' => false,
-    'CompiledRouteCollection' => true
+    'CompiledRouteCollection' => true,
 ]);
 
 test('L10n::registerLocalizedRoutes is idempotent', function () {
