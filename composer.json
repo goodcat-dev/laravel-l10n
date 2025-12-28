@@ -22,7 +22,10 @@
         "laravel": {
             "providers": [
               "Goodcat\\L10n\\L10nServiceProvider"
-            ]
+            ],
+            "aliases": {
+              "L10n": "Goodcat\\L10n\\Facades\\L10n"
+            }
         }
     },
     "keywords": [
@@ -33,9 +36,9 @@
     ],
     "require": {
         "php": "^8.2",
-        "illuminate/support": "^12.28.1",
-        "illuminate/routing": "^12.28.1",
-        "illuminate/http": "^12.28.1",
+        "illuminate/support": "^12.44.0",
+        "illuminate/routing": "^12.44.0",
+        "illuminate/http": "^12.44.0",
         "tightenco/ziggy": "^2.6"
     },
     "require-dev": {

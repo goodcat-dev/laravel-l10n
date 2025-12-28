@@ -12,7 +12,6 @@ class LocalizedRoute
     {
         return function (?array $translations = null): Route|array {
             /** @var Localized&Route $this */
-
             $lang = $this->action['lang'] ?? [];
 
             if (is_null($translations)) {
@@ -25,11 +24,19 @@ class LocalizedRoute
         };
     }
 
+    public function getKey(): Closure
+    {
+        return function (): string {
+            /** @var Localized&Route $this */
+
+            return implode('|', $this->methods()).$this->getDomain().$this->uri();
+        };
+    }
+
     public function makeTranslations(): Closure
     {
         return function (): array {
             /** @var Localized&Route $this */
-
             $translations = [];
 
             foreach ($this->lang() as $locale) {
@@ -44,29 +51,37 @@ class LocalizedRoute
     {
         return function (string $locale): ?Route {
             /** @var Localized&Route $this */
-
-            if (!in_array($locale, $this->lang(), true)) {
+            if (! in_array($locale, $this->lang(), true)) {
                 return null;
             }
 
-            $action = $this->action;
+            $action = ['locale' => $locale, 'canonical' => $this->getKey()] + $this->action;
 
             unset($action['as']);
+            unset($action['lang']);
             unset($action['prefix']);
 
-            $key = "routes.$this->uri";
+            if ($domain = $this->getDomain()) {
+                $action['domain'] = trans()->hasForLocale("routes.$domain", $locale)
+                    ? trans("routes.$domain", locale: $locale)
+                    : $domain;
+            }
 
-            $uri = trans()->hasForLocale($key, $locale)
-                ? trans($key, locale: $locale)
+            $uri = trans()->hasForLocale("routes.$this->uri", $locale)
+                ? trans("routes.$this->uri", locale: $locale)
                 : $this->uri;
 
-            $route = new Route($this->methods(), $uri, ['locale' => $locale] + $action);
+            $route = new Route($this->methods(), $uri, $action);
 
             if (config('l10n.add_locale_prefix')) {
                 $route->prefix($locale);
             }
 
-            return $route;
+            return $route
+                ->setDefaults($this->defaults)
+                ->setContainer($this->container)
+                ->setRouter($this->router)
+                ->where($this->wheres);
         };
     }
 }

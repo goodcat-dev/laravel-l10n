@@ -2,6 +2,7 @@
 
 namespace Goodcat\L10n;
 
+use Closure;
 use Goodcat\L10n\Listeners\RegisterLocalizedViewsPath;
 use Goodcat\L10n\Mixin\LocalizedApplication;
 use Goodcat\L10n\Mixin\LocalizedRoute;
@@ -15,14 +16,13 @@ use Illuminate\Routing\Router;
 use Illuminate\Routing\RouteRegistrar;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use ReflectionException;
 
 class L10nServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
-        $this->publishes([
-            __DIR__.'/../config/l10n.php' => config_path('l10n.php'),
-        ]);
+        $this->publishes([__DIR__.'/../config/l10n.php' => config_path('l10n.php')], 'l10n-config');
 
         $this->app->booted(fn () => app(L10n::class)->registerLocalizedRoutes());
 
@@ -30,11 +30,13 @@ class L10nServiceProvider extends ServiceProvider
     }
 
     /**
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__.'/../config/l10n.php', 'l10n');
+
+        $this->app->singleton(L10n::class);
 
         $this->app->singleton(LocalizedUrlGenerator::class, function (Application $app) {
             $routes = $app['router']->getRoutes();
@@ -50,15 +52,13 @@ class L10nServiceProvider extends ServiceProvider
 
         $this->app->alias(LocalizedUrlGenerator::class, 'url');
 
-        $this->app->singleton(RegisterLocalizedViewsPath::class);
-
         Router::mixin(new LocalizedRouter);
         RouteRegistrar::mixin(new LocalizedRouteRegistrar);
         Application::mixin(new LocalizedApplication);
         Route::mixin(new LocalizedRoute);
     }
 
-    protected function requestRebinder(): \Closure
+    protected function requestRebinder(): Closure
     {
         return function ($app, $request) {
             $app['url']->setRequest($request);

@@ -17,9 +17,9 @@ Get started with `laravel-l10n` in three steps.
    ```php
    return Application::configure(basePath: dirname(__DIR__))
        ->withMiddleware(function (Middleware $middleware): void {
-           $middleware->web(prepend: [
+           $middleware->web([
                \Goodcat\L10n\Middleware\SetLocale::class,
-               \Goodcat\L10n\Middleware\setPreferredLocale::class,
+               \Goodcat\L10n\Middleware\SetPreferredLocale::class,
            ]);
        });
    ```
@@ -36,7 +36,7 @@ That's it. You're all set to start using `laravel-l10n`.
 To customize the package behavior, publish the configuration file:
 
 ```sh
-php artisan vendor:publish --provider="Goodcat\L10n\L10nServiceProvider"
+php artisan vendor:publish --tag=l10n-config
 ```
 
 ### Add Locale Prefix
@@ -46,14 +46,6 @@ By default, this package **adds the locale prefix** to translated routes, except
 This means a route like `/example` will be served by the clean URL `/example` for the default language (e.g. English), while other locales will include their prefix (e.g. `/es/ejemplo`, `/it/esempio`).
 
 If you prefer to hide the locale prefix for all languages, set `add_locale_prefix` to `false` in your `config/l10n.php` file.
-
-```php
-// config/l10n.php
-return [
-    'add_locale_prefix' => false,
-];
-```
-
 After this change, routes will use translated URIs without locale prefixes (e.g. `/ejemplo` instead of `/es/ejemplo`).
 
 ## Route translations
@@ -113,6 +105,20 @@ Route::lang(['es', 'it'])->group(function () {
 ```
 
 All routes inside the group will inherit the locale definitions.
+
+### Route Matching
+
+Use `L10n::is()` to check if the current route matches a given pattern, regardless of the locale:
+
+```html
+<div>
+   @if (L10n::is('example'))
+   <p>Matches /example, /es/ejemplo, /it/esempio, etc.</p>
+   @endif
+</div>
+```
+
+This is the localized equivalent of `Route::is()`.
 
 ## URL Generation
 
@@ -174,12 +180,13 @@ The `example.blade.php` file in the root views folder can serve as your default 
 This package provides a robust mechanism for automatically detecting a user's preferred language.
 It adds the `app()->getPreferredLocale()` and `app()->setPreferredLocale()` methods to your Laravel application.
 
-The `setPreferredLocale` middleware is responsible for populating the preferred locale. It does this by checking a series of configurable **preferred locale resolvers**.
+The `SetPreferredLocale` middleware is responsible for populating the preferred locale. It does this by checking a series of configurable **preferred locale resolvers**.
 
 By default, the package checks the following sources in order:
 
-1. **UserPreferredLocale**: Checks if the authenticated user has a preferred locale (the user model must implement a `preferredLocale()` method).
-2. **BrowserPreferredLocale**: Falls back to the browser's `Accept-Language` header.
+1. **SessionLocale**: Checks if a locale was set in the session.
+2. **UserLocale**: Checks if the authenticated user has a preferred locale (the user model must implement a `preferredLocale()` method).
+3. **BrowserLocale**: Falls back to the browser's `Accept-Language` header.
 
 ### Customizing Resolvers
 
@@ -187,10 +194,10 @@ You can customize the resolvers by setting the static property on the `L10n` cla
 
 ```php
 use Goodcat\L10n\L10n;
-use Goodcat\L10n\Resolvers\BrowserPreferredLocale;
+use Goodcat\L10n\Resolvers\BrowserLocale;
 
 L10n::$preferredLocaleResolvers = [
-    new BrowserPreferredLocale,
+    new BrowserLocale,
 ];
 ```
 

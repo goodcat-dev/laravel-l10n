@@ -1,13 +1,15 @@
 <?php
 
+use Goodcat\L10n\Contracts\LocalizedRoute;
 use Goodcat\L10n\L10n;
 use Goodcat\L10n\Middleware\SetLocale;
 use Goodcat\L10n\Tests\Support\Controller;
+use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Translation\Translator;
 
 it('generates localized routes', function () {
-    app(Translator::class)->addPath(__DIR__ . '/../Support/lang');
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
 
     Route::lang(['es', 'it'])->group(function () {
         Route::get('/example', fn () => 'Hello, World!');
@@ -21,7 +23,7 @@ it('generates localized routes', function () {
 });
 
 it('detects and set the route locale', function () {
-    app(Translator::class)->addPath(__DIR__ . '/../Support/lang');
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
 
     Route::get('/example', fn () => 'Hello, World!')
         ->middleware(SetLocale::class)
@@ -38,7 +40,7 @@ it('detects and set the route locale', function () {
 });
 
 it('generates localized routes without prefix', function () {
-    app(Translator::class)->addPath(__DIR__ . '/../Support/lang');
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
 
     config(['l10n.add_locale_prefix' => false]);
 
@@ -52,7 +54,7 @@ it('generates localized routes without prefix', function () {
 });
 
 it('generates localized uri via helpers', function () {
-    app(Translator::class)->addPath(__DIR__ . '/../Support/lang');
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
 
     Route::get('/example', Controller::class)
         ->name('example')
@@ -64,4 +66,70 @@ it('generates localized uri via helpers', function () {
         ->toBe('http://localhost/es/ejemplo')
         ->and(action(Controller::class, ['lang' => 'es']))
         ->toBe('http://localhost/es/ejemplo');
+});
+
+it('generates localized domains', function () {
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
+
+    Route::domain('example.com')->lang(['es', 'it'])->group(function () {
+        Route::get('/example', fn () => 'Hello, World!');
+    });
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    $this->get('http://es.example.com/es/ejemplo')->assertOk();
+    $this->get('http://example.com/it/example')->assertOk();
+});
+
+it('matches route name against canonical route', function (bool $withCachedRoutes) {
+    $matches = false;
+
+    Route::get('/example', function () use (&$matches) {
+        $matches = \Goodcat\L10n\Facades\L10n::is('example');
+    })
+        ->name('example')
+        ->lang(['es']);
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    if ($withCachedRoutes) {
+        Route::setCompiledRoutes(Route::getRoutes()->compile());
+    }
+
+    $this->get('es/example')->assertOk();
+
+    expect($matches)->toBeTrue();
+})->with([
+    'RouteCollection' => false,
+    'CompiledRouteCollection' => true,
+]);
+
+test('L10n::registerLocalizedRoutes is idempotent', function () {
+    Route::get('/example', fn () => 'Hello, World!')
+        ->middleware(SetLocale::class)
+        ->lang(['es', 'it'])
+        ->name('example');
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    $count = app(Router::class)->getRoutes()->count();
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    expect(app(Router::class)->getRoutes()->count())->toBe($count);
+});
+
+test('localized route inherit properties from canonical route', function () {
+    /** @var LocalizedRoute $canonical */
+    $canonical = Route::get('/example/{id}', fn () => 'Hello, World!')
+        ->lang(['it'])
+        ->where('id', '[0-9]+')
+        ->defaults('id', 1);
+
+    $localized = $canonical->makeTranslation('it');
+
+    expect($localized)
+        ->not->toBeNull()
+        ->and($localized->wheres)->toBe(['id' => '[0-9]+'])
+        ->and($localized->defaults)->toBe(['id' => 1]);
 });

@@ -21,10 +21,11 @@ class LocalizedApplication
     {
         return function (string $locale): void {
             /** @var Application $this */
+            $previous = $this['config']->get('app.preferred_locale');
 
             $this['config']->set('app.preferred_locale', $locale);
 
-            $this['events']->dispatch(new PreferredLocaleUpdated($locale));
+            $this['events']->dispatch(new PreferredLocaleUpdated($locale, $previous));
         };
     }
 

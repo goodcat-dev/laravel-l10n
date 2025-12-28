@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.3.2
+
+Released on _**2026-12-27**_.
+
+### Changed
+
+- Forces `defaults`, `wheres`, `container` and `middleware` on localized routes.
+
+## v0.3.1
+
+Released on _**2026-12-27**_.
+
+### Added
+
+- Adds `L10n::is()` method for localized route matching.
+- Adds `L10n` facade.
+- Adds domain translations.
+- Adds `SessionLocale` resolver.
+
 ## v0.3.0
 
 Released on _**2025-12-19**_.
