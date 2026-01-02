@@ -57,7 +57,7 @@ class LocalizedRoute
 
             $action = ['locale' => $locale, 'canonical' => $this->getKey()] + $this->action;
 
-            unset($action['as']);
+//            unset($action['as']);
             unset($action['lang']);
             unset($action['prefix']);
 
@@ -72,6 +72,10 @@ class LocalizedRoute
                 : $this->uri;
 
             $route = new Route($this->methods(), $uri, $action);
+
+            if ($route->getName()) {
+                $route->name(".$locale");
+            }
 
             if (config('l10n.add_locale_prefix')) {
                 $route->prefix($locale);

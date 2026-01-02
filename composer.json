@@ -39,7 +39,7 @@
         "illuminate/support": "^12.44.0",
         "illuminate/routing": "^12.44.0",
         "illuminate/http": "^12.44.0",
-        "tightenco/ziggy": "^2.6"
+        "tightenco/ziggy": "2.x-dev"
     },
     "require-dev": {
         "orchestra/testbench": "^10.4",
@@ -47,6 +47,16 @@
         "larastan/larastan": "^3.5",
         "pestphp/pest": "^3.8"
     },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../ziggy",
+            "options": {
+                "symlink": true
+            }
+        }
+    ],
+    "minimum-stability": "dev",
     "config": {
         "allow-plugins": {
             "pestphp/pest-plugin": true
