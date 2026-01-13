@@ -57,7 +57,6 @@ class LocalizedRoute
 
             $action = ['locale' => $locale, 'canonical' => $this->getKey()] + $this->action;
 
-//            unset($action['as']);
             unset($action['lang']);
             unset($action['prefix']);
 
