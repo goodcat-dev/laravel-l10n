@@ -1,4 +1,4 @@
-import { route as ziggy } from '../../vendor/tightenco/ziggy';
+import { route as ziggy } from '../../../vendor/tightenco/ziggy';
 import { useI18n } from 'vue-i18n';
 
 type Params = Record<string, unknown> & { lang?: string };

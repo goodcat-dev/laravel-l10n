@@ -24,6 +24,11 @@ class L10nServiceProvider extends ServiceProvider
     {
         $this->publishes([__DIR__.'/../config/l10n.php' => config_path('l10n.php')], 'l10n-config');
 
+        $this->publishes([
+            __DIR__.'/../stubs/route.js' => resource_path('js/routes.js'),
+            __DIR__.'/../stubs/useLaravelL10n.ts' => resource_path('js/composables/useLaravelL10n.ts'),
+        ], 'l10n-ziggy');
+
         $this->app->booted(fn () => app(L10n::class)->registerLocalizedRoutes());
 
         Event::listen(LocaleUpdated::class, RegisterLocalizedViewsPath::class);
