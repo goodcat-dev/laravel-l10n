@@ -4,11 +4,13 @@ namespace Goodcat\L10n;
 
 use Closure;
 use Goodcat\L10n\Listeners\RegisterLocalizedViewsPath;
+use Goodcat\L10n\Listeners\RegisterWayfinderCanonicalRoute;
 use Goodcat\L10n\Mixin\LocalizedApplication;
 use Goodcat\L10n\Mixin\LocalizedRoute;
 use Goodcat\L10n\Mixin\LocalizedRouter;
 use Goodcat\L10n\Mixin\LocalizedRouteRegistrar;
 use Goodcat\L10n\Routing\LocalizedUrlGenerator;
+use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Events\LocaleUpdated;
 use Illuminate\Routing\Route;
@@ -32,6 +34,7 @@ class L10nServiceProvider extends ServiceProvider
         $this->app->booted(fn () => app(L10n::class)->registerLocalizedRoutes());
 
         Event::listen(LocaleUpdated::class, RegisterLocalizedViewsPath::class);
+        Event::listen(CommandStarting::class, RegisterWayfinderCanonicalRoute::class);
     }
 
     /**
