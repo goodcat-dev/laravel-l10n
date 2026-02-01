@@ -31,6 +31,10 @@ class L10nServiceProvider extends ServiceProvider
             __DIR__.'/../stubs/useLaravelL10n.ts' => resource_path('js/composables/useLaravelL10n.ts'),
         ], 'l10n-ziggy');
 
+        $this->publishes([
+            __DIR__.'/../stubs/wayfinder/l10n.ts' => resource_path('js/l10n.ts'),
+        ], 'l10n-wayfinder');
+
         $this->app->booted(fn () => app(L10n::class)->registerLocalizedRoutes());
 
         Event::listen(LocaleUpdated::class, RegisterLocalizedViewsPath::class);
