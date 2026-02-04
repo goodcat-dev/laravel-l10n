@@ -16,7 +16,7 @@ export function route<T extends (...args: any[]) => any>(
 
     const route = routes[locale] ?? routes[fallbackLocale];
 
-    return args && Object.keys(args).length > 0
+    return args && Object.keys(args).length
         ? route(args)
         : route();
 }
