@@ -106,20 +106,6 @@ Route::lang(['es', 'it'])->group(function () {
 
 All routes inside the group will inherit the locale definitions.
 
-### Route Matching
-
-Use `L10n::is()` to check if the current route matches a given pattern, regardless of the locale:
-
-```html
-<div>
-   @if (L10n::is('example'))
-   <p>Matches /example, /es/ejemplo, /it/esempio, etc.</p>
-   @endif
-</div>
-```
-
-This is the localized equivalent of `Route::is()`.
-
 ## URL Generation
 
 The package automatically replaces Laravel's default URL generator with `LocalizedUrlGenerator`, ensuring that the `route()` helper generates the correct URLs for the current locale without any extra configuration.
@@ -178,7 +164,6 @@ The `example.blade.php` file in the root views folder can serve as your default 
 ## User Locale Preference
 
 This package provides a robust mechanism for automatically detecting a user's preferred language.
-It adds the `app()->getPreferredLocale()` and `app()->setPreferredLocale()` methods to your Laravel application.
 
 The `SetPreferredLocale` middleware is responsible for populating the preferred locale. It does this by checking a series of configurable **preferred locale resolvers**.
 
@@ -201,13 +186,32 @@ L10n::$preferredLocaleResolvers = [
 ];
 ```
 
-### Checking Fallback Locale
+## Helpers
 
-The package also adds a helper method to check if a locale is the fallback locale:
+This package adds several helper methods to your Laravel application.
+
+### Application Helpers
 
 ```php
-app()->isFallbackLocale('en'); // true if 'en' is the fallback locale
+// Get the user's preferred locale
+app()->getPreferredLocale(); // Returns ?string
+
+// Set the user's preferred locale (dispatches PreferredLocaleUpdated event)
+app()->setPreferredLocale('es');
+
+// Check if a locale is the fallback locale
+app()->isFallbackLocale('en'); // Returns bool
 ```
+
+### Route Matching
+
+Use `L10n::is()` to check if the current route matches a given pattern, regardless of the locale:
+
+```php
+L10n::is('dashboard'); // Matches /dashboard, /es/dashboard, /it/bacheca, etc.
+```
+
+This is the localized equivalent of `Route::is()`.
 
 ## JavaScript URL Generation
 
@@ -234,8 +238,6 @@ This creates a `resources/js/l10n.ts` file with the following exports:
 - `route(routes, args?)` - Selects the appropriate localized route based on the current locale.
 - `setFallbackLocale(locale)` - Sets the fallback locale (defaults to `en`).
 
-#### Usage
-
 Import the `route` helper and pass Wayfinder's generated route functions:
 
 ```ts
@@ -246,7 +248,7 @@ const esUrl = route(foo, { id: 1, lang: 'es' }).url;
 ```
 
 The locale is resolved in the following order:
-1. The `lang` parameter (if provided).
+1. The `lang` parameter, if provided.
 2. The `lang` attribute of the `<html lang="en">` element.
 3. The fallback locale.
 
@@ -259,8 +261,6 @@ php artisan vendor:publish --tag=l10n-ziggy
 ```
 
 This creates a `resources/js/l10n.js` file with a `route` function.
-
-#### Usage
 
 Use `route()` as a drop-in replacement for Ziggy's `route()` function:
 
