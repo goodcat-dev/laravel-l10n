@@ -2,9 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.3.3
+
+Released on _**2026-02-07**_.
+
+### Added
+
+- Adds experimental support for Wayfinder and Ziggy.
+
 ## v0.3.2
 
-Released on _**2026-12-27**_.
+Released on _**2025-12-27**_.
 
 ### Changed
 
@@ -12,7 +20,7 @@ Released on _**2026-12-27**_.
 
 ## v0.3.1
 
-Released on _**2026-12-27**_.
+Released on _**2025-12-27**_.
 
 ### Added
 
