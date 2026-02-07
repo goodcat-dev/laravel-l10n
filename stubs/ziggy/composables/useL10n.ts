@@ -3,7 +3,7 @@ import { useI18n } from 'vue-i18n';
 
 type Params = Record<string, unknown> & { lang?: string };
 
-export function useLaravelL10n() {
+export function useL10n() {
     const { locale } = useI18n();
 
     const route = (name: string, params?: Params, absolute = true): string => {

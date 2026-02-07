@@ -1,6 +1,6 @@
-export let fallbackLocale = 'en';
+export let fallbackLocale: string = 'en';
 
-export function setFallbackLocale(locale: string) {
+export function setFallbackLocale(locale: string): void {
     fallbackLocale = locale;
 }
 
