@@ -208,3 +208,67 @@ The package also adds a helper method to check if a locale is the fallback local
 ```php
 app()->isFallbackLocale('en'); // true if 'en' is the fallback locale
 ```
+
+## JavaScript URL Generation
+
+This package provides helper functions for generating localized URLs in your JavaScript/TypeScript frontend. 
+Two stubs are available: one for [Wayfinder](https://github.com/laravel/wayfinder) and one for [Ziggy](https://github.com/tightenco/ziggy). 
+Given the following route definition:
+
+```php
+Route::get('/foo/{id}', Controller::class)
+    ->lang(['it', 'es'])
+    ->name('foo');
+```
+
+### Wayfinder
+
+If you're using Wayfinder, publish the TypeScript helper:
+
+```sh
+php artisan vendor:publish --tag=l10n-wayfinder
+```
+
+This creates a `resources/js/l10n.ts` file with the following exports:
+
+- `route(routes, args?)` - Selects the appropriate localized route based on the current locale.
+- `setFallbackLocale(locale)` - Sets the fallback locale (defaults to `en`).
+
+#### Usage
+
+Import the `route` helper and pass Wayfinder's generated route functions:
+
+```ts
+import { route } from '@/l10n';
+import foo from '@/routes/foo';
+
+const esUrl = route(foo, { id: 1, lang: 'es' }).url;
+```
+
+The locale is resolved in the following order:
+1. The `lang` parameter (if provided).
+2. The `lang` attribute of the `<html lang="en">` element.
+3. The fallback locale.
+
+### Ziggy
+
+If you're using Ziggy, publish the JavaScript helper:
+
+```sh
+php artisan vendor:publish --tag=l10n-ziggy
+```
+
+This creates a `resources/js/l10n.js` file with a `route` function.
+
+#### Usage
+
+Use `route()` as a drop-in replacement for Ziggy's `route()` function:
+
+```js
+import { route } from '@/l10n';
+
+route('foo', { id: 1, lang: 'it' });
+```
+
+The function automatically looks for a localized route by appending the locale to the route name (e.g., `foo.es`). 
+If a localized route exists, it uses that; otherwise, it falls back to the original route name.
