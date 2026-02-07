@@ -233,6 +233,9 @@ If you're using Wayfinder, publish the TypeScript helper:
 php artisan vendor:publish --tag=l10n-wayfinder
 ```
 
+> [!NOTE]
+> The `route()` helper only works with named routes, actions are not supported.
+
 This creates a `resources/js/l10n.ts` file with the following exports:
 
 - `route(routes, args?)` - Selects the appropriate localized route based on the current locale.
