@@ -31,32 +31,47 @@ Get started with `laravel-l10n` in three steps.
 
 That's it. You're all set to start using `laravel-l10n`.
 
-## Configuration
+## Localized Routes
 
-To customize the package behavior, publish the configuration file:
+### Defining Localized Routes
 
-```sh
-php artisan vendor:publish --tag=l10n-config
+Use the `lang()` method to define which locales a route should support:
+
+```php
+Route::get('/example', Controller::class)
+    ->lang(['es', 'fr', 'it']);
 ```
 
-### Add Locale Prefix
+This will generate:
+- `/example` (fallback locale)
+- `/es/ejemplo` (Spanish, translated via language file)
+- `/fr/example` (French, no translation defined)
+- `/it/example` (Italian, no translation defined)
 
-By default, this package **adds the locale prefix** to translated routes, except for the fallback locale.
+#### Route groups
 
-This means a route like `/example` will be served by the clean URL `/example` for the default language (e.g. English), while other locales will include their prefix (e.g. `/es/ejemplo`, `/it/esempio`).
+To avoid repetitive language definitions on every single route, you can use `Route::lang()->group()`:
 
-If you prefer to hide the locale prefix for all languages, set `add_locale_prefix` to `false` in your `config/l10n.php` file.
-After this change, routes will use translated URIs without locale prefixes (e.g. `/ejemplo` instead of `/es/ejemplo`).
+```php
+Route::lang(['es', 'it'])->group(function () {
+    Route::get('/example', fn () => 'Hello, World!');
+    Route::get('/another', fn () => 'Another route');
+});
+```
 
-## Route translations
+All routes inside the group will inherit the locale definitions. A route can also extend the group's locales with its own `lang()` call — the locales are merged:
 
-Use the `lang()` method to define which locales a route should support. Route translations are managed via language files.
+```php
+Route::lang(['es', 'it'])->group(function () {
+    Route::get('/example', fn () => 'Hello, World!'); // es, it
+    Route::get('/another', fn () => 'Another route')
+        ->lang(['fr']); // es, it, fr
+});
+```
 
-### Translations via Language Files
+### Translating Route URIs
 
-Manage route translations in dedicated language files. This approach keeps your routes clean and centralizes your translations, making them easier to manage.
-
-The expected file structure is as follows:
+Manage route translations in dedicated language files. The expected file structure is as follows:
 
 ```txt
 /lang
@@ -77,34 +92,22 @@ return [
 ];
 ```
 
-Then define the route with the locales it should support:
-
-```php
-Route::get('/example', Controller::class)
-    ->lang(['es', 'fr', 'it']);
-```
-
-This will generate:
-- `/example` (fallback locale)
-- `/es/ejemplo` (Spanish, translated via language file)
-- `/fr/example` (French, no translation defined)
-- `/it/example` (Italian, no translation defined)
+If no translation is provided for a given locale, the original URI is used as-is.
 
 > [!NOTE]
 > The key should be the route URI **without** the leading slash. For example, for `Route::get('/example')`, the key should be `example`.
 
-### Route groups
+### Domain Translations
 
-To avoid repetitive language definitions on every single route, you can use `Route::lang()->group()`:
+If your application uses domain-based routing, you can translate domains in the same `routes.php` language files. The key is the original domain string:
 
 ```php
-Route::lang(['es', 'it'])->group(function () {
-    Route::get('/example', fn () => 'Hello, World!');
-    Route::get('/another', fn () => 'Another route');
-});
+// lang/es/routes.php
+return [
+    'example'     => 'ejemplo',
+    'example.com' => 'es.example.com',
+];
 ```
-
-All routes inside the group will inherit the locale definitions.
 
 ## URL Generation
 
@@ -137,40 +140,16 @@ The `action()` helper works the same way:
 action(Controller::class, ['lang' => 'es']); // Returns "/es/ejemplo"
 ```
 
-## Localized views
+## Locale Preference
 
-This package makes it easy to organize your views by language. The application's view loader is configured to automatically search for a localized version of a view before falling back to the generic one.
-
-### How it works
-
-When you render a view, the system follows a specific search order based on the current application locale.
-
-- **Locale-specific path**: The application first tries to find the view within a folder that matches the current locale. For example, if the locale is set to `it`, it will look for the `example` view in `resources/views/it/example.blade.php`.
-- **Generic path**: If the view is not found in the locale-specific folder, it will then fall back to the generic `resources/views/example.blade.php`.
-
-This makes it straightforward to organize your views with a clean, language-based folder structure, like the one below.
-
-```
-/resources/views
-├── example.blade.php
-├── /it
-│   └── example.blade.php
-└── /es
-    └── example.blade.php
-```
-
-The `example.blade.php` file in the root views folder can serve as your default template, while the localized versions (`it/example.blade.php`, `es/example.blade.php`) contain language-specific content or layouts.
-
-## User Locale Preference
-
-This package provides a robust mechanism for automatically detecting a user's preferred language.
+This package provides a mechanism for automatically detecting a user's preferred language.
 
 The `SetPreferredLocale` middleware is responsible for populating the preferred locale. It does this by checking a series of configurable **preferred locale resolvers**.
 
 By default, the package checks the following sources in order:
 
 1. **SessionLocale**: Checks if a locale was set in the session.
-2. **UserLocale**: Checks if the authenticated user has a preferred locale (the user model must implement a `preferredLocale()` method).
+2. **UserLocale**: Checks if the authenticated user has a preferred locale (the user model must implement Laravel's `Illuminate\Contracts\Translation\HasLocalePreference` interface).
 3. **BrowserLocale**: Falls back to the browser's `Accept-Language` header.
 
 ### Customizing Resolvers
@@ -182,6 +161,34 @@ use Goodcat\L10n\L10n;
 use Goodcat\L10n\Resolvers\BrowserLocale;
 
 L10n::$preferredLocaleResolvers = [
+    new BrowserLocale,
+];
+```
+
+### Creating a Custom Resolver
+
+Implement the `LocaleResolver` interface to create your own resolver:
+
+```php
+use Goodcat\L10n\Resolvers\LocaleResolver;
+use Illuminate\Http\Request;
+
+class CookieLocale implements LocaleResolver
+{
+    public function resolve(Request $request): ?string
+    {
+        return $request->cookie('locale');
+    }
+}
+```
+
+Then add it to the resolver chain:
+
+```php
+L10n::$preferredLocaleResolvers = [
+    new CookieLocale,
+    new SessionLocale,
+    new UserLocale,
     new BrowserLocale,
 ];
 ```
@@ -208,15 +215,38 @@ app()->isFallbackLocale('en'); // Returns bool
 Use `L10n::is()` to check if the current route matches a given pattern, regardless of the locale:
 
 ```php
-L10n::is('dashboard'); // Matches /dashboard, /es/dashboard, /it/bacheca, etc.
+L10n::is('dashboard');  // Matches /dashboard, /es/dashboard, /it/bacheca, etc.
+L10n::is('admin.*');    // Wildcard patterns are supported, just like Route::is()
 ```
 
-This is the localized equivalent of `Route::is()`.
+This is the localized equivalent of `Route::is()`. It resolves the canonical route behind any localized variant and delegates to `Route::named()`.
+
+## Localized Views
+
+The application's view loader is configured to automatically search for a localized version of a view before falling back to the generic one.
+
+When you render a view, the system follows a specific search order based on the current application locale.
+
+- **Locale-specific path**: The application first tries to find the view within a folder that matches the current locale. For example, if the locale is set to `it`, it will look for the `example` view in `resources/views/it/example.blade.php`.
+- **Generic path**: If the view is not found in the locale-specific folder, it will then fall back to the generic `resources/views/example.blade.php`.
+
+This makes it straightforward to organize your views with a clean, language-based folder structure, like the one below.
+
+```
+/resources/views
+├── example.blade.php
+├── /it
+│   └── example.blade.php
+└── /es
+    └── example.blade.php
+```
+
+The `example.blade.php` file in the root views folder can serve as your default template, while the localized versions (`it/example.blade.php`, `es/example.blade.php`) contain language-specific content or layouts.
 
 ## JavaScript URL Generation
 
-This package provides helper functions for generating localized URLs in your JavaScript/TypeScript frontend. 
-Two stubs are available: one for [Wayfinder](https://github.com/laravel/wayfinder) and one for [Ziggy](https://github.com/tightenco/ziggy). 
+This package provides helper functions for generating localized URLs in your JavaScript/TypeScript frontend.
+Two stubs are available: one for [Wayfinder](https://github.com/laravel/wayfinder) and one for [Ziggy](https://github.com/tightenco/ziggy).
 Given the following route definition:
 
 ```php
@@ -273,5 +303,30 @@ import { route } from '@/l10n';
 route('foo', { id: 1, lang: 'it' });
 ```
 
-The function automatically looks for a localized route by appending the locale to the route name (e.g., `foo.es`). 
+The function automatically looks for a localized route by appending the locale to the route name (e.g., `foo.es`).
 If a localized route exists, it uses that; otherwise, it falls back to the original route name.
+
+## Configuration
+
+To customize the package behavior, publish the configuration file:
+
+```sh
+php artisan vendor:publish --tag=l10n-config
+```
+
+### Add Locale Prefix
+
+By default, this package **adds the locale prefix** to translated routes, except for the fallback locale.
+
+This means a route like `/example` will be served by the clean URL `/example` for the default language (e.g. English), while other locales will include their prefix (e.g. `/es/ejemplo`, `/it/esempio`).
+
+If you prefer to hide the locale prefix for all languages, set `add_locale_prefix` to `false` in your `config/l10n.php` file.
+After this change, routes will use translated URIs without locale prefixes (e.g. `/ejemplo` instead of `/es/ejemplo`).
+
+### Route Caching
+
+Localized routes are fully compatible with Laravel's route caching. When routes are cached, the package skips route generation at runtime (the localized variants are already included in the cache).
+
+```sh
+php artisan route:cache
+```
