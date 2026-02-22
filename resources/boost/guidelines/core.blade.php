@@ -41,7 +41,7 @@ Route::lang(['es', 'it'])->group(function () {
 </code-snippet>
 @endverbatim
 
-On boot, `L10n::registerLocalizedRoutes()` generates a localized copy for each locale. A route named `example` gets variants `example.es`, `example.it`, etc. The canonical route keeps its original name.
+On boot, `L10n::registerLocalizedRoutes()` generates a localized copy for each locale. A route named `example` gets variants `example.es`, `example.it`, etc. The canonical route keeps its original name. You never need to use the `.{locale}` suffix directly — pass `['lang' => $locale]` to `route()` and the `LocalizedUrlGenerator` resolves the correct variant internally.
 
 ## Route translation files
 
@@ -114,10 +114,26 @@ L10n::$preferredLocaleResolvers = [
 @verbatim
 <code-snippet>
 app()->getPreferredLocale();   // ?string — the detected preferred locale
-app()->setPreferredLocale($locale); // sets preferred locale, dispatches PreferredLocaleUpdated event
+app()->setPreferredLocale($locale); // sets preferred locale, dispatches PreferredLocaleUpdated event (see below)
 app()->isFallbackLocale('en'); // bool — true if 'en' is the fallback locale
 
 L10n::is('example');           // bool — like Route::is() but matches across all localized variants
+L10n::is('admin.*');           // supports wildcard patterns (delegates to Route::named())
+</code-snippet>
+@endverbatim
+
+## Events
+
+`Goodcat\L10n\Events\PreferredLocaleUpdated` is dispatched whenever `app()->setPreferredLocale()` is called. It exposes `$locale` and `$previousLocale` as public properties:
+
+@verbatim
+<code-snippet>
+use Goodcat\L10n\Events\PreferredLocaleUpdated;
+
+Event::listen(PreferredLocaleUpdated::class, function (PreferredLocaleUpdated $event) {
+    // $event->locale — the new preferred locale
+    // $event->previousLocale — the previous preferred locale (nullable)
+});
 </code-snippet>
 @endverbatim
 

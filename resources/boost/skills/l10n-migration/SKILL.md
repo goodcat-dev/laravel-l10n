@@ -21,7 +21,7 @@ The migration steps below cover both packages. Apply only the sections relevant 
 
 ## Step 2 — Extract available locales
 
-Extract the list of supported locales from the old package's configuration and store it in `config('app.available_locales')` so it can be referenced throughout the migration.
+Extract the list of supported locales from the old package's configuration. laravel-l10n does not read locales from config — they are passed directly to `->lang()`. Storing them in `config('app.available_locales')` is a recommended convention to avoid repetition, but any array source works.
 
 **From mcamara/laravel-localization** — open `config/laravellocalization.php`:
 
@@ -68,7 +68,7 @@ return [
 
 | Old key (`laravellocalization.php`) | New key (`l10n.php`) | Notes |
 |---|---|---|
-| `hideDefaultLocaleInURL` | `add_locale_prefix` | Inverted logic: `hideDefaultLocaleInURL => true` equals `add_locale_prefix => true` (both hide the prefix for the default/fallback locale). When `add_locale_prefix` is `false`, no locale prefix is added to any route. |
+| `hideDefaultLocaleInURL` | `add_locale_prefix` | When `hideDefaultLocaleInURL` was `true`, set `add_locale_prefix => true` (default). Both hide the prefix for the default/fallback locale. **Note:** if `hideDefaultLocaleInURL` was `false` (prefix shown for all locales including default), there is no direct equivalent — laravel-l10n never prefixes the fallback locale. When `add_locale_prefix` is `false`, no locale prefix is added to *any* route. |
 | `supportedLocales` | — | Moved to `config('app.available_locales')` (Step 2) |
 | `useAcceptLanguageHeader` | — | Handled by `BrowserLocale` resolver (enabled by default via `SetPreferredLocale` middleware) |
 
