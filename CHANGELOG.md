@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+- Adds experimental migrate SKILL.
+
 ## v0.3.3
 
 Released on _**2026-02-07**_.
