@@ -8,6 +8,17 @@ use Illuminate\Routing\Route;
 
 class LocalizedRoute
 {
+    public function canonical(): Closure
+    {
+        return function (): Route {
+            /** @var Localized&Route $this */
+
+            $canonical = $this->getAction('canonical');
+
+            return $canonical ? $this->router->getByKey($canonical) : $this;
+        };
+    }
+
     public function lang(): Closure
     {
         return function (?array $translations = null): Route|array {

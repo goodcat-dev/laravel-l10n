@@ -3,7 +3,6 @@
 namespace Goodcat\L10n;
 
 use Goodcat\L10n\Contracts\LocalizedRoute;
-use Goodcat\L10n\Contracts\LocalizedRouter;
 use Goodcat\L10n\Resolvers\BrowserLocale;
 use Goodcat\L10n\Resolvers\LocaleResolver;
 use Goodcat\L10n\Resolvers\SessionLocale;
@@ -40,16 +39,10 @@ class L10n
 
     public function is(string ...$patterns): bool
     {
-        /** @var LocalizedRouter&Router $router */
-        $router = app(Router::class);
+        /** @var (LocalizedRoute&Route)|null $route */
+        $route = app(Router::class)->current();
 
-        $route = $router->current();
-
-        if ($canonical = $route?->getAction('canonical')) {
-            $route = $router->getByKey($canonical);
-        }
-
-        return $route && $route->named(...$patterns);
+        return $route && $route->canonical()->named(...$patterns);
     }
 
     /**

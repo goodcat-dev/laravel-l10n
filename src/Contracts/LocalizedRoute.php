@@ -6,6 +6,9 @@ use Illuminate\Routing\Route;
 
 interface LocalizedRoute
 {
+    /** @see \Goodcat\L10n\Mixin\LocalizedRoute::canonical */
+    public function canonical(): Route;
+
     /** @see \Goodcat\L10n\Mixin\LocalizedRoute::lang */
     public function lang(): Route;
 
