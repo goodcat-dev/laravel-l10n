@@ -2,9 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## v0.4.0
+
+Released on _**2026-03-17**_.
+
+### Added
 
 - Adds experimental migrate SKILL.
+- Adds Laravel 13 support.
 
 ## v0.3.3
 
