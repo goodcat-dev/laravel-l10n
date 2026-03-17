@@ -36,12 +36,12 @@
     ],
     "require": {
         "php": "^8.2",
-        "illuminate/support": "^12.44.0",
-        "illuminate/routing": "^12.44.0",
-        "illuminate/http": "^12.44.0"
+        "illuminate/support": "^12.44.0|^13.0",
+        "illuminate/routing": "^12.44.0|^13.0",
+        "illuminate/http": "^12.44.0|^13.0"
     },
     "require-dev": {
-        "orchestra/testbench": "^10.4",
+        "orchestra/testbench": "^10.4|^11.0",
         "laravel/pint": "^1.22",
         "larastan/larastan": "^3.5",
         "pestphp/pest": "^3.8"
