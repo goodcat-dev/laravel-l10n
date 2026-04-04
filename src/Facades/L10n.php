@@ -9,8 +9,6 @@ use Illuminate\Support\Facades\Facade;
  * @method static array getPreferredLocaleResolvers()
  * @method static void registerLocalizedRoutes()
  * @method static bool is(string ...$patterns)
- * @method static Route|null getByKey(string $key)
- * @method static void refreshCanonicalLookups()
  *
  * @see \Goodcat\L10n\L10n
  */
