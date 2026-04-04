@@ -10,7 +10,7 @@ interface LocalizedRoute
     public function canonical(): Route;
 
     /** @see \Goodcat\L10n\Mixin\LocalizedRoute::lang */
-    public function lang(): Route;
+    public function lang(): Route|array;
 
     /** @see \Goodcat\L10n\Mixin\LocalizedRoute::getKey */
     public function getKey(): string;
