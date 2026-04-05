@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+### Added
+
+- Adds `<x-l10n::alternate />` Blade component for hreflang alternate links.
+- Adds `LocalizedRoute::canonical()` method.
+
+### Fixed
+
+- Fixes `lang()` contract return type.
+
+### Removed
+
+- Removes `getByKey()` and `refreshCanonicalLookups()` from `L10n` facade.
+
 ## v0.4.0
 
 Released on _**2026-03-17**_.

@@ -221,6 +221,44 @@ L10n::is('admin.*');    // Wildcard patterns are supported, just like Route::is(
 
 This is the localized equivalent of `Route::is()`. It resolves the canonical route behind any localized variant and delegates to `Route::named()`.
 
+## SEO
+
+### Alternate Hreflang Links
+
+The package provides a Blade component that generates `<link rel="alternate" hreflang="...">` tags following [Google's guidelines for localized versions](https://developers.google.com/search/docs/specialty/international/localized-versions).
+
+Add the component to the `<head>` of your layout:
+
+```html
+<head>
+    <x-l10n::alternate />
+</head>
+```
+
+For a route with `es` and `it` translations, this will render:
+
+```html
+<link rel="alternate" hreflang="en" href="https://example.com/products/42" />
+<link rel="alternate" hreflang="es" href="https://example.com/es/productos/42" />
+<link rel="alternate" hreflang="it" href="https://example.com/it/products/42" />
+<link rel="alternate" hreflang="x-default" href="https://example.com/products/42" />
+```
+
+The component includes all localized variants, the fallback locale, and an `x-default` entry pointing to the canonical route. It renders nothing for routes without translations.
+
+#### Customizing the Template
+
+To customize the HTML output, publish the view:
+
+```sh
+php artisan vendor:publish --tag=l10n-views
+```
+
+This copies the template to `resources/views/vendor/l10n/components/alternate.blade.php`. The following variables are available:
+
+- `$alternates` — An associative array of locale codes to fully-qualified URLs.
+- `$canonical` — The fully-qualified URL of the canonical (fallback locale) route.
+
 ## Localized Views
 
 The application's view loader is configured to automatically search for a localized version of a view before falling back to the generic one.
