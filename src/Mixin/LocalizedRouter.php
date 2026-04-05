@@ -24,7 +24,6 @@ class LocalizedRouter
     {
         return function (string $key): ?Route {
             /** @var Router $this */
-
             $collection = $this->getRoutes();
 
             $getByKey = Closure::bind(function (string $key): ?Route {

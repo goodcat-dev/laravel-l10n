@@ -2,7 +2,6 @@
 
 namespace Goodcat\L10n\Facades;
 
-use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Facade;
 
 /**

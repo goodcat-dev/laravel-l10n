@@ -12,7 +12,6 @@ class LocalizedRoute
     {
         return function (): Route {
             /** @var Localized&Route $this */
-
             $canonical = $this->getAction('canonical');
 
             return $canonical ? $this->router->getByKey($canonical) : $this;

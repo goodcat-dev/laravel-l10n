@@ -16,6 +16,7 @@ use Illuminate\Foundation\Events\LocaleUpdated;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
 use Illuminate\Routing\RouteRegistrar;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use ReflectionException;
@@ -27,12 +28,20 @@ class L10nServiceProvider extends ServiceProvider
         $this->publishes([__DIR__.'/../config/l10n.php' => config_path('l10n.php')], 'l10n-config');
 
         $this->publishes([
-            __DIR__ . '/../stubs/ziggy/l10n.js' => resource_path('js/l10n.js'),
+            __DIR__.'/../stubs/ziggy/l10n.js' => resource_path('js/l10n.js'),
         ], 'l10n-ziggy');
 
         $this->publishes([
             __DIR__.'/../stubs/wayfinder/l10n.ts' => resource_path('js/l10n.ts'),
         ], 'l10n-wayfinder');
+
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'l10n');
+
+        Blade::componentNamespace('Goodcat\\L10n\\View\\Components', 'l10n');
+
+        $this->publishes([
+            __DIR__.'/../resources/views' => resource_path('views/vendor/l10n'),
+        ], 'l10n-views');
 
         $this->app->booted(fn () => app(L10n::class)->registerLocalizedRoutes());
 

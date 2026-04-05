@@ -44,7 +44,7 @@ class RegisterWayfinderCanonicalRoute
     {
         foreach ($collection->getRoutes() as $route) {
             if ($route->getName() && $route->getAction('lang')) {
-                $route->name('.' . app()->getFallbackLocale());
+                $route->name('.'.app()->getFallbackLocale());
             }
         }
     }
