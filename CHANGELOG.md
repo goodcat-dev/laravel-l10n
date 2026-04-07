@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- Adds `<x-l10n::switcher />` Blade component for locale switching.
 - Adds `<x-l10n::alternate />` Blade component for hreflang alternate links.
 - Adds `LocalizedRoute::canonical()` method.
 

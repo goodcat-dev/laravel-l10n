@@ -221,7 +221,9 @@ L10n::is('admin.*');    // Wildcard patterns are supported, just like Route::is(
 
 This is the localized equivalent of `Route::is()`. It resolves the canonical route behind any localized variant and delegates to `Route::named()`.
 
-## SEO
+## Components
+
+The package provides Blade components for common localization needs.
 
 ### Alternate Hreflang Links
 
@@ -246,18 +248,41 @@ For a route with `es` and `it` translations, this will render:
 
 The component includes all localized variants, the fallback locale, and an `x-default` entry pointing to the canonical route. It renders nothing for routes without translations.
 
-#### Customizing the Template
+### Locale Switcher
 
-To customize the HTML output, publish the view:
+The package provides a Blade component that renders a `<select>` element for switching between available locales. When the user selects a different locale, the page reloads to the corresponding localized URL.
+
+```html
+<x-l10n::switcher />
+```
+
+For a route with `es` and `it` translations, this will render:
+
+```html
+<select onchange="window.location = this.value">
+    <option value="https://example.com/products/42" selected>en</option>
+    <option value="https://example.com/es/productos/42">es</option>
+    <option value="https://example.com/it/products/42">it</option>
+</select>
+```
+
+The current locale is automatically selected. The component renders nothing for routes without translations.
+
+You can pass any HTML attribute to the component:
+
+```html
+<x-l10n::switcher class="locale-select" id="locale" />
+```
+
+### Customizing the Templates
+
+To customize the HTML output of the Blade components, publish the views:
 
 ```sh
 php artisan vendor:publish --tag=l10n-views
 ```
 
-This copies the template to `resources/views/vendor/l10n/components/alternate.blade.php`. The following variables are available:
-
-- `$alternates` — An associative array of locale codes to fully-qualified URLs.
-- `$canonical` — The fully-qualified URL of the canonical (fallback locale) route.
+This copies the templates to `resources/views/vendor/l10n/components/`. Each template documents the available variables in a docblock at the top of the file.
 
 ## Localized Views
 
