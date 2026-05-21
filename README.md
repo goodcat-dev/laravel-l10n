@@ -379,12 +379,9 @@ php artisan vendor:publish --tag=l10n-config
 
 ### Add Locale Prefix
 
-By default, this package **adds the locale prefix** to translated routes, except for the fallback locale.
+By default, this package **adds the locale prefix** to every route generated via `->lang()` (e.g. `/es/ejemplo`, `/it/esempio`). The original route (e.g. `/example`) always remains available as the canonical URL.
 
-This means a route like `/example` will be served by the clean URL `/example` for the default language (e.g. English), while other locales will include their prefix (e.g. `/es/ejemplo`, `/it/esempio`).
-
-If you prefer to hide the locale prefix for all languages, set `add_locale_prefix` to `false` in your `config/l10n.php` file.
-After this change, routes will use translated URIs without locale prefixes (e.g. `/ejemplo` instead of `/es/ejemplo`).
+To disable prefixes, set `add_locale_prefix` to `false` in `config/l10n.php`. Routes will then use translated URIs without locale prefixes (e.g. `/ejemplo` instead of `/es/ejemplo`).
 
 ### Route Caching
 

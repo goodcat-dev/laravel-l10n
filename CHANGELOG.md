@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - Fixes `lang()` contract return type.
+- Clarifies `add_locale_prefix` documentation.
 
 ### Removed
 

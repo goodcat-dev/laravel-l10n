@@ -27,12 +27,12 @@ it('detects and set the route locale', function () {
 
     Route::get('/example', fn () => 'Hello, World!')
         ->middleware(SetLocale::class)
-        ->lang(['es', 'it'])
+        ->lang(['en', 'es', 'it'])
         ->name('example');
 
     app(L10n::class)->registerLocalizedRoutes();
 
-    foreach (['en' => '/example', 'es' => '/es/ejemplo', 'it' => '/it/example'] as $locale => $url) {
+    foreach (['en' => '/en/example', 'es' => '/es/ejemplo', 'it' => '/it/example'] as $locale => $url) {
         $this->get($url)->assertOk();
 
         expect(app()->getLocale())->toBe($locale);
