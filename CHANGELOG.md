@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 ### Removed
 
 - Removes `getByKey()` and `refreshCanonicalLookups()` from `L10n` facade.
+- Removes experimental migrate skill.
 
 ## v0.4.0
 
