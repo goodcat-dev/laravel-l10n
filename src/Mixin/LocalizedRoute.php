@@ -69,10 +69,16 @@ class LocalizedRoute
 
             unset($action['lang'], $action['prefix']);
 
+            $domainWasTranslated = false;
+
             if ($domain = $this->getDomain()) {
-                $action['domain'] = trans()->hasForLocale("routes.$domain", $locale)
+                $translatedDomain = trans()->hasForLocale("routes.$domain", $locale)
                     ? trans("routes.$domain", locale: $locale)
                     : $domain;
+
+                $action['domain'] = $translatedDomain;
+
+                $domainWasTranslated = $translatedDomain !== $domain;
             }
 
             $uri = trans()->hasForLocale("routes.$this->uri", $locale)
@@ -85,7 +91,7 @@ class LocalizedRoute
                 $route->name(".$locale");
             }
 
-            if (config('l10n.add_locale_prefix')) {
+            if (config('l10n.add_locale_prefix') && ! $domainWasTranslated) {
                 $route->prefix($locale);
             }
 

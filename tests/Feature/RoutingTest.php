@@ -77,7 +77,7 @@ it('generates localized domains', function () {
 
     app(L10n::class)->registerLocalizedRoutes();
 
-    $this->get('http://es.example.com/es/ejemplo')->assertOk();
+    $this->get('http://es.example.com/ejemplo')->assertOk();
     $this->get('http://example.com/it/example')->assertOk();
 });
 

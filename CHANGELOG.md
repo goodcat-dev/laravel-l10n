@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.4.2
+
+Released on _**2026-05-28**_
+
+### Fixed
+
+- Omits locale prefix from path when the domain is already translated (e.g. `es.example.com/es/ejemplo` to `es.example.com/ejemplo`).
+
 ## v0.4.1
 
 Released on _**2026-05-21**_.
