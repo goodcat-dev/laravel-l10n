@@ -96,9 +96,12 @@ class LocalizedRoute
             }
 
             return $route
+                ->setFallback($this->isFallback)
                 ->setDefaults($this->defaults)
                 ->setContainer($this->container)
                 ->setRouter($this->router)
+                ->block($this->locksFor(), $this->waitsFor())
+                ->withTrashed($this->allowsTrashedBindings())
                 ->where($this->wheres);
         };
     }

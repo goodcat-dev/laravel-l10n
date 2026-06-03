@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+### Fixed
+
+- Preserves fallback, session blocking and trashed binding state on localized routes.
+
 ## v0.4.2
 
 Released on _**2026-05-28**_

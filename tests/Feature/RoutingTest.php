@@ -124,12 +124,26 @@ test('localized route inherit properties from canonical route', function () {
     $canonical = Route::get('/example/{id}', fn () => 'Hello, World!')
         ->lang(['it'])
         ->where('id', '[0-9]+')
-        ->defaults('id', 1);
+        ->defaults('id', 1)
+        ->withTrashed()
+        ->block(30, 5);
+
+    /** @var LocalizedRoute $fallbackCanonical */
+    $fallbackCanonical = Route::fallback(fn () => 'Fallback')->lang(['it']);
 
     $localized = $canonical->makeTranslation('it');
+
+    $fallbackLocalized = $fallbackCanonical->makeTranslation('it');
 
     expect($localized)
         ->not->toBeNull()
         ->and($localized->wheres)->toBe(['id' => '[0-9]+'])
-        ->and($localized->defaults)->toBe(['id' => 1]);
+        ->and($localized->defaults)->toBe(['id' => 1])
+        ->and($localized->allowsTrashedBindings())->toBeTrue()
+        ->and($localized->locksFor())->toBe(30)
+        ->and($localized->waitsFor())->toBe(5);
+
+    expect($fallbackLocalized)
+        ->not->toBeNull()
+        ->and($fallbackLocalized->isFallback)->toBeTrue();
 });
