@@ -12,7 +12,7 @@ use Illuminate\Routing\Router;
 
 class L10n
 {
-    /** @var LocaleResolver[] */
+    /** @var list<LocaleResolver> */
     public static array $preferredLocaleResolvers;
 
     public function registerLocalizedRoutes(): void
@@ -46,7 +46,7 @@ class L10n
     }
 
     /**
-     * @return LocaleResolver[]
+     * @return list<LocaleResolver>
      */
     public static function getPreferredLocaleResolvers(): array
     {

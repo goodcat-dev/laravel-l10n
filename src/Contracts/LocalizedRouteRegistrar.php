@@ -6,6 +6,10 @@ use Illuminate\Routing\RouteRegistrar;
 
 interface LocalizedRouteRegistrar
 {
-    /** @see \Goodcat\L10n\Mixin\LocalizedRouteRegistrar::lang */
-    public function lang(array $translations): RouteRegistrar;
+    /**
+     * @param  list<string>  $translations
+     *
+     * @see \Goodcat\L10n\Mixin\LocalizedRouteRegistrar::lang
+     */
+    public function lang(array $translations = []): RouteRegistrar;
 }

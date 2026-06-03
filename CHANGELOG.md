@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - Preserves fallback, session blocking and trashed binding state on localized routes.
+- Corrects localized application and router contract return types.
 
 ## v0.4.2
 

@@ -5,7 +5,7 @@ namespace Goodcat\L10n\Facades;
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @method static array getPreferredLocaleResolvers()
+ * @method static list<\Goodcat\L10n\Resolvers\LocaleResolver> getPreferredLocaleResolvers()
  * @method static void registerLocalizedRoutes()
  * @method static bool is(string ...$patterns)
  *

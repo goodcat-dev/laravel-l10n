@@ -8,6 +8,8 @@ use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Translation\Translator;
 
+use function Pest\Laravel\get;
+
 it('generates localized routes', function () {
     app(Translator::class)->addPath(__DIR__.'/../Support/lang');
 
@@ -18,7 +20,7 @@ it('generates localized routes', function () {
     app(L10n::class)->registerLocalizedRoutes();
 
     foreach (['/example', '/es/ejemplo', '/it/example'] as $url) {
-        $this->get($url)->assertOk();
+        get($url)->assertOk();
     }
 });
 
@@ -33,7 +35,7 @@ it('detects and set the route locale', function () {
     app(L10n::class)->registerLocalizedRoutes();
 
     foreach (['en' => '/en/example', 'es' => '/es/ejemplo', 'it' => '/it/example'] as $locale => $url) {
-        $this->get($url)->assertOk();
+        get($url)->assertOk();
 
         expect(app()->getLocale())->toBe($locale);
     }
@@ -50,7 +52,7 @@ it('generates localized routes without prefix', function () {
 
     app(L10n::class)->registerLocalizedRoutes();
 
-    $this->get('/ejemplo')->assertOk();
+    get('/ejemplo')->assertOk();
 });
 
 it('generates localized uri via helpers', function () {
@@ -77,15 +79,15 @@ it('generates localized domains', function () {
 
     app(L10n::class)->registerLocalizedRoutes();
 
-    $this->get('http://es.example.com/ejemplo')->assertOk();
-    $this->get('http://example.com/it/example')->assertOk();
+    get('http://es.example.com/ejemplo')->assertOk();
+    get('http://example.com/it/example')->assertOk();
 });
 
 it('matches route name against canonical route', function (bool $withCachedRoutes) {
     $matches = false;
 
     Route::get('/example', function () use (&$matches) {
-        $matches = \Goodcat\L10n\Facades\L10n::is('example');
+        $matches = Goodcat\L10n\Facades\L10n::is('example');
     })
         ->name('example')
         ->lang(['es']);
@@ -96,7 +98,7 @@ it('matches route name against canonical route', function (bool $withCachedRoute
         Route::setCompiledRoutes(Route::getRoutes()->compile());
     }
 
-    $this->get('es/example')->assertOk();
+    get('es/example')->assertOk();
 
     expect($matches)->toBeTrue();
 })->with([

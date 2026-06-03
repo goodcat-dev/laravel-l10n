@@ -10,6 +10,10 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
 
+use function Pest\Laravel\actingAs;
+use function Pest\Laravel\withHeader;
+use function Pest\Laravel\withSession;
+
 it('has default resolvers', function () {
     $resolvers = L10n::getPreferredLocaleResolvers();
 
@@ -26,7 +30,7 @@ it('detects preferred locale from browser', function () {
     Route::get('/example', fn () => 'Hello, World!')
         ->middleware(SetPreferredLocale::class);
 
-    $this->withHeader('Accept-Language', 'es')->get('/example');
+    withHeader('Accept-Language', 'es')->get('/example');
 
     expect(app()->getPreferredLocale())->toBe('es');
 });
@@ -37,7 +41,7 @@ it('detects preferred locale from user', function (Authenticatable $user) {
     Route::get('/example', fn () => 'Hello, World!')
         ->middleware(SetPreferredLocale::class);
 
-    $this->actingAs($user)->get('/example');
+    actingAs($user)->get('/example');
 
     $expected = $user instanceof User ? 'en' : null;
 
@@ -53,7 +57,7 @@ it('detects preferred locale from the session', function () {
     Route::get('/example', fn () => 'Hello, World!')
         ->middleware([StartSession::class, SetPreferredLocale::class]);
 
-    $this->withSession(['locale' => 'fr'])->get('/example');
+    withSession(['locale' => 'fr'])->get('/example');
 
     expect(app()->getPreferredLocale())->toBe('fr');
 });

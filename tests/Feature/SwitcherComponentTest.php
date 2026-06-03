@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Translation\Translator;
 
+use function Pest\Laravel\get;
+
 it('renders a locale switcher for the current route', function () {
     app(Translator::class)->addPath(__DIR__.'/../Support/lang');
 
@@ -14,7 +16,7 @@ it('renders a locale switcher for the current route', function () {
 
     app(L10n::class)->registerLocalizedRoutes();
 
-    $response = $this->get('/es/productos/42');
+    $response = get('/es/productos/42');
 
     $response->assertOk();
 
@@ -23,7 +25,7 @@ it('renders a locale switcher for the current route', function () {
         '<option value="http://localhost/products/42" >en</option>',
         '<option value="http://localhost/es/productos/42" selected>es</option>',
         '<option value="http://localhost/it/products/42" >it</option>',
-        '</select>'
+        '</select>',
     ]);
 });
 
@@ -31,7 +33,7 @@ it('renders nothing for a route without translations', function () {
     Route::get('/about', fn () => Blade::render('<x-l10n::switcher />'))
         ->name('about');
 
-    $response = $this->get('/about');
+    $response = get('/about');
 
     $response->assertOk();
 

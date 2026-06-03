@@ -1,10 +1,11 @@
 <?php
 
 use Goodcat\L10n\L10n;
-use Goodcat\L10n\Middleware\SetLocale;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Translation\Translator;
+
+use function Pest\Laravel\get;
 
 it('renders alternate hreflang links for the current route', function () {
     app(Translator::class)->addPath(__DIR__.'/../Support/lang');
@@ -15,7 +16,7 @@ it('renders alternate hreflang links for the current route', function () {
 
     app(L10n::class)->registerLocalizedRoutes();
 
-    $response = $this->get('/products/42');
+    $response = get('/products/42');
 
     $response->assertOk();
 
@@ -36,7 +37,7 @@ it('renders alternate hreflang links from a localized route', function () {
 
     app(L10n::class)->registerLocalizedRoutes();
 
-    $response = $this->get('/es/productos/42');
+    $response = get('/es/productos/42');
 
     $response->assertOk();
 
@@ -52,7 +53,7 @@ it('renders nothing for a route without translations', function () {
     Route::get('/about', fn () => Blade::render('<x-l10n::alternate />'))
         ->name('about');
 
-    $response = $this->get('/about');
+    $response = get('/about');
 
     $response->assertOk();
 

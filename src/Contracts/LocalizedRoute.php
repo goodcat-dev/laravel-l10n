@@ -9,14 +9,19 @@ interface LocalizedRoute
     /** @see \Goodcat\L10n\Mixin\LocalizedRoute::canonical */
     public function canonical(): Route;
 
-    /** @see \Goodcat\L10n\Mixin\LocalizedRoute::lang */
-    public function lang(): Route|array;
+    /**
+     * @param  list<string>|null  $translations
+     * @return ($translations is null ? list<string> : Route)
+     *
+     * @see \Goodcat\L10n\Mixin\LocalizedRoute::lang
+     */
+    public function lang(?array $translations = null): Route|array;
 
     /** @see \Goodcat\L10n\Mixin\LocalizedRoute::getKey */
     public function getKey(): string;
 
     /**
-     * @return Route[]
+     * @return array<string, Route>
      *
      * @see \Goodcat\L10n\Mixin\LocalizedRoute::makeTranslations
      */
