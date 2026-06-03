@@ -1,0 +1,2 @@
+providers:
+  - Goodcat\L10n\L10nServiceProvider

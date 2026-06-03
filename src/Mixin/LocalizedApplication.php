@@ -4,37 +4,34 @@ namespace Goodcat\L10n\Mixin;
 
 use Closure;
 use Goodcat\L10n\Events\PreferredLocaleUpdated;
-use Illuminate\Foundation\Application;
 
 class LocalizedApplication
 {
+    /** @return Closure(): ?string */
     public function getPreferredLocale(): Closure
     {
         return function (): ?string {
-            /** @var Application $this */
-
-            return $this['config']->get('app.preferred_locale');
+            return config('app.preferred_locale');
         };
     }
 
+    /** @return Closure(string): void */
     public function setPreferredLocale(): Closure
     {
         return function (string $locale): void {
-            /** @var Application $this */
-            $previous = $this['config']->get('app.preferred_locale');
+            $previous = config('app.preferred_locale');
 
-            $this['config']->set('app.preferred_locale', $locale);
+            config(['app.preferred_locale' => $locale]);
 
-            $this['events']->dispatch(new PreferredLocaleUpdated($locale, $previous));
+            event(new PreferredLocaleUpdated($locale, $previous));
         };
     }
 
+    /** @return Closure(string): bool */
     public function isFallbackLocale(): Closure
     {
         return function (string $locale): bool {
-            /** @var Application $this */
-
-            return $this->getFallbackLocale() === $locale;
+            return config('app.fallback_locale') === $locale;
         };
     }
 }

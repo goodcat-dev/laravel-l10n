@@ -9,21 +9,25 @@ use Illuminate\Routing\RouteCollection;
 use Illuminate\Routing\Router;
 use Illuminate\Routing\RouteRegistrar;
 
+/**
+ * @mixin Router
+ */
 class LocalizedRouter
 {
+    /**
+     * @return Closure(list<string>=): RouteRegistrar
+     */
     public function lang(): Closure
     {
         return function (array $translations = []): RouteRegistrar {
-            /** @var Router $this */
-
-            return (new RouteRegistrar($this))->lang($translations);
+            return (new RouteRegistrar(app(Router::class)))->lang($translations);
         };
     }
 
+    /** @return Closure(string): ?Route */
     public function getByKey(): Closure
     {
         return function (string $key): ?Route {
-            /** @var Router $this */
             $collection = $this->getRoutes();
 
             $getByKey = Closure::bind(function (string $key): ?Route {

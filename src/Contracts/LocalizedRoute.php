@@ -10,12 +10,11 @@ interface LocalizedRoute
     public function canonical(): Route;
 
     /**
-     * @param  list<string>|null  $translations
-     * @return ($translations is null ? list<string> : Route)
+     * @param  list<string>  $translations
      *
      * @see \Goodcat\L10n\Mixin\LocalizedRoute::lang
      */
-    public function lang(?array $translations = null): Route|array;
+    public function lang(array $translations = []): Route;
 
     /** @see \Goodcat\L10n\Mixin\LocalizedRoute::getKey */
     public function getKey(): string;

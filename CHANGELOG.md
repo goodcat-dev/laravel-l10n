@@ -4,10 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Changed
+
+- Improves static analysis of the route, router, registrar and application mixins.
+- Corrects localized application and router contract return types.
+- Simplifies `lang()` to a write-only method.
+
 ### Fixed
 
 - Preserves fallback, session blocking and trashed binding state on localized routes.
-- Corrects localized application and router contract return types.
 
 ## v0.4.2
 

@@ -3,65 +3,91 @@
 namespace Goodcat\L10n\Mixin;
 
 use Closure;
-use Goodcat\L10n\Contracts\LocalizedRoute as Localized;
+use Goodcat\L10n\Contracts\LocalizedRouter;
+use Illuminate\Container\Container;
 use Illuminate\Routing\Route;
+use Illuminate\Routing\Router;
 
+/**
+ * @mixin Route
+ */
 class LocalizedRoute
 {
+    /** @var array<string, mixed> */
+    public array $action;
+
+    protected Container $container;
+
+    /** @var array<string, mixed> */
+    public array $defaults;
+
+    public bool $isFallback;
+
+    /** @var LocalizedRouter&Router */
+    protected Router $router;
+
+    public string $uri;
+
+    /** @var array<string, string> */
+    public array $wheres;
+
+    /** @return Closure(): (Route|self|null) */
     public function canonical(): Closure
     {
-        return function (): Route {
-            /** @var Localized&Route $this */
+        return function (): Route|self|null {
             $canonical = $this->getAction('canonical');
 
             return $canonical ? $this->router->getByKey($canonical) : $this;
         };
     }
 
+    /**
+     * @return Closure(list<string>=): self
+     */
     public function lang(): Closure
     {
-        return function (?array $translations = null): Route|array {
-            /** @var Localized&Route $this */
-            $lang = $this->action['lang'] ?? [];
-
-            if (is_null($translations)) {
-                return $lang;
-            }
-
-            $this->action['lang'] = array_unique(array_merge($lang, $translations));
+        return function (array $translations = []): self {
+            $this->action['lang'] = array_unique(array_merge($this->action['lang'] ?? [], $translations));
 
             return $this;
         };
     }
 
+    /** @return Closure(): string */
     public function getKey(): Closure
     {
         return function (): string {
-            /** @var Localized&Route $this */
-
             return implode('|', $this->methods()).$this->getDomain().$this->uri();
         };
     }
 
+    /**
+     * @return Closure(): array<string, Route>
+     */
     public function makeTranslations(): Closure
     {
         return function (): array {
-            /** @var Localized&Route $this */
             $translations = [];
 
-            foreach ($this->lang() as $locale) {
-                $translations[$locale] = $this->makeTranslation($locale);
+            foreach (($this->action['lang'] ?? []) as $locale) {
+                if (is_string($locale)) {
+                    $translation = (new LocalizedRoute)->makeTranslation()->call($this, $locale);
+
+                    if ($translation instanceof Route) {
+                        $translations[$locale] = $translation;
+                    }
+                }
             }
 
             return $translations;
         };
     }
 
+    /** @return Closure(string): ?Route */
     public function makeTranslation(): Closure
     {
         return function (string $locale): ?Route {
-            /** @var Localized&Route $this */
-            if (! in_array($locale, $this->lang(), true)) {
+            if (! in_array($locale, $this->action['lang'] ?? [], true)) {
                 return null;
             }
 
