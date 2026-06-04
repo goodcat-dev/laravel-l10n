@@ -4,6 +4,7 @@ use Goodcat\L10n\Contracts\LocalizedRoute;
 use Goodcat\L10n\L10n;
 use Goodcat\L10n\Middleware\SetLocale;
 use Goodcat\L10n\Tests\Support\Controller;
+use Illuminate\Routing\RouteCollection;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Translation\Translator;
@@ -95,15 +96,18 @@ it('matches route name against canonical route', function (bool $withCachedRoute
     app(L10n::class)->registerLocalizedRoutes();
 
     if ($withCachedRoutes) {
-        Route::setCompiledRoutes(Route::getRoutes()->compile());
+        /** @var RouteCollection $routes */
+        $routes = Route::getRoutes();
+
+        Route::setCompiledRoutes($routes->compile());
     }
 
     get('es/example')->assertOk();
 
     expect($matches)->toBeTrue();
 })->with([
-    'RouteCollection' => false,
-    'CompiledRouteCollection' => true,
+    'RouteCollection' => [false],
+    'CompiledRouteCollection' => [true],
 ]);
 
 test('L10n::registerLocalizedRoutes is idempotent', function () {
@@ -114,11 +118,11 @@ test('L10n::registerLocalizedRoutes is idempotent', function () {
 
     app(L10n::class)->registerLocalizedRoutes();
 
-    $count = app(Router::class)->getRoutes()->count();
+    $count = count(app(Router::class)->getRoutes()->getRoutes());
 
     app(L10n::class)->registerLocalizedRoutes();
 
-    expect(app(Router::class)->getRoutes()->count())->toBe($count);
+    expect(count(app(Router::class)->getRoutes()->getRoutes()))->toBe($count);
 });
 
 test('localized route inherit properties from canonical route', function () {

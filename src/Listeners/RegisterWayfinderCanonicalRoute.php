@@ -5,7 +5,7 @@ namespace Goodcat\L10n\Listeners;
 use Closure;
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Routing\CompiledRouteCollection;
-use Illuminate\Routing\RouteCollection;
+use Illuminate\Routing\RouteCollectionInterface;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Arr;
 
@@ -40,7 +40,7 @@ class RegisterWayfinderCanonicalRoute
         $canonical();
     }
 
-    protected function handleRoutes(RouteCollection $collection): void
+    protected function handleRoutes(RouteCollectionInterface $collection): void
     {
         foreach ($collection->getRoutes() as $route) {
             if ($route->getName() && $route->getAction('lang')) {

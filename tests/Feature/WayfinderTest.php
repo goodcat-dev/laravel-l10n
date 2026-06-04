@@ -3,6 +3,7 @@
 use Goodcat\L10n\L10n;
 use Goodcat\L10n\Listeners\RegisterWayfinderCanonicalRoute;
 use Illuminate\Console\Events\CommandStarting;
+use Illuminate\Routing\RouteCollection;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Route;
 use Symfony\Component\Console\Input\StringInput;
@@ -52,7 +53,10 @@ it('renames canonical cached routes', function () {
 
     app(L10n::class)->registerLocalizedRoutes();
 
-    Route::setCompiledRoutes(Route::getRoutes()->compile());
+    /** @var RouteCollection $routes */
+    $routes = Route::getRoutes();
+
+    Route::setCompiledRoutes($routes->compile());
 
     (new RegisterWayfinderCanonicalRoute)(
         new CommandStarting('wayfinder:generate', new StringInput(''), new NullOutput)

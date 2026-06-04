@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\View\FileViewFinder;
+
 it('register localized views path', function () {
     $es = resource_path('views/es');
     $it = resource_path('views/it');
@@ -14,9 +16,11 @@ it('register localized views path', function () {
 
     app()->setLocale('it');
 
-    expect(app('view')->getFinder()->getPaths())
-        ->toContain($it)
-        ->not->toContain($es);
+    /** @var FileViewFinder $finder */
+    $finder = app('view')->getFinder();
+
+    expect($finder->getPaths())->toContain($it);
+    expect($finder->getPaths())->not->toContain($es);
 
     foreach ([$es, $it] as $dir) {
         rmdir($dir);

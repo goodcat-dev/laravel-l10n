@@ -4,6 +4,7 @@ namespace Goodcat\L10n\Listeners;
 
 use Illuminate\Foundation\Events\LocaleUpdated;
 use Illuminate\View\Factory;
+use Illuminate\View\FileViewFinder;
 
 class RegisterLocalizedViewsPath
 {
@@ -12,7 +13,10 @@ class RegisterLocalizedViewsPath
         /** @var Factory $views */
         $views = \app('view');
 
-        $paths = $views->getFinder()->getPaths();
+        /** @var FileViewFinder $finder */
+        $finder = $views->getFinder();
+
+        $paths = $finder->getPaths();
 
         $oldPath = $event->previousLocale ? resource_path('views/'.$event->previousLocale) : '';
 
@@ -21,7 +25,7 @@ class RegisterLocalizedViewsPath
         if ($index !== false) {
             unset($paths[$index]);
 
-            $views->getFinder()->setPaths($paths);
+            $finder->setPaths($paths);
         }
 
         $newPath = \resource_path('views/'.$event->locale);
