@@ -161,6 +161,28 @@ test('L10n::registerLocalizedRoutes is idempotent', function () {
     expect(count(app(Router::class)->getRoutes()->getRoutes()))->toBe($count);
 });
 
+test('L10n::registerLocalizedRoutes leaves non-localized routes untouched', function () {
+    Route::get('/plain', fn () => 'Hello, World!')->name('plain');
+
+    Route::get('/example', fn () => 'Hello, World!')
+        ->name('example')
+        ->lang(['es']);
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    /** @var RouteCollection $routes */
+    $routes = Route::getRoutes();
+
+    $routes->refreshNameLookups();
+
+    expect($routes->getByName('plain')->getAction('key'))
+        ->toBeNull()
+        ->and($routes->getByName('example')->getAction('key'))
+        ->not->toBeNull()
+        ->and($routes->getByName('example.es')->getAction('key'))
+        ->toBeNull();
+});
+
 test('localized route inherit properties from canonical route', function () {
     /** @var LocalizedRoute $canonical */
     $canonical = Route::get('/example/{id}', fn () => 'Hello, World!')

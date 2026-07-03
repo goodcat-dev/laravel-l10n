@@ -93,7 +93,7 @@ class LocalizedRoute
 
             $action = ['locale' => $locale, 'canonical' => $this->getKey()] + $this->action;
 
-            unset($action['lang'], $action['prefix']);
+            unset($action['lang'], $action['prefix'], $action['key']);
 
             $domainWasTranslated = false;
 

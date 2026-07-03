@@ -25,7 +25,7 @@ class L10n
 
         foreach ($collection->getRoutes() as $route) {
             /** @var Route&LocalizedRoute $route */
-            if ($route->getAction('canonical')) {
+            if ($route->getAction('canonical') || ! $route->getAction('lang')) {
                 continue;
             }
 

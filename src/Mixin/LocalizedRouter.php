@@ -33,7 +33,7 @@ class LocalizedRouter
             $getByKey = Closure::bind(function (string $key): ?Route {
                 $attributes = array_find(
                     $this->attributes,
-                    fn ($route) => $route['action']['key'] === $key
+                    fn ($route) => ($route['action']['key'] ?? null) === $key
                 );
 
                 return $attributes ? $this->newRoute($attributes) : null;
