@@ -140,6 +140,9 @@ The `action()` helper works the same way:
 action(Controller::class, ['lang' => 'es']); // Returns "/es/ejemplo"
 ```
 
+> [!WARNING]
+> `lang` is a reserved parameter name. The URL generator consumes it to select the locale, so it never reaches the route: a route defining its own `{lang}` parameter (e.g. `/translate/{lang}/text`) cannot be generated via `route()` or `action()`.
+
 ## Locale Preference
 
 This package provides a mechanism for automatically detecting a user's preferred language.

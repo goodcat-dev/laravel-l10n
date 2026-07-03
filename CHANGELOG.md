@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - Improves static analysis of the route, router, registrar and application mixins.
 - Corrects localized application and router contract return types.
 - Simplifies `lang()` to a write-only method.
+- Documents `lang` as a reserved parameter name: routes defining their own `{lang}` parameter are not supported.
 
 ### Fixed
 
