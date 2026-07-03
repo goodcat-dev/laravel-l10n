@@ -17,6 +17,8 @@ class LocalizedUrlGenerator extends UrlGenerator
             }
         }
 
+        $parameters = Arr::wrap($parameters);
+
         $locale = Arr::pull($parameters, 'lang', app()->getLocale());
 
         if (! is_null($route = $this->routes->getByName($name))) {
@@ -36,6 +38,8 @@ class LocalizedUrlGenerator extends UrlGenerator
         if (is_null($route = $this->routes->getByAction($action = $this->formatAction($action)))) {
             throw new InvalidArgumentException("Action {$action} not defined.");
         }
+
+        $parameters = Arr::wrap($parameters);
 
         $locale = Arr::pull($parameters, 'lang', app()->getLocale());
 

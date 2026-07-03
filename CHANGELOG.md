@@ -13,6 +13,8 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - Preserves fallback, session blocking and trashed binding state on localized routes.
+- Fixes `TypeError` when passing scalar parameters to `route()` and `action()`. E.g. `route('example', 5)`.
+- No longer consumes (and removes) the `lang` attribute of models passed as route parameters. E.g. `route('example', $post)`.
 
 ## v0.4.2
 

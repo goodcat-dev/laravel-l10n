@@ -4,6 +4,7 @@ use Goodcat\L10n\Contracts\LocalizedRoute;
 use Goodcat\L10n\L10n;
 use Goodcat\L10n\Middleware\SetLocale;
 use Goodcat\L10n\Tests\Support\Controller;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Routing\RouteCollection;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Route;
@@ -69,6 +70,41 @@ it('generates localized uri via helpers', function () {
         ->toBe('http://localhost/es/ejemplo')
         ->and(action(Controller::class, ['lang' => 'es']))
         ->toBe('http://localhost/es/ejemplo');
+});
+
+it('generates localized uri via helpers with scalar parameters', function () {
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
+
+    Route::get('/example/{id}', Controller::class)
+        ->name('example')
+        ->lang(['es']);
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    expect(route('example', 5))
+        ->toBe('http://localhost/example/5')
+        ->and(action(Controller::class, 5))
+        ->toBe('http://localhost/example/5');
+});
+
+it('does not consume the lang attribute of a model passed as parameter', function () {
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
+
+    Route::get('/example/{post}', Controller::class)
+        ->name('example')
+        ->lang(['es']);
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    $post = new class(['id' => 7, 'lang' => 'es']) extends Model
+    {
+        protected $guarded = [];
+    };
+
+    expect(route('example', $post))
+        ->toBe('http://localhost/example/7')
+        ->and($post->getAttributes())
+        ->toBe(['id' => 7, 'lang' => 'es']);
 });
 
 it('generates localized domains', function () {
