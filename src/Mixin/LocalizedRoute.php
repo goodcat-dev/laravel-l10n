@@ -7,6 +7,7 @@ use Goodcat\L10n\Contracts\LocalizedRouter;
 use Illuminate\Container\Container;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
+use Symfony\Component\Routing\Exception\RouteNotFoundException;
 
 /**
  * @mixin Route
@@ -31,13 +32,16 @@ class LocalizedRoute
     /** @var array<string, string> */
     public array $wheres;
 
-    /** @return Closure(): (Route|self|null) */
+    /** @return Closure(): (Route|self) */
     public function canonical(): Closure
     {
-        return function (): Route|self|null {
-            $canonical = $this->getAction('canonical');
+        return function (): Route|self {
+            if (! $canonical = $this->getAction('canonical')) {
+                return $this;
+            }
 
-            return $canonical ? $this->router->getByKey($canonical) : $this;
+            return $this->router->getByKey($canonical)
+                ?? throw new RouteNotFoundException("Canonical route [$canonical] not defined.");
         };
     }
 

@@ -9,6 +9,7 @@ use Illuminate\Routing\RouteCollection;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Translation\Translator;
+use Symfony\Component\Routing\Exception\RouteNotFoundException;
 
 use function Pest\Laravel\get;
 
@@ -181,6 +182,15 @@ test('L10n::registerLocalizedRoutes leaves non-localized routes untouched', func
         ->not->toBeNull()
         ->and($routes->getByName('example.es')->getAction('key'))
         ->toBeNull();
+});
+
+test('canonical() throws when the canonical route is not registered', function () {
+    $route = Route::get('/orphan', fn () => 'Hello, World!');
+
+    $route->setAction($route->getAction() + ['canonical' => 'missing-key']);
+
+    expect(fn () => $route->canonical())
+        ->toThrow(RouteNotFoundException::class, 'Canonical route [missing-key] not defined.');
 });
 
 test('localized route inherit properties from canonical route', function () {

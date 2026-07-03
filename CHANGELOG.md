@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - Corrects localized application and router contract return types.
 - Simplifies `lang()` to a write-only method.
 - Documents `lang` as a reserved parameter name: routes defining their own `{lang}` parameter are not supported.
+- `canonical()` now throws a `RouteNotFoundException` when the canonical route is not registered, instead of returning `null`.
 
 ### Fixed
 
