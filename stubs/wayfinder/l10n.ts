@@ -8,15 +8,15 @@ export function route<T extends (...args: any[]) => any>(
     routes: Record<string, T>,
     args?: Parameters<T>[0] & { lang?: string }
 ): ReturnType<T> {
-    const locale = args?.lang
+    const { lang, ...params } = args ?? {};
+
+    const locale = lang
         ?? document.documentElement.lang
         ?? fallbackLocale;
 
-    delete args?.lang;
-
     const route = routes[locale] ?? routes[fallbackLocale];
 
-    return args && Object.keys(args).length
-        ? route(args)
+    return Object.keys(params).length
+        ? route(params)
         : route();
 }
