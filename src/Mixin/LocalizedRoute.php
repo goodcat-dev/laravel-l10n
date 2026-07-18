@@ -4,6 +4,7 @@ namespace Goodcat\L10n\Mixin;
 
 use Closure;
 use Goodcat\L10n\Contracts\LocalizedRouter;
+use Goodcat\L10n\Routing\RouteStrategy;
 use Illuminate\Container\Container;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
@@ -91,7 +92,13 @@ class LocalizedRoute
     public function makeTranslation(): Closure
     {
         return function (string $locale): ?Route {
+            $strategy = RouteStrategy::from(config('l10n.route_strategy'));
+
             if (! in_array($locale, $this->action['lang'] ?? [], true)) {
+                return null;
+            }
+
+            if ($locale === $this->getAction('locale')) {
                 return null;
             }
 
@@ -111,9 +118,20 @@ class LocalizedRoute
                 $domainWasTranslated = $translatedDomain !== $domain;
             }
 
-            $uri = trans()->hasForLocale("routes.$this->uri", $locale)
-                ? trans("routes.$this->uri", locale: $locale)
-                : $this->uri;
+            $uri = $this->uri;
+
+            if (
+                $strategy->isPrefix()
+                && $this->getAction('locale') === app()->getFallbackLocale()
+            ) {
+                $prefix = app()->getFallbackLocale();
+
+                $uri = $uri === $prefix ? '/' : substr($uri, strlen($prefix) + 1);
+            }
+
+            $uri = trans()->hasForLocale("routes.$uri", $locale)
+                ? trans("routes.$uri", locale: $locale)
+                : $uri;
 
             $route = new Route($this->methods(), $uri, $action);
 
@@ -121,7 +139,7 @@ class LocalizedRoute
                 $route->name(".$locale");
             }
 
-            if (config('l10n.add_locale_prefix') && ! $domainWasTranslated) {
+            if ($strategy !== RouteStrategy::NoPrefix && ! $domainWasTranslated) {
                 $route->prefix($locale);
             }
 

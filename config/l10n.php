@@ -4,14 +4,14 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Add locale prefix
+    | Route strategy
     |--------------------------------------------------------------------------
     |
-    | Automatically prepends the locale code to every route generated via
-    | ->lang(). E.g. /example (canonical), /it/example (translated).
+    | Supported strategies: "prefix_except_default", "prefix", and
+    | "no_prefix".
     |
     */
 
-    'add_locale_prefix' => true,
+    'route_strategy' => 'prefix_except_default',
 
 ];
