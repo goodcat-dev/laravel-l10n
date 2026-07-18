@@ -60,6 +60,8 @@ This will generate:
 - `/fr/example` (French, no translation defined)
 - `/it/example` (Italian, no translation defined)
 
+Listing the fallback locale in `lang()` is harmless: the canonical route already serves it, so no extra route is registered.
+
 #### Route groups
 
 To avoid repetitive language definitions on every single route, you can use `Route::lang()->group()`:
@@ -242,6 +244,14 @@ app()->setPreferredLocale('es');
 
 // Check if a locale is the fallback locale
 app()->isFallbackLocale('en'); // Returns bool
+```
+
+### Route Helpers
+
+```php
+// Get the locale served by a route. A route without l10n
+// metadata counts as the fallback locale.
+$request->route()->locale(); // Returns string
 ```
 
 ### Route Matching

@@ -44,6 +44,25 @@ it('renames canonical routes', function () {
         ->toBe('vanilla');
 });
 
+it('does not duplicate the canonical route name when the fallback locale is in lang()', function () {
+    Route::get('/example', fn () => 'Hello, World!')
+        ->name('example')
+        ->lang(['en', 'fr']);
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    (new RegisterWayfinderCanonicalRoute)(
+        new CommandStarting('wayfinder:generate', new StringInput(''), new NullOutput)
+    );
+
+    $names = array_filter(array_map(
+        fn ($route) => $route->getName(),
+        Route::getRoutes()->getRoutes()
+    ));
+
+    expect(array_count_values($names)['example.en'])->toBe(1);
+});
+
 it('renames canonical cached routes', function (string $strategy) {
     app(Translator::class)->addPath(__DIR__.'/../Support/lang');
 

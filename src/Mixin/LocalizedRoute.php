@@ -58,6 +58,19 @@ class LocalizedRoute
         };
     }
 
+    /**
+     * The locale served by this route. A route without l10n
+     * metadata counts as the fallback locale.
+     *
+     * @return Closure(): string
+     */
+    public function locale(): Closure
+    {
+        return function (): string {
+            return $this->getAction('locale') ?? app()->getFallbackLocale();
+        };
+    }
+
     /** @return Closure(): string */
     public function getKey(): Closure
     {
@@ -98,7 +111,7 @@ class LocalizedRoute
                 return null;
             }
 
-            if ($locale === $this->getAction('locale')) {
+            if ($locale === (new LocalizedRoute)->locale()->call($this)) {
                 return null;
             }
 

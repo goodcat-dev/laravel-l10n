@@ -34,7 +34,7 @@ class Switcher extends Component
 
         $parameters = $route->parameters();
 
-        $this->current = $route->getAction('locale') ?? app()->getFallbackLocale();
+        $this->current = $route->locale();
 
         $this->translations[app()->getFallbackLocale()] = $url->toRoute($canonical, $parameters, true);
 

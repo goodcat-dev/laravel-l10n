@@ -8,6 +8,11 @@ All notable changes to this project will be documented in this file.
 
 - Adds a global `route_strategy` config option: `no_prefix`, `prefix_except_default`, `prefix`.
 - Adds the `prefix` strategy: prefixes every locale and the canonical route, leaving no unprefixed URL (`/en/login`, not `/login`).
+- Adds `LocalizedRoute::locale()`: the locale served by a route; routes without l10n metadata count as fallback.
+
+### Fixed
+
+- Ignores the fallback locale listed in `lang()`: fixes duplicate route names and Wayfinder's `Duplicated export` error ([#3](https://github.com/goodcat-dev/laravel-l10n/issues/3)).
 
 ### Removed
 
