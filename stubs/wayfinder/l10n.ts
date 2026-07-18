@@ -8,7 +8,7 @@ export function route<T extends (...args: any[]) => any>(
     routes: Record<string, T>,
     args?: Parameters<T>[0] & { lang?: string }
 ): ReturnType<T> {
-    const { lang, ...params } = args ?? {};
+    const { lang, ...params } = args ?? ({} as Parameters<T>[0] & { lang?: string });
 
     const locale = lang
         ?? document.documentElement.lang
