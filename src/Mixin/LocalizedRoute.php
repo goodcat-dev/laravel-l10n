@@ -104,7 +104,7 @@ class LocalizedRoute
 
             $action = ['locale' => $locale, 'canonical' => $this->getKey()] + $this->action;
 
-            unset($action['lang'], $action['prefix'], $action['key']);
+            unset($action['lang'], $action['prefix'], $action['key'], $action['source_uri']);
 
             $domainWasTranslated = false;
 
@@ -118,16 +118,7 @@ class LocalizedRoute
                 $domainWasTranslated = $translatedDomain !== $domain;
             }
 
-            $uri = $this->uri;
-
-            if (
-                $strategy->isPrefix()
-                && $this->getAction('locale') === app()->getFallbackLocale()
-            ) {
-                $prefix = app()->getFallbackLocale();
-
-                $uri = $uri === $prefix ? '/' : substr($uri, strlen($prefix) + 1);
-            }
+            $uri = $this->getAction('source_uri') ?? $this->uri;
 
             $uri = trans()->hasForLocale("routes.$uri", $locale)
                 ? trans("routes.$uri", locale: $locale)

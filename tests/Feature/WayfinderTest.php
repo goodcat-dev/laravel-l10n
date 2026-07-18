@@ -6,6 +6,7 @@ use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Routing\RouteCollection;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Translation\Translator;
 use Symfony\Component\Console\Input\StringInput;
 use Symfony\Component\Console\Output\NullOutput;
 
@@ -43,7 +44,11 @@ it('renames canonical routes', function () {
         ->toBe('vanilla');
 });
 
-it('renames canonical cached routes', function () {
+it('renames canonical cached routes', function (string $strategy) {
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
+
+    config(['l10n.route_strategy' => $strategy]);
+
     Route::get('/example', fn () => 'Hello, World!')
         ->name('example')
         ->lang(['es']);
@@ -68,4 +73,8 @@ it('renames canonical cached routes', function () {
         ->toBe('example.en')
         ->and($routes->getByName('vanilla')?->getAction('as'))
         ->toBe('vanilla');
-});
+})->with([
+    'no prefix' => ['no_prefix'],
+    'prefix' => ['prefix'],
+    'prefix except default' => ['prefix_except_default'],
+]);

@@ -39,6 +39,8 @@ class L10n
                 $key = $route->getKey();
                 $domainAndUri = $route->getDomain().$route->uri();
 
+                $route->action['source_uri'] = $route->uri();
+
                 $route->prefix(app()->getFallbackLocale());
 
                 $route->action['locale'] = app()->getFallbackLocale();

@@ -47,7 +47,7 @@ it('detects and set the route locale', function () {
 it('generates localized routes without prefix', function () {
     app(Translator::class)->addPath(__DIR__.'/../Support/lang');
 
-    config(['l10n.add_locale_prefix' => false]);
+    config(['l10n.route_strategy' => 'no_prefix']);
 
     Route::get('/example', fn () => 'Hello, World!')
         ->lang(['es'])
@@ -56,6 +56,56 @@ it('generates localized routes without prefix', function () {
     app(L10n::class)->registerLocalizedRoutes();
 
     get('/ejemplo')->assertOk();
+});
+
+it('prefixes the fallback locale without registering an unprefixed route', function () {
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
+
+    config(['l10n.route_strategy' => 'prefix']);
+
+    $route = Route::get('/example', fn () => 'Hello, World!')
+        ->middleware(SetLocale::class)
+        ->lang(['es'])
+        ->name('example');
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    get('/example')->assertNotFound();
+    get('/en/example')->assertOk();
+    get('/es/ejemplo')->assertOk();
+
+    expect(Route::getRoutes()->getByName('example'))->toBe($route);
+});
+
+it('reindexes a prefixed fallback route in the route collection', function () {
+    config(['l10n.route_strategy' => 'prefix']);
+
+    $routeCount = count(Route::getRoutes()->getRoutes());
+
+    Route::get('/admin/example', fn () => 'Hello, World!')
+        ->lang(['es'])
+        ->name('example');
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    /** @var RouteCollection $routes */
+    $routes = Route::getRoutes();
+
+    $getRoutes = array_keys($routes->getRoutesByMethod()['GET']);
+
+    expect($getRoutes)
+        ->toContain('en/admin/example')
+        ->and(in_array('admin/example', $getRoutes, true))
+        ->toBeFalse();
+
+    // Reindexing must replace the old entry instead of duplicating it.
+    expect($routes->getRoutes())
+        ->toHaveCount($routeCount + 2);
+
+    Route::setCompiledRoutes($routes->compile());
+
+    get('/en/admin/example')->assertOk();
+    get('/admin/example')->assertNotFound();
 });
 
 it('generates localized uri via helpers', function () {
@@ -121,6 +171,37 @@ it('generates localized domains', function () {
     get('http://example.com/it/example')->assertOk();
 });
 
+it('translates domains without adding route prefixes', function () {
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
+
+    config(['l10n.route_strategy' => 'no_prefix']);
+
+    Route::domain('example.com')->lang(['es'])->group(function () {
+        Route::get('/example', fn () => 'Hello, World!')->name('example');
+    });
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    get('http://example.com/example')->assertOk();
+    get('http://es.example.com/ejemplo')->assertOk();
+});
+
+it('prefixes the fallback locale when other locales translate the domain', function () {
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
+
+    config(['l10n.route_strategy' => 'prefix']);
+
+    Route::domain('example.com')->lang(['es'])->group(function () {
+        Route::get('/example', fn () => 'Hello, World!')->name('example');
+    });
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    get('http://example.com/en/example')->assertOk();
+    get('http://example.com/example')->assertNotFound();
+    get('http://es.example.com/ejemplo')->assertOk();
+});
+
 it('matches route name against canonical route', function (bool $withCachedRoutes) {
     $matches = false;
 
@@ -147,8 +228,10 @@ it('matches route name against canonical route', function (bool $withCachedRoute
     'CompiledRouteCollection' => [true],
 ]);
 
-test('L10n::registerLocalizedRoutes is idempotent', function () {
-    Route::get('/example', fn () => 'Hello, World!')
+it('registers localized routes idempotently', function (string $strategy) {
+    config(['l10n.route_strategy' => $strategy]);
+
+    $route = Route::get('/example', fn () => 'Hello, World!')
         ->middleware(SetLocale::class)
         ->lang(['es', 'it'])
         ->name('example');
@@ -156,11 +239,19 @@ test('L10n::registerLocalizedRoutes is idempotent', function () {
     app(L10n::class)->registerLocalizedRoutes();
 
     $count = count(app(Router::class)->getRoutes()->getRoutes());
+    $uri = $route->uri();
 
     app(L10n::class)->registerLocalizedRoutes();
 
-    expect(count(app(Router::class)->getRoutes()->getRoutes()))->toBe($count);
-});
+    expect(app(Router::class)->getRoutes()->getRoutes())
+        ->toHaveCount($count)
+        ->and($route->uri())
+        ->toBe($uri);
+})->with([
+    'no prefix' => ['no_prefix'],
+    'prefix' => ['prefix'],
+    'prefix except default' => ['prefix_except_default'],
+]);
 
 test('L10n::registerLocalizedRoutes leaves non-localized routes untouched', function () {
     Route::get('/plain', fn () => 'Hello, World!')->name('plain');
