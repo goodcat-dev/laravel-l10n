@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+### Added
+
+- Adds a global `route_strategy` config option: `no_prefix`, `prefix_except_default`, `prefix`.
+- Adds the `prefix` strategy: prefixes every locale and the canonical route, leaving no unprefixed URL (`/en/login`, not `/login`).
+
+### Removed
+
+- Removes `add_locale_prefix` in favor of `route_strategy` (`true` maps to `prefix_except_default`, `false` to `no_prefix`).
+
 ## v0.4.3
 
 Released on _**2026-07-05**_

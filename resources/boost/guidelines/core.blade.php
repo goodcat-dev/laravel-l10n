@@ -80,12 +80,12 @@ route('example');                            // /example (fallback locale)
 @verbatim
 <code-snippet title="config/l10n.php">
 return [
-    'add_locale_prefix' => true,
+    'route_strategy' => 'prefix_except_default',
 ];
 </code-snippet>
 @endverbatim
 
-When `true` (default), localized routes are prefixed with the locale code (e.g. `/es/ejemplo`). The fallback locale is never prefixed. Set to `false` to rely solely on translated URIs without prefixes.
+Supported strategies are `prefix_except_default` (default), `prefix`, and `no_prefix`.
 
 ## Preferred locale detection
 

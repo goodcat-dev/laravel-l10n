@@ -5,6 +5,18 @@
 
 An opinionated Laravel package for app localization.
 
+## Table of Contents
+
+- [Quickstart](#quickstart)
+- [Localized Routes](#localized-routes)
+- [URL Generation](#url-generation)
+- [Route Caching](#route-caching)
+- [Locale Preference](#locale-preference)
+- [Helpers](#helpers)
+- [Components](#components)
+- [Localized Views](#localized-views)
+- [JavaScript URL Generation](#javascript-url-generation)
+
 ## Quickstart
 
 Get started with `laravel-l10n` in three steps.
@@ -68,6 +80,17 @@ Route::lang(['es', 'it'])->group(function () {
         ->lang(['fr']); // es, it, fr
 });
 ```
+
+### Route Strategy
+
+The `route_strategy` option in `config/l10n.php` controls how locale prefixes are applied:
+
+- `prefix_except_default` (default) keeps the fallback locale unprefixed (e.g. `/example`, `/es/ejemplo`).
+- `prefix` prefixes every locale and does not register an unprefixed route (e.g. `/en/example`, `/es/ejemplo`).
+- `no_prefix` uses translated URIs without locale prefixes (e.g. `/example`, `/ejemplo`).
+
+> [!NOTE]
+> `config/l10n.php` is created by publishing the package config: `php artisan vendor:publish --tag=l10n-config`.
 
 ### Translating Route URIs
 
@@ -143,6 +166,14 @@ action(Controller::class, ['lang' => 'es']); // Returns "/es/ejemplo"
 > [!WARNING]
 > `lang` is a reserved parameter name. The URL generator consumes it to select the locale, so it never reaches the route: a route defining its own `{lang}` parameter (e.g. `/translate/{lang}/text`) cannot be generated via `route()` or `action()`.
 
+## Route Caching
+
+Localized routes are fully compatible with Laravel's route caching, with no custom cache setup required. When routes are cached, the package skips route generation at runtime (the localized variants are already included in the cache).
+
+```sh
+php artisan route:cache
+```
+
 ## Locale Preference
 
 This package provides a mechanism for automatically detecting a user's preferred language.
@@ -157,7 +188,7 @@ By default, the package checks the following sources in order:
 
 ### Customizing Resolvers
 
-You can customize the resolvers by setting the static property on the `L10n` class:
+You can customize the resolvers by setting the static property on the `L10n` class. Do this in the `boot()` method of a service provider, such as `AppServiceProvider`:
 
 ```php
 use Goodcat\L10n\L10n;
@@ -372,24 +403,3 @@ route('foo', { id: 1, lang: 'it' });
 The function automatically looks for a localized route by appending the locale to the route name (e.g., `foo.es`).
 If a localized route exists, it uses that; otherwise, it falls back to the original route name.
 
-## Configuration
-
-To customize the package behavior, publish the configuration file:
-
-```sh
-php artisan vendor:publish --tag=l10n-config
-```
-
-### Add Locale Prefix
-
-By default, this package **adds the locale prefix** to every route generated via `->lang()` (e.g. `/es/ejemplo`, `/it/esempio`). The original route (e.g. `/example`) always remains available as the canonical URL.
-
-To disable prefixes, set `add_locale_prefix` to `false` in `config/l10n.php`. Routes will then use translated URIs without locale prefixes (e.g. `/ejemplo` instead of `/es/ejemplo`).
-
-### Route Caching
-
-Localized routes are fully compatible with Laravel's route caching. When routes are cached, the package skips route generation at runtime (the localized variants are already included in the cache).
-
-```sh
-php artisan route:cache
-```
