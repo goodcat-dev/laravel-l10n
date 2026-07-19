@@ -1,20 +1,12 @@
-export let fallbackLocale: string = 'en';
-
-export function setFallbackLocale(locale: string): void {
-    fallbackLocale = locale;
-}
-
 export function route<T extends (...args: any[]) => any>(
-    routes: Record<string, T>,
+    routes: Record<string, T> & { __canonical: T },
     args?: Parameters<T>[0] & { lang?: string }
 ): ReturnType<T> {
     const { lang, ...params } = args ?? ({} as Parameters<T>[0] & { lang?: string });
 
-    const locale = lang
-        ?? document.documentElement.lang
-        ?? fallbackLocale;
+    const locale = lang ?? document.documentElement.lang;
 
-    const route = routes[locale] ?? routes[fallbackLocale];
+    const route = routes[locale] ?? routes.__canonical;
 
     return Object.keys(params).length
         ? route(params)
