@@ -87,13 +87,21 @@ class LocalizedRoute
         return function (): array {
             $translations = [];
 
-            foreach (($this->action['lang'] ?? []) as $locale) {
-                if (is_string($locale)) {
-                    $translation = (new LocalizedRoute)->makeTranslation()->call($this, $locale);
+            $uris = [$this->getDomain().$this->uri()];
 
-                    if ($translation instanceof Route) {
-                        $translations[$locale] = $translation;
+            foreach (($this->action['lang'] ?? []) as $locale) {
+                $translation = (new LocalizedRoute)->makeTranslation()->call($this, $locale);
+
+                if ($translation instanceof Route) {
+                    $uri = $translation->getDomain().$translation->uri();
+
+                    if (in_array($uri, $uris, true)) {
+                        continue;
                     }
+
+                    $uris[] = $uri;
+
+                    $translations[$locale] = $translation;
                 }
             }
 

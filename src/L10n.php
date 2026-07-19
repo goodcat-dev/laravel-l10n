@@ -36,16 +36,7 @@ class L10n
             }
 
             if ($strategy->isPrefix()) {
-                $key = $route->getKey();
-                $domainAndUri = $route->getDomain().$route->uri();
-
-                $route->action['source_uri'] = $route->uri();
-
-                $route->prefix(app()->getFallbackLocale());
-
-                $route->action['locale'] = app()->getFallbackLocale();
-
-                $this->reindexRoute($collection, $route, $key, $domainAndUri);
+                $this->prefixAndReindexCanonicalRoute($collection, $route);
             }
 
             $route->action['key'] = $route->getKey();
@@ -56,12 +47,21 @@ class L10n
         }
     }
 
-    protected function reindexRoute(
-        RouteCollectionInterface $collection,
-        Route $route,
-        string $key,
-        string $domainAndUri
-    ): void {
+    /**
+     * @param  Route&LocalizedRoute  $route
+     */
+    protected function prefixAndReindexCanonicalRoute(RouteCollectionInterface $collection, Route $route): void
+    {
+        $key = $route->getKey();
+
+        $domainAndUri = $route->getDomain().$route->uri();
+
+        $route->action['source_uri'] = $route->uri();
+
+        $route->prefix(app()->getFallbackLocale());
+
+        $route->action['locale'] = app()->getFallbackLocale();
+
         $reindex = Closure::bind(function (Route $route, string $key, string $domainAndUri): void {
             foreach ($route->methods() as $method) {
                 unset($this->routes[$method][$domainAndUri]);

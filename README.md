@@ -119,6 +119,9 @@ return [
 
 If no translation is provided for a given locale, the original URI is used as-is.
 
+> [!WARNING]
+> With the `no_prefix` strategy, a translation that shares its domain and URI with the canonical route or an earlier translation is skipped and falls back to the canonical route.
+
 > [!NOTE]
 > The key should be the route URI **without** the leading slash. For example, for `Route::get('/example')`, the key should be `example`.
 
