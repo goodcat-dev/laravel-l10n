@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## v0.5.0
+
+Released on _**2026-07-20**_.
+
 ### Added
 
 - Adds a global `route_strategy` config option: `no_prefix`, `prefix_except_default`, `prefix`.
