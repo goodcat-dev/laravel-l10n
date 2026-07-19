@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "allowImportingTsExtensions": true,
+        "lib": ["DOM", "ES2022"],
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
+        "noEmit": true,
+        "strict": true,
+        "target": "ES2022"
+    },
+    "include": [
+        "../../stubs/wayfinder/l10n.ts",
+        "wayfinder.ts"
+    ]
+}

@@ -411,4 +411,3 @@ route('foo', { id: 1, lang: 'it' });
 
 The function automatically looks for a localized route by appending the locale to the route name (e.g., `foo.es`).
 If a localized route exists, it uses that; otherwise, it falls back to the original route name.
-

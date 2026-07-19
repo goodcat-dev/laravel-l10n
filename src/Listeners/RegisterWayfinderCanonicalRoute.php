@@ -47,7 +47,9 @@ class RegisterWayfinderCanonicalRoute
     protected function handleRoutes(RouteCollectionInterface $collection): void
     {
         foreach ($collection->getRoutes() as $route) {
-            if ($route->getName() && $route->getAction('lang')) {
+            if ($route->getName()
+                && $route->getAction('lang')
+                && ! str_ends_with($route->getName(), '.'.self::MARKER)) {
                 $route->name('.'.self::MARKER);
             }
         }

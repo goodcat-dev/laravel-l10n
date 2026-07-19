@@ -5,6 +5,9 @@ use Goodcat\L10n\Listeners\RegisterWayfinderCanonicalRoute;
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Routing\RouteCollection;
 use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Translation\Translator;
 use Symfony\Component\Console\Input\StringInput;
@@ -42,6 +45,22 @@ it('renames canonical routes', function () {
         ->toBe('example.__canonical')
         ->and($vanilla->getName())
         ->toBe('vanilla');
+});
+
+it('renames canonical routes only once', function () {
+    $localized = Route::get('/example', fn () => 'Hello, World!')
+        ->name('example')
+        ->lang(['es']);
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    $event = new CommandStarting('wayfinder:generate', new StringInput(''), new NullOutput);
+    $listener = new RegisterWayfinderCanonicalRoute;
+
+    $listener($event);
+    $listener($event);
+
+    expect($localized->getName())->toBe('example.__canonical');
 });
 
 it('does not duplicate the canonical route name when the fallback locale is in lang()', function () {
@@ -97,3 +116,40 @@ it('renames canonical cached routes', function (string $strategy) {
     'prefix' => ['prefix'],
     'prefix except default' => ['prefix_except_default'],
 ]);
+
+it('generates the canonical marker with Wayfinder', function () {
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
+    config(['app.fallback_locale' => 'fr']);
+
+    Route::get('/example/{id}', fn () => 'Hello, World!')
+        ->name('admin.example')
+        ->lang(['es']);
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    Event::dispatch(
+        new CommandStarting('wayfinder:generate', new StringInput(''), new NullOutput)
+    );
+
+    $path = sys_get_temp_dir().'/laravel-l10n-wayfinder-'.bin2hex(random_bytes(8));
+
+    try {
+        $exitCode = Artisan::call('wayfinder:generate', [
+            '--path' => $path,
+            '--skip-actions' => true,
+        ]);
+
+        expect($exitCode)->toBe(0);
+
+        $generated = File::get($path.'/routes/admin/example/index.ts');
+
+        expect($generated)
+            ->toContain('export const __canonical')
+            ->toContain('export const es')
+            ->toContain('__canonical: Object.assign(__canonical, __canonical)')
+            ->toContain('es: Object.assign(es, es)')
+            ->toContain('export default example');
+    } finally {
+        File::deleteDirectory($path);
+    }
+});
