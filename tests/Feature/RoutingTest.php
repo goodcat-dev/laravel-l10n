@@ -44,6 +44,40 @@ it('detects and set the route locale', function () {
     }
 });
 
+it('skips a translation that collides with the canonical route', function () {
+    config(['l10n.route_strategy' => 'no_prefix']);
+
+    Route::get('/untranslated', fn () => 'Hello, World!')
+        ->lang(['es'])
+        ->name('untranslated');
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    get('/untranslated')->assertOk();
+
+    expect(app(Router::class)->getRoutes()->getByName('untranslated'))
+        ->not->toBeNull()
+        ->and(app(Router::class)->getRoutes()->getByName('untranslated.es'))
+        ->toBeNull()
+        ->and(route('untranslated', ['lang' => 'es']))
+        ->toBe('http://localhost/untranslated');
+});
+
+it('registers an untranslated slug when its domain is translated', function () {
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
+
+    config(['l10n.route_strategy' => 'no_prefix']);
+
+    Route::domain('example.com')->get('/untranslated', fn () => 'Hello, World!')
+        ->lang(['es'])
+        ->name('untranslated');
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    expect(app(Router::class)->getRoutes()->getByName('untranslated.es')?->getDomain())
+        ->toBe('es.example.com');
+});
+
 it('generates localized routes without prefix', function () {
     app(Translator::class)->addPath(__DIR__.'/../Support/lang');
 
@@ -260,11 +294,13 @@ it('matches route name against canonical route', function (bool $withCachedRoute
 ]);
 
 it('registers localized routes idempotently', function (string $strategy) {
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
+
     config(['l10n.route_strategy' => $strategy]);
 
     $route = Route::get('/example', fn () => 'Hello, World!')
         ->middleware(SetLocale::class)
-        ->lang(['es', 'it'])
+        ->lang(['es'])
         ->name('example');
 
     app(L10n::class)->registerLocalizedRoutes();

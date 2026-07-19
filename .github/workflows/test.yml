@@ -3,6 +3,25 @@ name: Test
 on: ['push', 'pull_request']
 
 jobs:
+  typescript:
+    runs-on: ubuntu-latest
+
+    name: TypeScript
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Execute tests
+        run: |
+          npx -y -p typescript@5 tsc --noEmit --project tests/TypeScript/tsconfig.json
+          node tests/TypeScript/wayfinder.ts
+
   test:
     runs-on: ubuntu-latest
 

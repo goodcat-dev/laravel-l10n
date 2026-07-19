@@ -4,23 +4,35 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## v0.5.0
+
+Released on _**2026-07-20**_.
+
 ### Added
 
 - Adds a global `route_strategy` config option: `no_prefix`, `prefix_except_default`, `prefix`.
 - Adds the `prefix` strategy: prefixes every locale and the canonical route, leaving no unprefixed URL (`/en/login`, not `/login`).
 - Adds `LocalizedRoute::locale()`: the locale served by a route; routes without l10n metadata count as fallback.
 
+### Changed
+
+- Exports the canonical route as `__canonical` in Wayfinder output: the stub resolves the fallback without configuration.
+
 ### Fixed
 
 - Ignores the fallback locale listed in `lang()`: fixes duplicate route names and Wayfinder's `Duplicated export` error ([#3](https://github.com/goodcat-dev/laravel-l10n/issues/3)).
+- Fixes TypeScript strict compilation of the Wayfinder stub.
+- Skips localized routes that collide in `no_prefix`, instead of silently overwriting the canonical route.
+- Normalizes the HTML `lang` in the Wayfinder stub (`pt-BR` to `pt_BR`): region locales no longer fall back to the canonical.
 
 ### Removed
 
 - Removes `add_locale_prefix` in favor of `route_strategy` (`true` maps to `prefix_except_default`, `false` to `no_prefix`).
+- Removes `setFallbackLocale()` from the Wayfinder stub, superseded by the `__canonical` marker.
 
 ## v0.4.3
 
-Released on _**2026-07-05**_
+Released on _**2026-07-05**_.
 
 ### Changed
 
@@ -40,7 +52,7 @@ Released on _**2026-07-05**_
 
 ## v0.4.2
 
-Released on _**2026-05-28**_
+Released on _**2026-05-28**_.
 
 ### Fixed
 

@@ -119,6 +119,9 @@ return [
 
 If no translation is provided for a given locale, the original URI is used as-is.
 
+> [!WARNING]
+> With the `no_prefix` strategy, a translation that shares its domain and URI with the canonical route or an earlier translation is skipped and falls back to the canonical route.
+
 > [!NOTE]
 > The key should be the route URI **without** the leading slash. For example, for `Route::get('/example')`, the key should be `example`.
 
@@ -373,10 +376,7 @@ php artisan vendor:publish --tag=l10n-wayfinder
 > [!NOTE]
 > The `route()` helper only works with named routes, actions are not supported.
 
-This creates a `resources/js/l10n.ts` file with the following exports:
-
-- `route(routes, args?)` - Selects the appropriate localized route based on the current locale.
-- `setFallbackLocale(locale)` - Sets the fallback locale (defaults to `en`).
+This creates a `resources/js/l10n.ts` file exporting a `route(routes, args?)` helper that selects the appropriate localized route based on the current locale.
 
 Import the `route` helper and pass Wayfinder's generated route functions:
 
@@ -389,8 +389,10 @@ const esUrl = route(foo, { id: 1, lang: 'es' }).url;
 
 The locale is resolved in the following order:
 1. The `lang` parameter, if provided.
-2. The `lang` attribute of the `<html lang="en">` element.
-3. The fallback locale.
+2. The `lang` attribute of the `<html lang="en">` element, normalized to Laravel's locale format (`pt-BR` matches a `pt_BR` route).
+3. The canonical route, when no localized route matches.
+
+In the generated files the canonical route is exported under the `__canonical` key instead of the fallback locale name, while translations keep their locale keys (`it`, `es`). You only need the marker when calling the canonical route directly, without the `route()` helper: `foo.__canonical({ id: 1 })`.
 
 ### Ziggy
 
@@ -412,4 +414,3 @@ route('foo', { id: 1, lang: 'it' });
 
 The function automatically looks for a localized route by appending the locale to the route name (e.g., `foo.es`).
 If a localized route exists, it uses that; otherwise, it falls back to the original route name.
-
