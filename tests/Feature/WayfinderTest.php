@@ -39,7 +39,7 @@ it('renames canonical routes', function () {
     );
 
     expect($localized->getName())
-        ->toBe('example.en')
+        ->toBe('example.__canonical')
         ->and($vanilla->getName())
         ->toBe('vanilla');
 });
@@ -60,7 +60,7 @@ it('does not duplicate the canonical route name when the fallback locale is in l
         Route::getRoutes()->getRoutes()
     ));
 
-    expect(array_count_values($names)['example.en'])->toBe(1);
+    expect(array_count_values($names)['example.__canonical'])->toBe(1);
 });
 
 it('renames canonical cached routes', function (string $strategy) {
@@ -89,7 +89,7 @@ it('renames canonical cached routes', function (string $strategy) {
     $routes = app(Router::class)->getRoutes();
 
     expect($routes->getByName('example')?->getAction('as'))
-        ->toBe('example.en')
+        ->toBe('example.__canonical')
         ->and($routes->getByName('vanilla')?->getAction('as'))
         ->toBe('vanilla');
 })->with([
