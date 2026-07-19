@@ -123,7 +123,7 @@ it('generates the canonical marker with Wayfinder', function () {
 
     Route::get('/example/{id}', fn () => 'Hello, World!')
         ->name('admin.example')
-        ->lang(['es']);
+        ->lang(['es', 'pt_BR']);
 
     app(L10n::class)->registerLocalizedRoutes();
 
@@ -146,6 +146,7 @@ it('generates the canonical marker with Wayfinder', function () {
         expect($generated)
             ->toContain('export const __canonical')
             ->toContain('export const es')
+            ->toContain('export const pt_BR')
             ->toContain('__canonical: Object.assign(__canonical, __canonical)')
             ->toContain('es: Object.assign(es, es)')
             ->toContain('export default example');

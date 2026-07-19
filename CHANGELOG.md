@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 - Ignores the fallback locale listed in `lang()`: fixes duplicate route names and Wayfinder's `Duplicated export` error ([#3](https://github.com/goodcat-dev/laravel-l10n/issues/3)).
 - Fixes TypeScript strict compilation of the Wayfinder stub.
 - Skips localized routes that collide in `no_prefix`, instead of silently overwriting the canonical route.
+- Normalizes the HTML `lang` in the Wayfinder stub (`pt-BR` to `pt_BR`): region locales no longer fall back to the canonical.
 
 ### Removed
 

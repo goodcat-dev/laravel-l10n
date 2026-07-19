@@ -4,7 +4,7 @@ export function route<T extends (...args: any[]) => any>(
 ): ReturnType<T> {
     const { lang, ...params } = args ?? ({} as Parameters<T>[0] & { lang?: string });
 
-    const locale = lang ?? document.documentElement.lang;
+    const locale = (lang ?? document.documentElement.lang).replaceAll('-', '_');
 
     const route = routes[locale] ?? routes.__canonical;
 

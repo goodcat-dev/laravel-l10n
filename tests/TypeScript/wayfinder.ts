@@ -55,3 +55,25 @@ document.documentElement.lang = 'fr';
 
 expectUrl(route(routes), '/example/');
 expectUrl(route(routes, { id: 5 }), '/example/5');
+
+const pt_BR = (args: Arguments = {}): Definition => ({
+    method: 'get',
+    url: `/pt/exemplo/${args.id ?? ''}`,
+});
+
+const zh_Hant_TW = (args: Arguments = {}): Definition => ({
+    method: 'get',
+    url: `/zh/example/${args.id ?? ''}`,
+});
+
+const regional = { __canonical: canonical, pt_BR, zh_Hant_TW };
+
+document.documentElement.lang = 'pt-BR';
+
+expectUrl(route(regional, { id: 6 }), '/pt/exemplo/6');
+expectUrl(route(regional, { id: 7, lang: 'pt-BR' }), '/pt/exemplo/7');
+expectUrl(route(regional, { id: 8, lang: 'pt_BR' }), '/pt/exemplo/8');
+
+document.documentElement.lang = 'zh-Hant-TW';
+
+expectUrl(route(regional, { id: 9 }), '/zh/example/9');
