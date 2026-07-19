@@ -28,7 +28,7 @@ All notable changes to this project will be documented in this file.
 
 ## v0.4.3
 
-Released on _**2026-07-05**_
+Released on _**2026-07-05**_.
 
 ### Changed
 
@@ -48,7 +48,7 @@ Released on _**2026-07-05**_
 
 ## v0.4.2
 
-Released on _**2026-05-28**_
+Released on _**2026-05-28**_.
 
 ### Fixed
 
