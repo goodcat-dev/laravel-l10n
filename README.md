@@ -396,6 +396,8 @@ The locale is resolved in the following order:
 2. The `lang` attribute of the `<html lang="en">` element, normalized to Laravel's locale format (`pt-BR` matches a `pt_BR` route).
 3. The canonical route, when no localized route matches.
 
+During server-side rendering, pass `lang` explicitly to select a localized route; without it, the helper falls back to the canonical route.
+
 In the generated files the canonical route is exported under the `__canonical` key instead of the fallback locale name, while translations keep their locale keys (`it`, `es`). You only need the marker when calling the canonical route directly, without the `route()` helper: `foo.__canonical({ id: 1 })`.
 
 ### Ziggy

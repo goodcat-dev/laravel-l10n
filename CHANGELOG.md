@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- Fixes Wayfinder helper support for server-side rendering when `document` is unavailable.
 - Fixes Ziggy helper support for Router access, explicit config, regional locales, and server-side rendering.
 
 ## v0.5.0
