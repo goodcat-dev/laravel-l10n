@@ -60,6 +60,8 @@ This will generate:
 - `/fr/example` (French, no translation defined)
 - `/it/example` (Italian, no translation defined)
 
+The fallback locale here is Laravel's own `fallback_locale` (`APP_FALLBACK_LOCALE` in `.env`), not something this package introduces. It must match the language your routes and content are actually written in, regardless of the app's active locale (`APP_LOCALE`).
+
 Listing the fallback locale in `lang()` is harmless: the canonical route already serves it, so no extra route is registered.
 
 #### Route groups
@@ -90,6 +92,8 @@ The `route_strategy` option in `config/l10n.php` controls how locale prefixes ar
 - `prefix_except_default` (default) keeps the fallback locale unprefixed (e.g. `/example`, `/es/ejemplo`).
 - `prefix` prefixes every locale and does not register an unprefixed route (e.g. `/en/example`, `/es/ejemplo`).
 - `no_prefix` uses translated URIs without locale prefixes (e.g. `/example`, `/ejemplo`).
+
+With `prefix`, the canonical route itself is prefixed with the fallback locale instead of staying unprefixed. This changes the URL, not the rule from [Defining Localized Routes](#defining-localized-routes): the fallback locale listed in `lang()` is still skipped the same way, so you never end up with a duplicate route for it.
 
 > [!NOTE]
 > `config/l10n.php` is created by publishing the package config: `php artisan vendor:publish --tag=l10n-config`.

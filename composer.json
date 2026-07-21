@@ -46,7 +46,8 @@
         "larastan/larastan": "^3.5",
         "pestphp/pest": "^3.8|^4.4",
         "pestphp/pest-plugin-laravel": "^3.0|^4.0",
-        "laravel/wayfinder": "^0.1.20"
+        "laravel/wayfinder": "^0.1.20",
+        "tightenco/ziggy": "^2.0"
     },
     "suggest": {
         "laravel/wayfinder": "Required to use the l10n TypeScript route() helper (^0.1)",
@@ -56,6 +57,7 @@
         "test:ts": "npx -y -p typescript@5 tsc --noEmit --project tests/TypeScript/tsconfig.json && node tests/TypeScript/wayfinder.ts"
     },
     "minimum-stability": "dev",
+    "prefer-stable": true,
     "config": {
         "allow-plugins": {
             "pestphp/pest-plugin": true
