@@ -28,11 +28,11 @@ class L10nServiceProvider extends ServiceProvider
         $this->publishes([__DIR__.'/../config/l10n.php' => config_path('l10n.php')], 'l10n-config');
 
         $this->publishes([
-            __DIR__.'/../stubs/ziggy/l10n.js' => resource_path('js/l10n.js'),
+            __DIR__.'/../resources/js/ziggy.js' => resource_path('js/l10n.js'),
         ], 'l10n-ziggy');
 
         $this->publishes([
-            __DIR__.'/../stubs/wayfinder/l10n.ts' => resource_path('js/l10n.ts'),
+            __DIR__.'/../resources/js/wayfinder.ts' => resource_path('js/l10n.ts'),
         ], 'l10n-wayfinder');
 
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'l10n');

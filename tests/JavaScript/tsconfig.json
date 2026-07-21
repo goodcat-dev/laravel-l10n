@@ -9,7 +9,7 @@
         "target": "ES2022"
     },
     "include": [
-        "../../stubs/wayfinder/l10n.ts",
+        "../../resources/js/wayfinder.ts",
         "wayfinder.ts"
     ]
 }

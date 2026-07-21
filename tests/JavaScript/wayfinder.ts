@@ -1,4 +1,4 @@
-import { route } from '../../stubs/wayfinder/l10n.ts';
+import { route } from '../../resources/js/wayfinder.ts';
 
 type Arguments = {
     id?: number;

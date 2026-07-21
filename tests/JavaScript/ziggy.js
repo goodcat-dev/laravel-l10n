@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { route } from '../../stubs/ziggy/l10n.js';
+import { route } from '../../resources/js/ziggy.js';
 
 const definition = (uri) => ({
     uri,
