@@ -418,3 +418,7 @@ route('foo', { id: 1, lang: 'it' });
 
 The function automatically looks for a localized route by appending the locale to the route name (e.g., `foo.es`).
 If a localized route exists, it uses that; otherwise, it falls back to the original route name.
+
+The locale is resolved from the `lang` parameter first, then from the HTML `lang` attribute. For regional locales, the helper tries both the original value and Laravel's underscore format, so `pt-BR` can match either `foo.pt-BR` or `foo.pt_BR`. During server-side rendering, pass `lang` explicitly to select a localized route; without it, the helper falls back to the canonical route.
+
+All Ziggy arguments are forwarded, including an explicit configuration object as the fourth argument. Calling `route()` without a route name returns Ziggy's `Router` instance as usual.

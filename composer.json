@@ -54,6 +54,7 @@
         "tightenco/ziggy": "Required to use the l10n JavaScript route() helper (^2.0)"
     },
     "scripts": {
+        "test:js": "bash -o pipefail -c 'npx -y -p esbuild@0.25 esbuild tests/JavaScript/ziggy.js --bundle --platform=node --format=cjs | node'",
         "test:ts": "npx -y -p typescript@5 tsc --noEmit --project tests/TypeScript/tsconfig.json && node tests/TypeScript/wayfinder.ts"
     },
     "minimum-stability": "dev",
