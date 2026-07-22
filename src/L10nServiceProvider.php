@@ -63,11 +63,22 @@ class L10nServiceProvider extends ServiceProvider
 
             $app->instance('routes', $routes);
 
-            return new LocalizedUrlGenerator(
+            $url = new LocalizedUrlGenerator(
                 $routes,
                 $app->rebinding('request', $this->requestRebinder()),
                 $app['config']['app.asset_url']
             );
+
+            $url->setSessionResolver(fn () => $app['session'] ?? null);
+
+            $url->setKeyResolver(fn () => [
+                $app['config']->get('app.key'),
+                ...($app['config']->get('app.previous_keys') ?? []),
+            ]);
+
+            $app->rebinding('routes', fn ($app, $routes) => $app['url']->setRoutes($routes));
+
+            return $url;
         });
 
         $this->app->alias(LocalizedUrlGenerator::class, 'url');

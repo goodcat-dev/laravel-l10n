@@ -60,7 +60,7 @@ This will generate:
 - `/fr/example` (French, no translation defined)
 - `/it/example` (Italian, no translation defined)
 
-The fallback locale here is Laravel's own `fallback_locale` (`APP_FALLBACK_LOCALE` in `.env`), not something this package introduces. It must match the language your routes and content are actually written in, regardless of the app's active locale (`APP_LOCALE`).
+The fallback locale here is Laravel's own `fallback_locale` (`APP_FALLBACK_LOCALE` in `.env`), it must match the language your routes and content are actually written in.
 
 Listing the fallback locale in `lang()` is harmless: the canonical route already serves it, so no extra route is registered.
 

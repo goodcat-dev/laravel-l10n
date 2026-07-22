@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Routing\RouteCollection;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Translation\Translator;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
 
@@ -400,4 +401,38 @@ test('localized route inherit properties from canonical route', function () {
     expect($fallbackLocalized)
         ->not->toBeNull()
         ->and($fallbackLocalized->isFallback)->toBeTrue();
+});
+
+it('signs and validates urls on non-localized routes', function () {
+    config(['app.key' => 'base64:'.base64_encode(random_bytes(32))]);
+
+    Route::get('/verify', fn () => request()->hasValidSignature() ? 'valid' : 'invalid')
+        ->name('verification.verify');
+
+    $url = URL::temporarySignedRoute('verification.verify', now()->addMinutes(30), ['id' => 1]);
+
+    get($url)->assertOk()->assertSee('valid');
+
+    get($url.'&tampered=1')->assertOk()->assertSee('invalid');
+});
+
+it('signs and validates urls on localized routes across locales', function () {
+    config(['app.key' => 'base64:'.base64_encode(random_bytes(32))]);
+
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
+
+    Route::get('/example', fn () => app()->getLocale().':'.(request()->hasValidSignature() ? 'valid' : 'invalid'))
+        ->middleware(SetLocale::class)
+        ->lang(['es'])
+        ->name('example');
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    $url = URL::temporarySignedRoute('example', now()->addMinutes(30), ['lang' => 'es']);
+
+    expect($url)->toContain('/es/ejemplo');
+
+    get($url)->assertOk()->assertSee('es:valid');
+
+    get($url.'&tampered=1')->assertOk()->assertSee('invalid');
 });

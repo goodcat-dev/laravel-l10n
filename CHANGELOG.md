@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- Restores signed URL support: the URL generator now keeps the key and session resolvers, fixing signed routes.
 - Fixes Wayfinder helper support for server-side rendering when `document` is unavailable.
 - Fixes Ziggy helper support for Router access, explicit config, regional locales, and server-side rendering.
 
