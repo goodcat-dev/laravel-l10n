@@ -1,12 +1,16 @@
 name: Test
 
-on: ['push', 'pull_request']
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_call:
 
 jobs:
-  typescript:
+  javascript:
     runs-on: ubuntu-latest
 
-    name: TypeScript
+    name: JavaScript
 
     steps:
       - name: Checkout code
