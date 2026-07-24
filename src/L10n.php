@@ -58,7 +58,9 @@ class L10n
 
         $route->action['source_uri'] = $route->uri();
 
-        $route->prefix(app()->getFallbackLocale());
+        $bindingFields = $route->bindingFields();
+
+        $route->prefix(app()->getFallbackLocale())->setBindingFields($bindingFields);
 
         $route->action['locale'] = app()->getFallbackLocale();
 

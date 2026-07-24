@@ -224,6 +224,58 @@ it('does not consume the lang attribute of a model passed as parameter', functio
         ->toBe(['id' => 7, 'lang' => 'es']);
 });
 
+it('keeps the custom binding key on localized routes', function (string $strategy) {
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
+
+    config(['l10n.route_strategy' => $strategy]);
+
+    Route::get('/posts/{post:slug}', fn () => 'Hello, World!')
+        ->name('posts.show')
+        ->lang(['es']);
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    /** @var RouteCollection $routes */
+    $routes = Route::getRoutes();
+
+    $routes->refreshNameLookups();
+
+    expect($routes->getByName('posts.show')->bindingFields())
+        ->toBe(['post' => 'slug'])
+        ->and($routes->getByName('posts.show.es')->bindingFields())
+        ->toBe(['post' => 'slug']);
+})->with([
+    'no prefix' => ['no_prefix'],
+    'prefix' => ['prefix'],
+    'prefix except default' => ['prefix_except_default'],
+]);
+
+it('generates localized uri with the custom binding key', function (string $strategy, string $canonical, string $translated) {
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
+
+    config(['l10n.route_strategy' => $strategy]);
+
+    Route::get('/posts/{post:slug}', fn () => 'Hello, World!')
+        ->name('posts.show')
+        ->lang(['es']);
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    $post = new class(['id' => 7, 'slug' => 'hello-world']) extends Model
+    {
+        protected $guarded = [];
+    };
+
+    expect(route('posts.show', $post))
+        ->toBe($canonical)
+        ->and(route('posts.show', ['post' => $post, 'lang' => 'es']))
+        ->toBe($translated);
+})->with([
+    'no prefix' => ['no_prefix', 'http://localhost/posts/hello-world', 'http://localhost/articulos/hello-world'],
+    'prefix' => ['prefix', 'http://localhost/en/posts/hello-world', 'http://localhost/es/articulos/hello-world'],
+    'prefix except default' => ['prefix_except_default', 'http://localhost/posts/hello-world', 'http://localhost/es/articulos/hello-world'],
+]);
+
 it('generates localized domains', function () {
     app(Translator::class)->addPath(__DIR__.'/../Support/lang');
 
