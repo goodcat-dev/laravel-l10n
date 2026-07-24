@@ -1,12 +1,16 @@
 name: Test
 
-on: ['push', 'pull_request']
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_call:
 
 jobs:
-  typescript:
+  javascript:
     runs-on: ubuntu-latest
 
-    name: TypeScript
+    name: JavaScript
 
     steps:
       - name: Checkout code
@@ -17,10 +21,19 @@ jobs:
         with:
           node-version: 24
 
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.5
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-interaction
+
       - name: Execute tests
         run: |
-          npx -y -p typescript@5 tsc --noEmit --project tests/TypeScript/tsconfig.json
-          node tests/TypeScript/wayfinder.ts
+          composer test:js
+          composer test:ts
 
   test:
     runs-on: ubuntu-latest

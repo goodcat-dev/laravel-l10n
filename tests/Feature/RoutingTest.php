@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Routing\RouteCollection;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Translation\Translator;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
 
@@ -223,6 +224,58 @@ it('does not consume the lang attribute of a model passed as parameter', functio
         ->toBe(['id' => 7, 'lang' => 'es']);
 });
 
+it('keeps the custom binding key on localized routes', function (string $strategy) {
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
+
+    config(['l10n.route_strategy' => $strategy]);
+
+    Route::get('/posts/{post:slug}', fn () => 'Hello, World!')
+        ->name('posts.show')
+        ->lang(['es']);
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    /** @var RouteCollection $routes */
+    $routes = Route::getRoutes();
+
+    $routes->refreshNameLookups();
+
+    expect($routes->getByName('posts.show')->bindingFields())
+        ->toBe(['post' => 'slug'])
+        ->and($routes->getByName('posts.show.es')->bindingFields())
+        ->toBe(['post' => 'slug']);
+})->with([
+    'no prefix' => ['no_prefix'],
+    'prefix' => ['prefix'],
+    'prefix except default' => ['prefix_except_default'],
+]);
+
+it('generates localized uri with the custom binding key', function (string $strategy, string $canonical, string $translated) {
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
+
+    config(['l10n.route_strategy' => $strategy]);
+
+    Route::get('/posts/{post:slug}', fn () => 'Hello, World!')
+        ->name('posts.show')
+        ->lang(['es']);
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    $post = new class(['id' => 7, 'slug' => 'hello-world']) extends Model
+    {
+        protected $guarded = [];
+    };
+
+    expect(route('posts.show', $post))
+        ->toBe($canonical)
+        ->and(route('posts.show', ['post' => $post, 'lang' => 'es']))
+        ->toBe($translated);
+})->with([
+    'no prefix' => ['no_prefix', 'http://localhost/posts/hello-world', 'http://localhost/articulos/hello-world'],
+    'prefix' => ['prefix', 'http://localhost/en/posts/hello-world', 'http://localhost/es/articulos/hello-world'],
+    'prefix except default' => ['prefix_except_default', 'http://localhost/posts/hello-world', 'http://localhost/es/articulos/hello-world'],
+]);
+
 it('generates localized domains', function () {
     app(Translator::class)->addPath(__DIR__.'/../Support/lang');
 
@@ -400,4 +453,38 @@ test('localized route inherit properties from canonical route', function () {
     expect($fallbackLocalized)
         ->not->toBeNull()
         ->and($fallbackLocalized->isFallback)->toBeTrue();
+});
+
+it('signs and validates urls on non-localized routes', function () {
+    config(['app.key' => 'base64:'.base64_encode(random_bytes(32))]);
+
+    Route::get('/verify', fn () => request()->hasValidSignature() ? 'valid' : 'invalid')
+        ->name('verification.verify');
+
+    $url = URL::temporarySignedRoute('verification.verify', now()->addMinutes(30), ['id' => 1]);
+
+    get($url)->assertOk()->assertSee('valid');
+
+    get($url.'&tampered=1')->assertOk()->assertSee('invalid');
+});
+
+it('signs and validates urls on localized routes across locales', function () {
+    config(['app.key' => 'base64:'.base64_encode(random_bytes(32))]);
+
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
+
+    Route::get('/example', fn () => app()->getLocale().':'.(request()->hasValidSignature() ? 'valid' : 'invalid'))
+        ->middleware(SetLocale::class)
+        ->lang(['es'])
+        ->name('example');
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    $url = URL::temporarySignedRoute('example', now()->addMinutes(30), ['lang' => 'es']);
+
+    expect($url)->toContain('/es/ejemplo');
+
+    get($url)->assertOk()->assertSee('es:valid');
+
+    get($url.'&tampered=1')->assertOk()->assertSee('invalid');
 });

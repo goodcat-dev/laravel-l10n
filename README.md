@@ -60,6 +60,8 @@ This will generate:
 - `/fr/example` (French, no translation defined)
 - `/it/example` (Italian, no translation defined)
 
+The fallback locale here is Laravel's own `fallback_locale` (`APP_FALLBACK_LOCALE` in `.env`), it must match the language your routes and content are actually written in.
+
 Listing the fallback locale in `lang()` is harmless: the canonical route already serves it, so no extra route is registered.
 
 #### Route groups
@@ -90,6 +92,8 @@ The `route_strategy` option in `config/l10n.php` controls how locale prefixes ar
 - `prefix_except_default` (default) keeps the fallback locale unprefixed (e.g. `/example`, `/es/ejemplo`).
 - `prefix` prefixes every locale and does not register an unprefixed route (e.g. `/en/example`, `/es/ejemplo`).
 - `no_prefix` uses translated URIs without locale prefixes (e.g. `/example`, `/ejemplo`).
+
+With `prefix`, the canonical route itself is prefixed with the fallback locale instead of staying unprefixed. This changes the URL, not the rule from [Defining Localized Routes](#defining-localized-routes): the fallback locale listed in `lang()` is still skipped the same way, so you never end up with a duplicate route for it.
 
 > [!NOTE]
 > `config/l10n.php` is created by publishing the package config: `php artisan vendor:publish --tag=l10n-config`.
@@ -392,6 +396,8 @@ The locale is resolved in the following order:
 2. The `lang` attribute of the `<html lang="en">` element, normalized to Laravel's locale format (`pt-BR` matches a `pt_BR` route).
 3. The canonical route, when no localized route matches.
 
+During server-side rendering, pass `lang` explicitly to select a localized route; without it, the helper falls back to the canonical route.
+
 In the generated files the canonical route is exported under the `__canonical` key instead of the fallback locale name, while translations keep their locale keys (`it`, `es`). You only need the marker when calling the canonical route directly, without the `route()` helper: `foo.__canonical({ id: 1 })`.
 
 ### Ziggy
@@ -414,3 +420,7 @@ route('foo', { id: 1, lang: 'it' });
 
 The function automatically looks for a localized route by appending the locale to the route name (e.g., `foo.es`).
 If a localized route exists, it uses that; otherwise, it falls back to the original route name.
+
+The locale is resolved from the `lang` parameter first, then from the HTML `lang` attribute. For regional locales, the helper tries both the original value and Laravel's underscore format, so `pt-BR` can match either `foo.pt-BR` or `foo.pt_BR`. During server-side rendering, pass `lang` explicitly to select a localized route; without it, the helper falls back to the canonical route.
+
+All Ziggy arguments are forwarded, including an explicit configuration object as the fourth argument. Calling `route()` without a route name returns Ziggy's `Router` instance as usual.

@@ -1,4 +1,4 @@
-import { route } from '../../stubs/wayfinder/l10n.ts';
+import { route } from '../../resources/js/wayfinder.ts';
 
 type Arguments = {
     id?: number;
@@ -29,6 +29,7 @@ const expectUrl = (actual: Definition, expected: string): void => {
 };
 
 Object.defineProperty(globalThis, 'document', {
+    configurable: true,
     value: {
         documentElement: {
             lang: 'es',
@@ -77,3 +78,8 @@ expectUrl(route(regional, { id: 8, lang: 'pt_BR' }), '/pt/exemplo/8');
 document.documentElement.lang = 'zh-Hant-TW';
 
 expectUrl(route(regional, { id: 9 }), '/zh/example/9');
+
+Reflect.deleteProperty(globalThis, 'document');
+
+expectUrl(route(regional, { id: 10, lang: 'pt-BR' }), '/pt/exemplo/10');
+expectUrl(route(regional, { id: 11 }), '/example/11');

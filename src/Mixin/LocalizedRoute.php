@@ -162,6 +162,7 @@ class LocalizedRoute
                 ->setRouter($this->router)
                 ->block($this->locksFor(), $this->waitsFor())
                 ->withTrashed($this->allowsTrashedBindings())
+                ->setBindingFields($this->bindingFields())
                 ->where($this->wheres);
         };
     }

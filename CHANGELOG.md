@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## v0.5.1
+
+Released on _**2026-07-24**_.
+
+### Fixed
+
+- Preserves the custom binding key (`{post:slug}`) on localized routes, in both route matching and URL generation.
+- Restores signed URL support: the URL generator now keeps the key and session resolvers, fixing signed routes.
+- Fixes Wayfinder helper support for server-side rendering when `document` is unavailable.
+- Fixes Ziggy helper support for Router access, explicit config, regional locales, and server-side rendering.
+
 ## v0.5.0
 
 Released on _**2026-07-20**_.

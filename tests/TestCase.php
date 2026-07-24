@@ -4,6 +4,7 @@ namespace Goodcat\L10n\Tests;
 
 use Goodcat\L10n\L10nServiceProvider;
 use Laravel\Wayfinder\WayfinderServiceProvider;
+use Tighten\Ziggy\ZiggyServiceProvider;
 
 class TestCase extends \Orchestra\Testbench\TestCase
 {
@@ -12,6 +13,7 @@ class TestCase extends \Orchestra\Testbench\TestCase
         return [
             L10nServiceProvider::class,
             WayfinderServiceProvider::class,
+            ZiggyServiceProvider::class,
         ];
     }
 }

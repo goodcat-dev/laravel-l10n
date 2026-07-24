@@ -28,11 +28,11 @@ class L10nServiceProvider extends ServiceProvider
         $this->publishes([__DIR__.'/../config/l10n.php' => config_path('l10n.php')], 'l10n-config');
 
         $this->publishes([
-            __DIR__.'/../stubs/ziggy/l10n.js' => resource_path('js/l10n.js'),
+            __DIR__.'/../resources/js/ziggy.js' => resource_path('js/l10n.js'),
         ], 'l10n-ziggy');
 
         $this->publishes([
-            __DIR__.'/../stubs/wayfinder/l10n.ts' => resource_path('js/l10n.ts'),
+            __DIR__.'/../resources/js/wayfinder.ts' => resource_path('js/l10n.ts'),
         ], 'l10n-wayfinder');
 
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'l10n');
@@ -63,11 +63,22 @@ class L10nServiceProvider extends ServiceProvider
 
             $app->instance('routes', $routes);
 
-            return new LocalizedUrlGenerator(
+            $url = new LocalizedUrlGenerator(
                 $routes,
                 $app->rebinding('request', $this->requestRebinder()),
                 $app['config']['app.asset_url']
             );
+
+            $url->setSessionResolver(fn () => $app['session'] ?? null);
+
+            $url->setKeyResolver(fn () => [
+                $app['config']->get('app.key'),
+                ...($app['config']->get('app.previous_keys') ?? []),
+            ]);
+
+            $app->rebinding('routes', fn ($app, $routes) => $app['url']->setRoutes($routes));
+
+            return $url;
         });
 
         $this->app->alias(LocalizedUrlGenerator::class, 'url');

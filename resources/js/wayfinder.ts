@@ -4,9 +4,10 @@ export function route<T extends (...args: any[]) => any>(
 ): ReturnType<T> {
     const { lang, ...params } = args ?? ({} as Parameters<T>[0] & { lang?: string });
 
-    const locale = (lang ?? document.documentElement.lang).replaceAll('-', '_');
+    const locale = (lang ?? globalThis.document?.documentElement.lang)?.replaceAll('-', '_');
 
-    const route = routes[locale] ?? routes.__canonical;
+    const localized = locale ? routes[locale] : undefined;
+    const route = localized ?? routes.__canonical;
 
     return Object.keys(params).length
         ? route(params)
