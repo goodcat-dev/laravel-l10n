@@ -2,37 +2,27 @@
 
 namespace Goodcat\L10n\Mixin;
 
+use AllowDynamicProperties;
 use Closure;
 use Goodcat\L10n\Contracts\LocalizedRouter;
 use Goodcat\L10n\Routing\RouteStrategy;
-use Illuminate\Container\Container;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
 
 /**
  * @mixin Route
+ *
+ * @property array<string, mixed> $action
+ * @property mixed $compiled
+ * @property ?list<string> $parameterNames
+ * @property ?array<string, mixed> $parameters
+ * @property ?array<string, mixed> $originalParameters
+ * @property LocalizedRouter&Router $router
  */
+#[AllowDynamicProperties]
 class LocalizedRoute
 {
-    /** @var array<string, mixed> */
-    public array $action;
-
-    protected Container $container;
-
-    /** @var array<string, mixed> */
-    public array $defaults;
-
-    public bool $isFallback;
-
-    /** @var LocalizedRouter&Router */
-    protected Router $router;
-
-    public string $uri;
-
-    /** @var array<string, string> */
-    public array $wheres;
-
     /** @return Closure(): (Route|self) */
     public function canonical(): Closure
     {
@@ -139,13 +129,21 @@ class LocalizedRoute
                 $domainWasTranslated = $translatedDomain !== $domain;
             }
 
-            $uri = $this->getAction('source_uri') ?? $this->uri;
+            $uri = $this->getAction('source_uri') ?? $this->uri();
 
             $uri = trans()->hasForLocale("routes.$uri", $locale)
                 ? trans("routes.$uri", locale: $locale)
                 : $uri;
 
-            $route = new Route($this->methods(), $uri, $action);
+            $route = clone $this;
+
+            $route->action = $action;
+
+            foreach (['compiled', 'parameters', 'parameterNames', 'originalParameters'] as $property) {
+                $route->$property = null;
+            }
+
+            $route->setUri(trim($uri, '/') ?: '/')->flushController();
 
             if ($route->getName()) {
                 $route->name(".$locale");
@@ -155,15 +153,7 @@ class LocalizedRoute
                 $route->prefix($locale);
             }
 
-            return $route
-                ->setFallback($this->isFallback)
-                ->setDefaults($this->defaults)
-                ->setContainer($this->container)
-                ->setRouter($this->router)
-                ->block($this->locksFor(), $this->waitsFor())
-                ->withTrashed($this->allowsTrashedBindings())
-                ->setBindingFields($this->bindingFields())
-                ->where($this->wheres);
+            return $route->setBindingFields($this->bindingFields());
         };
     }
 }

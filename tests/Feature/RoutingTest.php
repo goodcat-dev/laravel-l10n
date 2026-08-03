@@ -5,6 +5,7 @@ use Goodcat\L10n\L10n;
 use Goodcat\L10n\Middleware\SetLocale;
 use Goodcat\L10n\Tests\Support\Controller;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Routing\RouteCollection;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Route;
@@ -64,6 +65,20 @@ it('skips a translation that collides with the canonical route', function () {
         ->toBe('http://localhost/untranslated');
 });
 
+it('skips a translation that collides with the canonical route apart from slashes', function () {
+    config(['l10n.route_strategy' => 'no_prefix']);
+
+    app(Translator::class)->addLines(['routes.untranslated' => '/untranslated/'], 'es');
+
+    Route::get('/untranslated', fn () => 'Hello, World!')
+        ->lang(['es'])
+        ->name('untranslated');
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    expect(app(Router::class)->getRoutes()->getByName('untranslated.es'))->toBeNull();
+});
+
 it('registers an untranslated slug when its domain is translated', function () {
     app(Translator::class)->addPath(__DIR__.'/../Support/lang');
 
@@ -89,6 +104,23 @@ it('generates localized routes without prefix', function () {
         ->name('example');
 
     app(L10n::class)->registerLocalizedRoutes();
+
+    get('/ejemplo')->assertOk();
+});
+
+it('normalizes the slashes of a translated uri', function () {
+    config(['l10n.route_strategy' => 'no_prefix']);
+
+    app(Translator::class)->addLines(['routes.example' => '/ejemplo/'], 'es');
+
+    Route::get('/example', fn () => 'Hello, World!')
+        ->lang(['es'])
+        ->name('example');
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    expect(app(Router::class)->getRoutes()->getByName('example.es')?->uri())
+        ->toBe('ejemplo');
 
     get('/ejemplo')->assertOk();
 });
@@ -174,7 +206,7 @@ it('does not register a translation for the fallback locale listed in lang()', f
     'prefix except default' => ['prefix_except_default'],
 ]);
 
-it('generates localized uri via helpers', function () {
+it('generates localized uri via helpers', function (bool $withCachedRoutes) {
     app(Translator::class)->addPath(__DIR__.'/../Support/lang');
 
     Route::get('/example', Controller::class)
@@ -183,11 +215,21 @@ it('generates localized uri via helpers', function () {
 
     app(L10n::class)->registerLocalizedRoutes();
 
+    if ($withCachedRoutes) {
+        /** @var RouteCollection $routes */
+        $routes = Route::getRoutes();
+
+        Route::setCompiledRoutes($routes->compile());
+    }
+
     expect(route('example', ['lang' => 'es']))
         ->toBe('http://localhost/es/ejemplo')
         ->and(action(Controller::class, ['lang' => 'es']))
         ->toBe('http://localhost/es/ejemplo');
-});
+})->with([
+    'RouteCollection' => [false],
+    'CompiledRouteCollection' => [true],
+]);
 
 it('generates localized uri via helpers with scalar parameters', function () {
     app(Translator::class)->addPath(__DIR__.'/../Support/lang');
@@ -453,6 +495,26 @@ test('localized route inherit properties from canonical route', function () {
     expect($fallbackLocalized)
         ->not->toBeNull()
         ->and($fallbackLocalized->isFallback)->toBeTrue();
+});
+
+test('translated route does not inherit canonical runtime state', function () {
+    $canonical = Route::get('/example', Controller::class)
+        ->lang(['it'])
+        ->bind(Request::create('/example'));
+
+    $controller = $canonical->getController();
+
+    $localized = $canonical->makeTranslation('it');
+
+    expect($localized)
+        ->not->toBe($canonical)
+        ->and($localized->hasParameters())->toBeFalse()
+        ->and($localized->matches(Request::create('/it/example')))->toBeTrue()
+        ->and($localized->matches(Request::create('/example')))->toBeFalse()
+        ->and($localized->getController())->not->toBe($controller);
+
+    expect(fn () => $localized->originalParameters())
+        ->toThrow(LogicException::class, 'Route is not bound.');
 });
 
 it('signs and validates urls on non-localized routes', function () {
