@@ -21,10 +21,6 @@ class L10n
 
     public function registerLocalizedRoutes(): void
     {
-        if (app()->routesAreCached()) {
-            return;
-        }
-
         $collection = app(Router::class)->getRoutes();
 
         $strategy = RouteStrategy::from(config('l10n.route_strategy'));

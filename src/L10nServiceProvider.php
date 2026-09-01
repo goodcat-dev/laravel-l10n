@@ -43,7 +43,13 @@ class L10nServiceProvider extends ServiceProvider
             __DIR__.'/../resources/views' => resource_path('views/vendor/l10n'),
         ], 'l10n-views');
 
-        $this->app->booted(fn () => app(L10n::class)->registerLocalizedRoutes());
+        $this->app->booted(function () {
+            if (app()->routesAreCached()) {
+                return;
+            }
+
+            app(L10n::class)->registerLocalizedRoutes();
+        });
 
         Event::listen(LocaleUpdated::class, RegisterLocalizedViewsPath::class);
         Event::listen(CommandStarting::class, RegisterWayfinderCanonicalRoute::class);
