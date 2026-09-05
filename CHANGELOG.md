@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Changed
+
+- Builds a new route collection for the `prefix` strategy instead of reindexing the current one through its internals.
+
 ## v0.5.1
 
 Released on _**2026-07-24**_.

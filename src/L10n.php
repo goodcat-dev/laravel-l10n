@@ -2,7 +2,6 @@
 
 namespace Goodcat\L10n;
 
-use Closure;
 use Goodcat\L10n\Contracts\LocalizedRoute;
 use Goodcat\L10n\Resolvers\BrowserLocale;
 use Goodcat\L10n\Resolvers\LocaleResolver;
@@ -21,37 +20,73 @@ class L10n
 
     public function registerLocalizedRoutes(): void
     {
-        $collection = app(Router::class)->getRoutes();
+        $router = app(Router::class);
 
-        $strategy = RouteStrategy::from(config('l10n.route_strategy'));
+        $collection = $router->getRoutes();
+
+        if (RouteStrategy::from(config('l10n.route_strategy'))->isPrefix()) {
+            $router->setRoutes($this->prefixedCollection($collection));
+
+            return;
+        }
 
         foreach ($collection->getRoutes() as $route) {
             /** @var Route&LocalizedRoute $route */
-            if ($route->getAction('canonical') || $route->getAction('key') || ! $route->getAction('lang')) {
-                continue;
+            if ($this->isPending($route)) {
+                $this->addTranslations($collection, $route);
+            }
+        }
+    }
+
+    protected function prefixedCollection(RouteCollectionInterface $collection): RouteCollection
+    {
+        $routes = new RouteCollection;
+
+        foreach ($collection->getRoutes() as $route) {
+            /** @var Route&LocalizedRoute $route */
+            $pending = $this->isPending($route);
+
+            if ($pending) {
+                $this->prefixCanonicalRoute($route);
             }
 
-            if ($strategy->isPrefix()) {
-                $this->prefixAndReindexCanonicalRoute($collection, $route);
-            }
+            $routes->add($route);
 
-            $route->action['key'] = $route->getKey();
-
-            foreach ($route->makeTranslations() as $localizedRoute) {
-                $collection->add($localizedRoute);
+            if ($pending) {
+                $this->addTranslations($routes, $route);
             }
+        }
+
+        return $routes;
+    }
+
+    /**
+     * @param  Route&LocalizedRoute  $route
+     */
+    protected function isPending(Route $route): bool
+    {
+        return ! $route->getAction('canonical')
+            && ! $route->getAction('key')
+            && (bool) $route->getAction('lang');
+    }
+
+    /**
+     * @param  Route&LocalizedRoute  $route
+     */
+    protected function addTranslations(RouteCollectionInterface $routes, Route $route): void
+    {
+        $route->action['key'] = $route->getKey();
+
+        foreach ($route->makeTranslations() as $localizedRoute) {
+            $routes->add($localizedRoute);
         }
     }
 
     /**
      * @param  Route&LocalizedRoute  $route
      */
-    protected function prefixAndReindexCanonicalRoute(RouteCollectionInterface $collection, Route $route): void
+    protected function prefixCanonicalRoute(Route $route): void
     {
-        $key = $route->getKey();
-
-        $domainAndUri = $route->getDomain().$route->uri();
-
         $route->action['source_uri'] = $route->uri();
 
         $bindingFields = $route->bindingFields();
@@ -59,20 +94,6 @@ class L10n
         $route->prefix(app()->getFallbackLocale())->setBindingFields($bindingFields);
 
         $route->action['locale'] = app()->getFallbackLocale();
-
-        $reindex = Closure::bind(function (Route $route, string $key, string $domainAndUri): void {
-            foreach ($route->methods() as $method) {
-                unset($this->routes[$method][$domainAndUri]);
-
-                $this->routes[$method][$route->getDomain().$route->uri()] = $route;
-            }
-
-            unset($this->allRoutes[$key]);
-
-            $this->allRoutes[$route->getKey()] = $route;
-        }, $collection, RouteCollection::class);
-
-        $reindex($route, $key, $domainAndUri);
     }
 
     public function is(string ...$patterns): bool
