@@ -94,6 +94,61 @@ it('registers an untranslated slug when its domain is translated', function () {
         ->toBe('es.example.com');
 });
 
+it('records the registered translations on the canonical route', function () {
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
+
+    config(['l10n.route_strategy' => 'no_prefix']);
+
+    Route::get('/example', fn () => 'Hello, World!')
+        ->lang(['es'])
+        ->name('example');
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    $routes = app(Router::class)->getRoutes();
+    $routes->refreshNameLookups();
+
+    expect($routes->getByName('example')?->getAction('translations'))
+        ->toBe(['es' => $routes->getByName('example.es')?->getKey()])
+        ->and($routes->getByName('example.es')?->getAction('translations'))
+        ->toBeNull();
+});
+
+it('records an empty translation map when every translation collides', function () {
+    config(['l10n.route_strategy' => 'no_prefix']);
+
+    Route::get('/untranslated', fn () => 'Hello, World!')
+        ->lang(['es'])
+        ->name('untranslated');
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    $routes = app(Router::class)->getRoutes();
+    $routes->refreshNameLookups();
+
+    expect($routes->getByName('untranslated')?->getAction('translations'))
+        ->toBe([]);
+});
+
+it('leaves the routes untouched when registered twice', function () {
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
+
+    config(['l10n.route_strategy' => 'prefix']);
+
+    Route::get('/example', fn () => 'Hello, World!')
+        ->lang(['es'])
+        ->name('example');
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    $uris = collect(app(Router::class)->getRoutes()->getRoutes())->map->uri()->all();
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    expect(collect(app(Router::class)->getRoutes()->getRoutes())->map->uri()->all())
+        ->toBe($uris);
+});
+
 it('generates localized routes without prefix', function () {
     app(Translator::class)->addPath(__DIR__.'/../Support/lang');
 

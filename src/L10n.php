@@ -66,7 +66,7 @@ class L10n
     protected function isPending(Route $route): bool
     {
         return ! $route->getAction('canonical')
-            && ! $route->getAction('key')
+            && $route->getAction('translations') === null
             && (bool) $route->getAction('lang');
     }
 
@@ -77,9 +77,15 @@ class L10n
     {
         $route->action['key'] = $route->getKey();
 
-        foreach ($route->makeTranslations() as $localizedRoute) {
+        $translations = [];
+
+        foreach ($route->makeTranslations() as $locale => $localizedRoute) {
             $routes->add($localizedRoute);
+
+            $translations[$locale] = $localizedRoute->getKey();
         }
+
+        $route->action['translations'] = $translations;
     }
 
     /**

@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+- Records the registered translations on the canonical route, as a `locale => route key` map in its action.
+
 ### Changed
 
 - Builds a new route collection for the `prefix` strategy instead of reindexing the current one through its internals.
