@@ -26,17 +26,13 @@ class Alternate extends Component
         /** @var (LocalizedRoute&Route)|null $route */
         $route = app(Router::class)->current();
 
-        $canonical = $route?->canonical();
-
-        if (! $translations = $canonical?->makeTranslations()) {
+        if (! $route || count($translations = $route->getTranslations()) < 2) {
             return;
         }
 
         $parameters = $route->parameters();
 
-        $this->canonical = $url->toRoute($canonical, $parameters, true);
-
-        $this->alternates[app()->getFallbackLocale()] = $this->canonical;
+        $this->canonical = $url->toRoute($route->canonical(), $parameters, true);
 
         foreach ($translations as $locale => $translation) {
             $this->alternates[$locale] = $url->toRoute($translation, $parameters, true);

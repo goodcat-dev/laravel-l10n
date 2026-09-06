@@ -10,8 +10,8 @@ use Goodcat\L10n\Resolvers\UserLocale;
 use Goodcat\L10n\Routing\RouteStrategy;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\RouteCollection;
-use Illuminate\Routing\RouteCollectionInterface;
 use Illuminate\Routing\Router;
+use Illuminate\Support\Str;
 
 class L10n
 {
@@ -22,70 +22,40 @@ class L10n
     {
         $router = app(Router::class);
 
-        $collection = $router->getRoutes();
+        $strategy = RouteStrategy::from(config('l10n.route_strategy'));
 
-        if (RouteStrategy::from(config('l10n.route_strategy'))->isPrefix()) {
-            $router->setRoutes($this->prefixedCollection($collection));
+        $collection = new RouteCollection;
 
-            return;
-        }
-
-        foreach ($collection->getRoutes() as $route) {
+        foreach ($router->getRoutes()->getRoutes() as $route) {
             /** @var Route&LocalizedRoute $route */
-            if ($this->isPending($route)) {
-                $this->addTranslations($collection, $route);
+            if (! $route->needsLocalization()) {
+                $collection->add($route);
+
+                continue;
             }
-        }
-    }
 
-    protected function prefixedCollection(RouteCollectionInterface $collection): RouteCollection
-    {
-        $routes = new RouteCollection;
-
-        foreach ($collection->getRoutes() as $route) {
-            /** @var Route&LocalizedRoute $route */
-            $pending = $this->isPending($route);
-
-            if ($pending) {
+            if ($strategy->isPrefix()) {
                 $this->prefixCanonicalRoute($route);
             }
 
-            $routes->add($route);
-
-            if ($pending) {
-                $this->addTranslations($routes, $route);
+            if (! $route->getName()) {
+                $route->name('generated::'.Str::random());
             }
+
+            $collection->add($route);
+
+            $translations = [];
+
+            foreach ($route->makeTranslations() as $locale => $localizedRoute) {
+                $collection->add($localizedRoute);
+
+                $translations[$locale] = $localizedRoute->getName();
+            }
+
+            $route->action['translations'] = $translations;
         }
 
-        return $routes;
-    }
-
-    /**
-     * @param  Route&LocalizedRoute  $route
-     */
-    protected function isPending(Route $route): bool
-    {
-        return ! $route->getAction('canonical')
-            && $route->getAction('translations') === null
-            && (bool) $route->getAction('lang');
-    }
-
-    /**
-     * @param  Route&LocalizedRoute  $route
-     */
-    protected function addTranslations(RouteCollectionInterface $routes, Route $route): void
-    {
-        $route->action['key'] = $route->getKey();
-
-        $translations = [];
-
-        foreach ($route->makeTranslations() as $locale => $localizedRoute) {
-            $routes->add($localizedRoute);
-
-            $translations[$locale] = $localizedRoute->getKey();
-        }
-
-        $route->action['translations'] = $translations;
+        $router->setRoutes($collection);
     }
 
     /**
@@ -97,7 +67,9 @@ class L10n
 
         $bindingFields = $route->bindingFields();
 
-        $route->prefix(app()->getFallbackLocale())->setBindingFields($bindingFields);
+        $route
+            ->prefix(app()->getFallbackLocale())
+            ->setBindingFields($bindingFields);
 
         $route->action['locale'] = app()->getFallbackLocale();
     }

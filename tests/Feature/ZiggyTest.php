@@ -9,6 +9,19 @@ use Tighten\Ziggy\Ziggy;
 
 beforeEach(fn () => Ziggy::clearRoutes());
 
+it('keeps generated route names out of Ziggy', function () {
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
+
+    config(['l10n.route_strategy' => 'no_prefix']);
+
+    $canonical = Route::get('/example', fn () => 'Hello, World!')->lang(['es']);
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    expect(array_keys((new Ziggy)->toArray()['routes']))
+        ->not->toContain($canonical->getName(), $canonical->getAction('translations')['es']);
+});
+
 it('generates localized routes with Ziggy', function (
     string $strategy,
     string $canonicalUri,

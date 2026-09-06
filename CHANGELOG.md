@@ -6,11 +6,21 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- Records the registered translations on the canonical route, as a `locale => route key` map in its action.
+- Adds `LocalizedRoute::needsLocalization()` to check whether a route still needs localization.
+- Adds `LocalizedRoute::getTranslations()`: returns registered translations and the canonical route, keyed by locale.
+- Assigns independent random `generated::` names to anonymous canonical routes and their translations.
+- Records the registered translations on the canonical route, as a `locale => route name` map in its action.
+
+### Removed
+
+- Removes `Route::getKey()`, `Router::getByKey()` and the `key` action; canonical routes are resolved by name.
 
 ### Changed
 
-- Builds a new route collection for the `prefix` strategy instead of reindexing the current one through its internals.
+- Builds a new route collection for every strategy, using a single registration flow and public router APIs.
+- URL generation, Switcher and Alternate use registered routes through `getTranslations()` instead of rebuilding them.
+- An explicit `lang` selects another locale even from a localized route name; without it, its locale is preserved.
+- URL helpers keep the initially resolved route when the requested locale has no registered variant.
 
 ## v0.5.1
 
