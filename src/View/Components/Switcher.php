@@ -30,7 +30,7 @@ class Switcher extends Component
             return;
         }
 
-        $parameters = $route->parameters();
+        $parameters = $route->parameters() + request()->query();
 
         $this->current = $route->locale();
 
