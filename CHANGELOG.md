@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- Normalizes regional locale codes in alternate hreflang tags (e.g. `pt_BR` to `pt-BR`).
 - Preserves the current query string when the locale switcher generates links.
 
 ### Removed
