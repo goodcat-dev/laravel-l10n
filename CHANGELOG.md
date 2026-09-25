@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## v0.5.2
+
+Released on _**2026-09-25**_.
+
 ### Added
 
 - Adds `LocalizedRoute::getTranslations()`: returns registered translations and the canonical route, keyed by locale.
