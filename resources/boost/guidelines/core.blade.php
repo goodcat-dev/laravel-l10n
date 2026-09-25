@@ -9,7 +9,7 @@ Route-level localization for Laravel. Locales are declared per-route (or per-gro
 Register middleware in `bootstrap/app.php`:
 
 @verbatim
-<code-snippet title="bootstrap/app.php">
+<code-snippet name="bootstrap/app.php" lang="php">
 ->withMiddleware(function (Middleware $middleware) {
     $middleware->web([
         \Goodcat\L10n\Middleware\SetLocale::class,
@@ -19,15 +19,15 @@ Register middleware in `bootstrap/app.php`:
 </code-snippet>
 @endverbatim
 
-- `SetLocale` reads the locale from the matched route and calls `app()->setLocale()`.
-- `SetPreferredLocale` runs resolvers (Session → User → Browser) to detect and store the user's preferred locale.
+- `SetLocale` sets the active application and request locale only when the matched route has explicit locale metadata.
+- `SetPreferredLocale` checks Session, User, then Browser and stores the first detected preference in `config('app.preferred_locale')` for the current application. It does not persist it to the session or user.
 
 ## Route definitions
 
 Attach `->lang()` to individual routes or to a group:
 
 @verbatim
-<code-snippet title="routes/web.php">
+<code-snippet name="routes/web.php" lang="php">
 // Single route
 Route::get('/example', ExampleController::class)
     ->name('example')
@@ -41,51 +41,53 @@ Route::lang(['es', 'it'])->group(function () {
 </code-snippet>
 @endverbatim
 
-On boot, `L10n::registerLocalizedRoutes()` generates a localized copy for each locale. A route named `example` gets variants `example.es`, `example.it`, etc. The canonical route keeps its original name. You never need to use the `.{locale}` suffix directly — pass `['lang' => $locale]` to `route()` and the `LocalizedUrlGenerator` resolves the correct variant internally.
+After the application boots, the package registers localized variants of routes declared with `lang()`. A route named `example` gets variants such as `example.es` and `example.it`; its canonical route keeps the name `example`. To generate an URL for a specific locale, pass `['lang' => $locale]` to `route('example', ...)` instead of constructing a localized name.
 
 ## Route translation files
 
-Provide URI translations in `lang/{locale}/routes.php`. Keys are URIs **without** the leading slash:
+Provide URI translations in `lang/{locale}/routes.php`. Keys are canonical URIs **without** the leading slash:
 
 @verbatim
-<code-snippet title="lang/es/routes.php">
+<code-snippet name="lang/es/routes.php" lang="php">
 return [
     'example' => 'ejemplo',
-    'about'   => 'acerca-de',
+    'about' => 'acerca-de',
 ];
 </code-snippet>
 @endverbatim
 
 If no translation exists for a locale, the original URI is used as-is.
 
+With a custom binding key such as `/article/{post:slug}`, use `article/{post}` as the translation key. Laravel stores `:slug` separately, and the localized route still binds by slug.
+
 ## URL generation
 
-Use the standard `route()` and `action()` helpers with a `lang` parameter. The `lang` key is consumed internally and never appears as a query parameter:
+Use the standard `route()` and `action()` helpers with a `lang` parameter. The `lang` key selects the locale and is consumed internally; do not name a route placeholder `{lang}`:
 
 @verbatim
-<code-snippet>
+<code-snippet name="Generate localized URLs" lang="php">
 // By route name
-route('example', ['lang' => 'es']);          // /es/ejemplo
+route('example', ['lang' => 'es']); // /es/ejemplo with the default strategy
 
 // By controller action
 action(ExampleController::class, ['lang' => 'es']); // /es/ejemplo
 
-// Without lang — uses app()->getLocale()
-route('example');                            // /example (fallback locale)
+// Without lang, uses app()->getLocale() to select a route
+route('example');
 </code-snippet>
 @endverbatim
 
 ## Config
 
 @verbatim
-<code-snippet title="config/l10n.php">
+<code-snippet name="config/l10n.php" lang="php">
 return [
     'route_strategy' => 'prefix_except_default',
 ];
 </code-snippet>
 @endverbatim
 
-Supported strategies are `prefix_except_default` (default), `prefix`, and `no_prefix`.
+With `prefix_except_default` (default), the fallback locale keeps the unprefixed canonical URI. `prefix` prefixes the canonical as well; `no_prefix` uses translated URIs without locale prefixes. The fallback locale (`APP_FALLBACK_LOCALE`) must match the language of the canonical routes. With `no_prefix`, avoid translations that collide with other routes' method, domain, and URI.
 
 ## Preferred locale detection
 
@@ -98,7 +100,7 @@ Supported strategies are `prefix_except_default` (default), `prefix`, and `no_pr
 Override the resolver chain:
 
 @verbatim
-<code-snippet>
+<code-snippet name="Customize preferred locale resolvers" lang="php">
 use Goodcat\L10n\L10n;
 use Goodcat\L10n\Resolvers\BrowserLocale;
 
@@ -112,7 +114,7 @@ L10n::$preferredLocaleResolvers = [
 ## Helpers
 
 @verbatim
-<code-snippet>
+<code-snippet name="Application and route helpers" lang="php">
 app()->getPreferredLocale();   // ?string — the detected preferred locale
 app()->setPreferredLocale($locale); // sets preferred locale, dispatches PreferredLocaleUpdated event (see below)
 app()->isFallbackLocale('en'); // bool — true if 'en' is the fallback locale
@@ -127,7 +129,7 @@ L10n::is('admin.*');           // supports wildcard patterns (delegates to Route
 `Goodcat\L10n\Events\PreferredLocaleUpdated` is dispatched whenever `app()->setPreferredLocale()` is called. It exposes `$locale` and `$previousLocale` as public properties:
 
 @verbatim
-<code-snippet>
+<code-snippet name="Listen for preferred locale updates" lang="php">
 use Goodcat\L10n\Events\PreferredLocaleUpdated;
 
 Event::listen(PreferredLocaleUpdated::class, function (PreferredLocaleUpdated $event) {
@@ -160,18 +162,18 @@ Publish stubs for client-side localized URL generation:
 - **Wayfinder**: `php artisan vendor:publish --tag=l10n-wayfinder` → `resources/js/l10n.ts`
 
 @verbatim
-<code-snippet title="Ziggy usage">
+<code-snippet name="Ziggy usage" lang="js">
 import { route } from '@/l10n';
 route('example', { id: 1, lang: 'es' });
 </code-snippet>
 @endverbatim
 
 @verbatim
-<code-snippet title="Wayfinder usage">
+<code-snippet name="Wayfinder usage" lang="ts">
 import { route } from '@/l10n';
 import example from '@/routes/example';
 route(example, { lang: 'es' }).url;
 </code-snippet>
 @endverbatim
 
-Both stubs resolve locale from `params.lang`, then `document.documentElement.lang`, then fallback. Only named routes are supported with Wayfinder.
+Both helpers resolve the locale from an explicit `lang` parameter, then `document.documentElement.lang`, and otherwise use the canonical route. During server-side rendering, pass `lang` explicitly to select a localized route. The Wayfinder helper supports named routes, not actions.

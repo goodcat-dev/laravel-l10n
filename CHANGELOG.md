@@ -4,6 +4,31 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## v0.5.2
+
+Released on _**2026-09-25**_.
+
+### Added
+
+- Adds `LocalizedRoute::getTranslations()`: returns registered translations and the canonical route, keyed by locale.
+- Assigns independent random `generated::` names to anonymous canonical routes and their translations.
+
+### Changed
+
+- URL generation, Switcher and Alternate use registered routes through `getTranslations()` instead of rebuilding them.
+- An explicit `lang` selects another locale even from a localized route name; without it, its locale is preserved.
+- URL helpers keep the initially resolved route when the requested locale has no registered variant.
+
+### Fixed
+
+- Preserves scalar and tuple arguments in the Wayfinder route helper while resolving the locale.
+- Normalizes regional locale codes in alternate hreflang tags (e.g. `pt_BR` to `pt-BR`).
+- Preserves the current query string when the locale switcher generates links.
+
+### Removed
+
+- Removes `Route::getKey()`, `Router::getByKey()` and the `key` action; canonical routes are resolved by name.
+
 ## v0.5.1
 
 Released on _**2026-07-24**_.

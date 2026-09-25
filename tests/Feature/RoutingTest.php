@@ -5,6 +5,7 @@ use Goodcat\L10n\L10n;
 use Goodcat\L10n\Middleware\SetLocale;
 use Goodcat\L10n\Tests\Support\Controller;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Routing\RouteCollection;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Route;
@@ -64,6 +65,20 @@ it('skips a translation that collides with the canonical route', function () {
         ->toBe('http://localhost/untranslated');
 });
 
+it('skips a translation that collides with the canonical route apart from slashes', function () {
+    config(['l10n.route_strategy' => 'no_prefix']);
+
+    app(Translator::class)->addLines(['routes.untranslated' => '/untranslated/'], 'es');
+
+    Route::get('/untranslated', fn () => 'Hello, World!')
+        ->lang(['es'])
+        ->name('untranslated');
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    expect(app(Router::class)->getRoutes()->getByName('untranslated.es'))->toBeNull();
+});
+
 it('registers an untranslated slug when its domain is translated', function () {
     app(Translator::class)->addPath(__DIR__.'/../Support/lang');
 
@@ -79,6 +94,80 @@ it('registers an untranslated slug when its domain is translated', function () {
         ->toBe('es.example.com');
 });
 
+it('records the registered translations on the canonical route', function () {
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
+
+    config(['l10n.route_strategy' => 'no_prefix']);
+
+    Route::get('/example', fn () => 'Hello, World!')
+        ->lang(['es'])
+        ->name('example');
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    $routes = app(Router::class)->getRoutes();
+    $routes->refreshNameLookups();
+
+    expect($routes->getByName('example')?->getAction('translations'))
+        ->toBe(['es' => $routes->getByName('example.es')?->getName()])
+        ->and($routes->getByName('example.es')?->getAction('translations'))
+        ->toBeNull();
+});
+
+it('names anonymous canonical routes and their translations', function () {
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
+
+    config(['l10n.route_strategy' => 'no_prefix']);
+
+    $canonical = Route::get('/example', fn () => 'Hello, World!')->lang(['es']);
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    $name = $canonical->getName();
+
+    $translationName = $canonical->getAction('translations')['es'];
+
+    expect([$name, $translationName])
+        ->each->toMatch('/^generated::[a-zA-Z0-9]+$/')
+        ->and($translationName)->not->toBe($name);
+
+});
+
+it('records an empty translation map when every translation collides', function () {
+    config(['l10n.route_strategy' => 'no_prefix']);
+
+    Route::get('/untranslated', fn () => 'Hello, World!')
+        ->lang(['es'])
+        ->name('untranslated');
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    $routes = app(Router::class)->getRoutes();
+    $routes->refreshNameLookups();
+
+    expect($routes->getByName('untranslated')?->getAction('translations'))
+        ->toBe([]);
+});
+
+it('leaves the routes untouched when registered twice', function () {
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
+
+    config(['l10n.route_strategy' => 'prefix']);
+
+    Route::get('/example', fn () => 'Hello, World!')
+        ->lang(['es'])
+        ->name('example');
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    $uris = collect(app(Router::class)->getRoutes()->getRoutes())->map->uri()->all();
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    expect(collect(app(Router::class)->getRoutes()->getRoutes())->map->uri()->all())
+        ->toBe($uris);
+});
+
 it('generates localized routes without prefix', function () {
     app(Translator::class)->addPath(__DIR__.'/../Support/lang');
 
@@ -89,6 +178,23 @@ it('generates localized routes without prefix', function () {
         ->name('example');
 
     app(L10n::class)->registerLocalizedRoutes();
+
+    get('/ejemplo')->assertOk();
+});
+
+it('normalizes the slashes of a translated uri', function () {
+    config(['l10n.route_strategy' => 'no_prefix']);
+
+    app(Translator::class)->addLines(['routes.example' => '/ejemplo/'], 'es');
+
+    Route::get('/example', fn () => 'Hello, World!')
+        ->lang(['es'])
+        ->name('example');
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    expect(app(Router::class)->getRoutes()->getByName('example.es')?->uri())
+        ->toBe('ejemplo');
 
     get('/ejemplo')->assertOk();
 });
@@ -174,7 +280,7 @@ it('does not register a translation for the fallback locale listed in lang()', f
     'prefix except default' => ['prefix_except_default'],
 ]);
 
-it('generates localized uri via helpers', function () {
+it('generates localized uri via helpers', function (bool $withCachedRoutes) {
     app(Translator::class)->addPath(__DIR__.'/../Support/lang');
 
     Route::get('/example', Controller::class)
@@ -183,10 +289,52 @@ it('generates localized uri via helpers', function () {
 
     app(L10n::class)->registerLocalizedRoutes();
 
+    if ($withCachedRoutes) {
+        /** @var RouteCollection $routes */
+        $routes = Route::getRoutes();
+
+        Route::setCompiledRoutes($routes->compile());
+    }
+
     expect(route('example', ['lang' => 'es']))
         ->toBe('http://localhost/es/ejemplo')
         ->and(action(Controller::class, ['lang' => 'es']))
         ->toBe('http://localhost/es/ejemplo');
+})->with([
+    'RouteCollection' => [false],
+    'CompiledRouteCollection' => [true],
+]);
+
+it('uses the requested locale or preserves the explicitly localized route', function () {
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
+
+    Route::get('/example', Controller::class)
+        ->name('example')
+        ->lang(['es', 'it']);
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    expect(route('example'))
+        ->toBe('http://localhost/example')
+        ->and(route('example', ['lang' => 'it']))
+        ->toBe('http://localhost/it/example')
+        ->and(route('example.it'))
+        ->toBe('http://localhost/it/example')
+        ->and(route('example.it', ['lang' => 'es']))
+        ->toBe('http://localhost/es/ejemplo')
+        ->and(route('example.it', ['lang' => 'en']))
+        ->toBe('http://localhost/example')
+        ->and(route('example.it', ['lang' => 'de']))
+        ->toBe('http://localhost/it/example');
+
+    app()->setLocale('es');
+
+    expect(route('example'))
+        ->toBe('http://localhost/es/ejemplo')
+        ->and(action(Controller::class))
+        ->toBe('http://localhost/es/ejemplo')
+        ->and(route('example.it'))
+        ->toBe('http://localhost/it/example');
 });
 
 it('generates localized uri via helpers with scalar parameters', function () {
@@ -387,11 +535,11 @@ test('L10n::registerLocalizedRoutes leaves non-localized routes untouched', func
 
     $routes->refreshNameLookups();
 
-    expect($routes->getByName('plain')->getAction('key'))
+    expect($routes->getByName('plain')->getAction('translations'))
         ->toBeNull()
-        ->and($routes->getByName('example')->getAction('key'))
+        ->and($routes->getByName('example')->getAction('translations'))
         ->not->toBeNull()
-        ->and($routes->getByName('example.es')->getAction('key'))
+        ->and($routes->getByName('example.es')->getAction('translations'))
         ->toBeNull();
 });
 
@@ -415,6 +563,85 @@ test('locale() returns the locale served by the route', function () {
         ->toBe('es')
         ->and($plain->locale())
         ->toBe('en');
+});
+
+test('getTranslations() resolves the registered translations from any localized route', function () {
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
+
+    config(['l10n.route_strategy' => 'no_prefix']);
+
+    Route::get('/example', fn () => 'Hello, World!')
+        ->name('example')
+        ->lang(['es']);
+
+    $plain = Route::get('/plain', fn () => 'Hello, World!');
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    /** @var RouteCollection $routes */
+    $routes = Route::getRoutes();
+
+    $routes->refreshNameLookups();
+
+    $canonical = $routes->getByName('example');
+    $translated = $routes->getByName('example.es');
+
+    expect($canonical->getTranslations())
+        ->toBe(['en' => $canonical, 'es' => $translated])
+        ->and($translated->getTranslations())
+        ->toBe(['en' => $canonical, 'es' => $translated])
+        ->and($translated->getTranslations('en'))
+        ->toBe(['en' => $canonical])
+        ->and($translated->getTranslations('es'))
+        ->toBe(['es' => $translated])
+        ->and($translated->getTranslations('es', 'de', 'en'))
+        ->toBe(['es' => $translated, 'en' => $canonical])
+        ->and($translated->getTranslations('de'))
+        ->toBe([])
+        ->and($plain->getTranslations())
+        ->toBe(['en' => $plain])
+        ->and($plain->getTranslations('es'))
+        ->toBe([])
+        ->and($canonical->getAction('translations'))
+        ->toBe(['es' => 'example.es']);
+});
+
+test('getTranslations() resolves the registered translations with cached routes', function () {
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
+
+    config(['l10n.route_strategy' => 'no_prefix']);
+
+    Route::get('/example', fn () => 'Hello, World!')
+        ->name('example')
+        ->lang(['es']);
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    /** @var RouteCollection $routes */
+    $routes = Route::getRoutes();
+
+    Route::setCompiledRoutes($routes->compile());
+
+    $canonical = Route::getRoutes()->getByName('example');
+    $translations = $canonical->getTranslations();
+
+    expect(array_keys($translations))
+        ->toBe(['en', 'es'])
+        ->and($translations['en'])
+        ->toBe($canonical)
+        ->and($translations['es']->uri())
+        ->toBe('ejemplo')
+        ->and($translations['es']->getTranslations('en'))
+        ->toBe(['en' => $canonical]);
+});
+
+test('getTranslations() throws when a registered translation is missing', function () {
+    $route = Route::get('/orphan', fn () => 'Hello, World!');
+
+    $route->setAction($route->getAction() + ['translations' => ['es' => 'missing-name']]);
+
+    expect(fn () => $route->getTranslations())
+        ->toThrow(RouteNotFoundException::class, 'Translated route [missing-name] not defined.');
 });
 
 test('canonical() throws when the canonical route is not registered', function () {
@@ -455,6 +682,26 @@ test('localized route inherit properties from canonical route', function () {
         ->and($fallbackLocalized->isFallback)->toBeTrue();
 });
 
+test('translated route does not inherit canonical runtime state', function () {
+    $canonical = Route::get('/example', Controller::class)
+        ->lang(['it'])
+        ->bind(Request::create('/example'));
+
+    $controller = $canonical->getController();
+
+    $localized = $canonical->makeTranslation('it');
+
+    expect($localized)
+        ->not->toBe($canonical)
+        ->and($localized->hasParameters())->toBeFalse()
+        ->and($localized->matches(Request::create('/it/example')))->toBeTrue()
+        ->and($localized->matches(Request::create('/example')))->toBeFalse()
+        ->and($localized->getController())->not->toBe($controller);
+
+    expect(fn () => $localized->originalParameters())
+        ->toThrow(LogicException::class, 'Route is not bound.');
+});
+
 it('signs and validates urls on non-localized routes', function () {
     config(['app.key' => 'base64:'.base64_encode(random_bytes(32))]);
 
@@ -463,7 +710,7 @@ it('signs and validates urls on non-localized routes', function () {
 
     $url = URL::temporarySignedRoute('verification.verify', now()->addMinutes(30), ['id' => 1]);
 
-    get($url)->assertOk()->assertSee('valid');
+    get($url)->assertOk()->assertContent('valid');
 
     get($url.'&tampered=1')->assertOk()->assertSee('invalid');
 });

@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\File;
 use Illuminate\View\FileViewFinder;
 
 it('register localized views path', function () {
@@ -7,9 +8,7 @@ it('register localized views path', function () {
     $it = resource_path('views/it');
 
     foreach ([$es, $it] as $dir) {
-        if (! file_exists($dir)) {
-            mkdir($dir);
-        }
+        File::makeDirectory($dir);
     }
 
     app()->setLocale('es');
@@ -19,11 +18,13 @@ it('register localized views path', function () {
     /** @var FileViewFinder $finder */
     $finder = app('view')->getFinder();
 
-    expect($finder->getPaths())->toContain($it);
-    expect($finder->getPaths())->not->toContain($es);
+    expect($finder->getPaths())
+        ->toContain($it)
+        ->and($finder->getPaths())
+        ->not->toContain($es);
 
     foreach ([$es, $it] as $dir) {
-        rmdir($dir);
+        File::deleteDirectory($dir);
     }
 });
 

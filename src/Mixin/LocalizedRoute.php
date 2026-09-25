@@ -2,37 +2,28 @@
 
 namespace Goodcat\L10n\Mixin;
 
+use AllowDynamicProperties;
 use Closure;
 use Goodcat\L10n\Contracts\LocalizedRouter;
 use Goodcat\L10n\Routing\RouteStrategy;
-use Illuminate\Container\Container;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
+use Illuminate\Support\Str;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
 
 /**
  * @mixin Route
+ *
+ * @property array<string, mixed> $action
+ * @property mixed $compiled
+ * @property ?list<string> $parameterNames
+ * @property ?array<string, mixed> $parameters
+ * @property ?array<string, mixed> $originalParameters
+ * @property LocalizedRouter&Router $router
  */
+#[AllowDynamicProperties]
 class LocalizedRoute
 {
-    /** @var array<string, mixed> */
-    public array $action;
-
-    protected Container $container;
-
-    /** @var array<string, mixed> */
-    public array $defaults;
-
-    public bool $isFallback;
-
-    /** @var LocalizedRouter&Router */
-    protected Router $router;
-
-    public string $uri;
-
-    /** @var array<string, string> */
-    public array $wheres;
-
     /** @return Closure(): (Route|self) */
     public function canonical(): Closure
     {
@@ -41,7 +32,7 @@ class LocalizedRoute
                 return $this;
             }
 
-            return $this->router->getByKey($canonical)
+            return $this->router->getRoutes()->getByName($canonical)
                 ?? throw new RouteNotFoundException("Canonical route [$canonical] not defined.");
         };
     }
@@ -58,6 +49,16 @@ class LocalizedRoute
         };
     }
 
+    /** @return Closure(): bool */
+    public function needsLocalization(): Closure
+    {
+        return function (): bool {
+            return (bool) $this->getAction('lang')
+                && ! $this->getAction('canonical')
+                && $this->getAction('translations') === null;
+        };
+    }
+
     /**
      * The locale served by this route. A route without l10n
      * metadata counts as the fallback locale.
@@ -71,11 +72,41 @@ class LocalizedRoute
         };
     }
 
-    /** @return Closure(): string */
-    public function getKey(): Closure
+    /**
+     * The registered translations and canonical route, keyed by locale. Resolves
+     * through the canonical route, so it answers from any localized route.
+     *
+     * @return Closure(string...): array<string, Route>
+     */
+    public function getTranslations(): Closure
     {
-        return function (): string {
-            return implode('|', $this->methods()).$this->getDomain().$this->uri();
+        return function (string ...$locales): array {
+            /** @var Route $canonical */
+            $canonical = (new LocalizedRoute)->canonical()->call($this);
+
+            $canonicalLocale = $canonical->locale();
+
+            /** @var array<string, string> $names */
+            $names = $canonical->getAction('translations') ?? [];
+
+            $translations = [];
+
+            foreach ($locales ?: [$canonicalLocale, ...array_keys($names)] as $locale) {
+                if ($locale === $canonicalLocale) {
+                    $translations[$locale] = $canonical;
+
+                    continue;
+                }
+
+                if (! isset($names[$locale])) {
+                    continue;
+                }
+
+                $translations[$locale] = $this->router->getRoutes()->getByName($names[$locale])
+                    ?? throw new RouteNotFoundException("Translated route [{$names[$locale]}] not defined.");
+            }
+
+            return $translations;
         };
     }
 
@@ -123,9 +154,9 @@ class LocalizedRoute
                 return null;
             }
 
-            $action = ['locale' => $locale, 'canonical' => $this->getKey()] + $this->action;
+            $action = ['locale' => $locale, 'canonical' => $this->getName()] + $this->action;
 
-            unset($action['lang'], $action['prefix'], $action['key'], $action['source_uri']);
+            unset($action['lang'], $action['prefix'], $action['source_uri'], $action['translations']);
 
             $domainWasTranslated = false;
 
@@ -139,31 +170,33 @@ class LocalizedRoute
                 $domainWasTranslated = $translatedDomain !== $domain;
             }
 
-            $uri = $this->getAction('source_uri') ?? $this->uri;
+            $uri = $this->getAction('source_uri') ?? $this->uri();
 
             $uri = trans()->hasForLocale("routes.$uri", $locale)
                 ? trans("routes.$uri", locale: $locale)
                 : $uri;
 
-            $route = new Route($this->methods(), $uri, $action);
+            $route = clone $this;
 
-            if ($route->getName()) {
-                $route->name(".$locale");
+            $route->action = $action;
+
+            foreach (['compiled', 'parameters', 'parameterNames', 'originalParameters'] as $property) {
+                $route->$property = null;
+            }
+
+            $route->setUri(trim($uri, '/') ?: '/')->flushController();
+
+            if ($name = $route->getName()) {
+                $route->action['as'] = str_starts_with($name, 'generated::')
+                    ? 'generated::'.Str::random()
+                    : "$name.$locale";
             }
 
             if ($strategy !== RouteStrategy::NoPrefix && ! $domainWasTranslated) {
                 $route->prefix($locale);
             }
 
-            return $route
-                ->setFallback($this->isFallback)
-                ->setDefaults($this->defaults)
-                ->setContainer($this->container)
-                ->setRouter($this->router)
-                ->block($this->locksFor(), $this->waitsFor())
-                ->withTrashed($this->allowsTrashedBindings())
-                ->setBindingFields($this->bindingFields())
-                ->where($this->wheres);
+            return $route->setBindingFields($this->bindingFields());
         };
     }
 }

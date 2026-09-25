@@ -44,6 +44,28 @@ expectUrl(route(routes, { id: 1 }), '/es/ejemplo/1');
 expectUrl(route(routes, { id: 2, lang: 'es' }), '/es/ejemplo/2');
 expectUrl(route(routes, { id: 3, lang: 'fr' }), '/example/3');
 
+type PostArguments = number | [post: number] | { post: number };
+
+const postId = (args: PostArguments): number =>
+    typeof args === 'number' ? args : Array.isArray(args) ? args[0] : args.post;
+
+const posts = {
+    __canonical: (args: PostArguments): Definition => ({ method: 'get', url: `/posts/${postId(args)}` }),
+    es: (args: PostArguments): Definition => ({ method: 'get', url: `/es/articulos/${postId(args)}` }),
+};
+
+expectUrl(route(posts, 1), '/es/articulos/1');
+expectUrl(route(posts, [2]), '/es/articulos/2');
+expectUrl(route(posts, { post: 3, lang: 'es' }), '/es/articulos/3');
+expectUrl(route(posts, { post: 4, lang: 'fr' }), '/posts/4');
+
+const tuple: [post: number] = [5];
+expectUrl(route(posts, tuple), '/es/articulos/5');
+
+if (tuple[0] !== 5) {
+    throw new Error('The route helper mutated the caller tuple.');
+}
+
 const args = { id: 4, lang: 'es' };
 
 route(routes, args);
@@ -83,3 +105,5 @@ Reflect.deleteProperty(globalThis, 'document');
 
 expectUrl(route(regional, { id: 10, lang: 'pt-BR' }), '/pt/exemplo/10');
 expectUrl(route(regional, { id: 11 }), '/example/11');
+expectUrl(route(posts, 6), '/posts/6');
+expectUrl(route(posts, [7]), '/posts/7');

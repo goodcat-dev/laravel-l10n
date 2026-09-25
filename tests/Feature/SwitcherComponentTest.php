@@ -29,6 +29,26 @@ it('renders a locale switcher for the current route', function () {
     ]);
 });
 
+it('preserves the current query string without overriding route parameters', function () {
+    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
+
+    Route::get('/products/{product}', fn () => Blade::render('<x-l10n::switcher />'))
+        ->lang(['es', 'it'])
+        ->name('products.show');
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    $response = get('/es/productos/42?product=wrong&tracking=keep-me&filters[color]=green');
+
+    $response->assertOk();
+
+    $response->assertSeeHtml([
+        '<option value="http://localhost/products/42?tracking=keep-me&amp;filters%5Bcolor%5D=green" >en</option>',
+        '<option value="http://localhost/es/productos/42?tracking=keep-me&amp;filters%5Bcolor%5D=green" selected>es</option>',
+        '<option value="http://localhost/it/products/42?tracking=keep-me&amp;filters%5Bcolor%5D=green" >it</option>',
+    ]);
+});
+
 it('renders nothing for a route without translations', function () {
     Route::get('/about', fn () => Blade::render('<x-l10n::switcher />'))
         ->name('about');

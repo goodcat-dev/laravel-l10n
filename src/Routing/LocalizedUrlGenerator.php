@@ -3,6 +3,8 @@
 namespace Goodcat\L10n\Routing;
 
 use BackedEnum;
+use Goodcat\L10n\Contracts\LocalizedRoute;
+use Illuminate\Routing\Route;
 use Illuminate\Routing\UrlGenerator;
 use Illuminate\Support\Arr;
 use InvalidArgumentException;
@@ -19,10 +21,13 @@ class LocalizedUrlGenerator extends UrlGenerator
 
         $parameters = Arr::wrap($parameters);
 
-        $locale = Arr::pull($parameters, 'lang', app()->getLocale());
+        $locale = Arr::pull($parameters, 'lang');
 
         if (! is_null($route = $this->routes->getByName($name))) {
-            $route = $route->makeTranslation($locale) ?? $route;
+            /** @var Route&LocalizedRoute $route */
+            $locale ??= $route->getAction('canonical') ? $route->locale() : app()->getLocale();
+
+            $route = $route->getTranslations($locale)[$locale] ?? $route;
 
             return $this->toRoute($route, $parameters, $absolute);
         }
@@ -41,9 +46,11 @@ class LocalizedUrlGenerator extends UrlGenerator
 
         $parameters = Arr::wrap($parameters);
 
-        $locale = Arr::pull($parameters, 'lang', app()->getLocale());
+        $locale = Arr::pull($parameters, 'lang')
+            ?? ($route->getAction('canonical') ? $route->locale() : app()->getLocale());
 
-        $route = $route->makeTranslation($locale) ?? $route;
+        /** @var Route&LocalizedRoute $route */
+        $route = $route->getTranslations($locale)[$locale] ?? $route;
 
         return $this->toRoute($route, $parameters, $absolute);
     }

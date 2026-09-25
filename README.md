@@ -129,6 +129,23 @@ If no translation is provided for a given locale, the original URI is used as-is
 > [!NOTE]
 > The key should be the route URI **without** the leading slash. For example, for `Route::get('/example')`, the key should be `example`.
 
+For routes with a custom binding key, use the normalized URI without the binding annotation:
+
+```php
+// routes/web.php
+Route::get('/article/{post:slug}', [PostController::class, 'show'])
+    ->lang(['it']);
+```
+
+```php
+// lang/it/routes.php
+return [
+    'article/{post}' => 'articolo/{post}',
+];
+```
+
+Laravel stores `:slug` separately from the URI. The localized route still binds `post` by its slug.
+
 ### Domain Translations
 
 If your application uses domain-based routing, you can translate domains in the same `routes.php` language files. The key is the original domain string:

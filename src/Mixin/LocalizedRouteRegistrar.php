@@ -2,17 +2,18 @@
 
 namespace Goodcat\L10n\Mixin;
 
+use AllowDynamicProperties;
 use Closure;
 use Illuminate\Routing\RouteRegistrar;
 
 /**
  * @mixin RouteRegistrar
+ *
+ * @property array<string, mixed> $attributes
  */
+#[AllowDynamicProperties]
 class LocalizedRouteRegistrar
 {
-    /** @var array<string, mixed> */
-    protected array $attributes;
-
     /**
      * @return Closure(list<string>=): (RouteRegistrar|self)
      */

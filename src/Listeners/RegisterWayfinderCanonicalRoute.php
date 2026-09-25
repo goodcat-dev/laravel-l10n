@@ -32,8 +32,7 @@ class RegisterWayfinderCanonicalRoute
 
         $canonical = Closure::bind(function () use ($marker): void {
             foreach ($this->attributes as $name => &$attributes) {
-                if (str_starts_with($name, 'generated::')
-                    || ! Arr::has($attributes, 'action.lang')) {
+                if (! Arr::has($attributes, 'action.lang')) {
                     continue;
                 }
 
