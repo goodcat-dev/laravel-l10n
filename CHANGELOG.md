@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+- Exports the Wayfinder helper's `LocalizedRoutes` type for typed wrappers and composables.
+
+### Fixed
+
+- Forwards query options and subsequent arguments in the Wayfinder route helper.
+- Preserves required and optional arguments in the Wayfinder route helper's TypeScript signature.
+
 ## v0.5.2
 
 Released on _**2026-09-25**_.
