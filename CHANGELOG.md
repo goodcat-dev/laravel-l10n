@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- Adds `RedirectToPreferredLocale` middleware with a once-per-session check that preserves locale switching.
 - Exports the Wayfinder helper's `LocalizedRoutes` type for typed wrappers and composables.
 
 ### Fixed

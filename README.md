@@ -153,7 +153,7 @@ If your application uses domain-based routing, you can translate domains in the 
 ```php
 // lang/es/routes.php
 return [
-    'example'     => 'ejemplo',
+    'example' => 'ejemplo',
     'example.com' => 'es.example.com',
 ];
 ```
@@ -211,6 +211,22 @@ By default, the package checks the following sources in order:
 1. **SessionLocale**: Checks if a locale was set in the session.
 2. **UserLocale**: Checks if the authenticated user has a preferred locale (the user model must implement Laravel's `Illuminate\Contracts\Translation\HasLocalePreference` interface).
 3. **BrowserLocale**: Falls back to the browser's `Accept-Language` header.
+
+### Redirecting to the Preferred Locale
+
+Optionally add `RedirectToPreferredLocale` after `SetPreferredLocale` in the web middleware group:
+
+```php
+$middleware->web([
+    \Goodcat\L10n\Middleware\SetLocale::class,
+    \Goodcat\L10n\Middleware\SetPreferredLocale::class,
+    \Goodcat\L10n\Middleware\RedirectToPreferredLocale::class,
+]);
+```
+
+On the first GET request to a route with translations, it redirects to the preferred locale if available and different from the current locale (HTTP 302), preserving route parameters and query strings. The check runs once per session, even when no redirect is needed, so subsequent locale switching remains unrestricted.
+
+It requires Laravel's `StartSession` middleware (already included in `web`), with a shared session when using translated domains. For stateless requests, write your own middleware using this one as a reference.
 
 ### Customizing Resolvers
 
