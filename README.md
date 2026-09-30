@@ -208,7 +208,7 @@ The `SetPreferredLocale` middleware is responsible for populating the preferred 
 
 By default, the package checks the following sources in order:
 
-1. **SessionLocale**: Checks if a locale was set in the session.
+1. ~~**SessionLocale**: Checks if a locale was set in the session.~~ @deprecated
 2. **UserLocale**: Checks if the authenticated user has a preferred locale (the user model must implement Laravel's `Illuminate\Contracts\Translation\HasLocalePreference` interface).
 3. **BrowserLocale**: Falls back to the browser's `Accept-Language` header.
 
@@ -246,6 +246,8 @@ L10n::$preferredLocaleResolvers = [
 Implement the `LocaleResolver` interface to create your own resolver:
 
 ```php
+namespace App\Resolvers;
+
 use Goodcat\L10n\Resolvers\LocaleResolver;
 use Illuminate\Http\Request;
 
@@ -258,12 +260,16 @@ class CookieLocale implements LocaleResolver
 }
 ```
 
-Then add it to the resolver chain:
+Then add it to the resolver chain. Your application is responsible for setting the cookie:
 
 ```php
+use App\Resolvers\CookieLocale;
+use Goodcat\L10n\L10n;
+use Goodcat\L10n\Resolvers\BrowserLocale;
+use Goodcat\L10n\Resolvers\UserLocale;
+
 L10n::$preferredLocaleResolvers = [
     new CookieLocale,
-    new SessionLocale,
     new UserLocale,
     new BrowserLocale,
 ];

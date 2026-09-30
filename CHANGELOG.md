@@ -9,6 +9,10 @@ All notable changes to this project will be documented in this file.
 - Adds `RedirectToPreferredLocale` middleware with a once-per-session check that preserves locale switching.
 - Exports the Wayfinder helper's `LocalizedRoutes` type for typed wrappers and composables.
 
+### Deprecated
+
+- Deprecates `SessionLocale`; use a custom `LocaleResolver` for application-managed session preferences.
+
 ### Fixed
 
 - Forwards query options and subsequent arguments in the Wayfinder route helper.

@@ -93,9 +93,11 @@ With `prefix_except_default` (default), the fallback locale keeps the unprefixed
 
 `SetPreferredLocale` middleware runs resolvers in order. The first non-null result wins:
 
-1. **SessionLocale** — reads `session('locale')`
+1. **SessionLocale** (deprecated) — reads `session('locale')`
 2. **UserLocale** — calls `$user->preferredLocale()` if the user model implements `HasLocalePreference`
 3. **BrowserLocale** — parses `Accept-Language` header
+
+`SessionLocale` remains in the default chain for compatibility. For session-based preferences, implement a custom `LocaleResolver` matching the session key written by the application. Neither Laravel nor this package automatically writes `session('locale')`.
 
 Override the resolver chain:
 
