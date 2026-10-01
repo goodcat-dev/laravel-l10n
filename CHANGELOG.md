@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## v0.5.3
+
+Released on _**2026-10-01**_.
+
 ### Added
 
 - Adds `RedirectToPreferredLocale` middleware with a once-per-session check that preserves locale switching.
