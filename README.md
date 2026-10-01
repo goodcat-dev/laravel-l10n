@@ -153,7 +153,7 @@ If your application uses domain-based routing, you can translate domains in the 
 ```php
 // lang/es/routes.php
 return [
-    'example'     => 'ejemplo',
+    'example' => 'ejemplo',
     'example.com' => 'es.example.com',
 ];
 ```
@@ -208,9 +208,25 @@ The `SetPreferredLocale` middleware is responsible for populating the preferred 
 
 By default, the package checks the following sources in order:
 
-1. **SessionLocale**: Checks if a locale was set in the session.
+1. ~~**SessionLocale**: Checks if a locale was set in the session.~~ @deprecated
 2. **UserLocale**: Checks if the authenticated user has a preferred locale (the user model must implement Laravel's `Illuminate\Contracts\Translation\HasLocalePreference` interface).
-3. **BrowserLocale**: Falls back to the browser's `Accept-Language` header.
+3. **BrowserLocale**: Falls back to the browser's `Accept-Language` header, keeping all its languages in order of preference.
+
+### Redirecting to the Preferred Locale
+
+Optionally add `RedirectToPreferredLocale` after `SetPreferredLocale` in the web middleware group:
+
+```php
+$middleware->web([
+    \Goodcat\L10n\Middleware\SetLocale::class,
+    \Goodcat\L10n\Middleware\SetPreferredLocale::class,
+    \Goodcat\L10n\Middleware\RedirectToPreferredLocale::class,
+]);
+```
+
+On the first GET request to a route with translations, it uses [`getPreferredLocale()`](#application-helpers) to select a matching translation and redirects if its locale differs from the current one (HTTP 302), preserving route parameters and query strings. The check runs once per session, even when no redirect is needed, so subsequent locale switching remains unrestricted.
+
+It requires Laravel's `StartSession` middleware (already included in `web`), with a shared session when using translated domains. For stateless requests, write your own middleware using this one as a reference.
 
 ### Customizing Resolvers
 
@@ -230,6 +246,8 @@ L10n::$preferredLocaleResolvers = [
 Implement the `LocaleResolver` interface to create your own resolver:
 
 ```php
+namespace App\Resolvers;
+
 use Goodcat\L10n\Resolvers\LocaleResolver;
 use Illuminate\Http\Request;
 
@@ -242,12 +260,16 @@ class CookieLocale implements LocaleResolver
 }
 ```
 
-Then add it to the resolver chain:
+Then add it to the resolver chain. Your application is responsible for setting the cookie:
 
 ```php
+use App\Resolvers\CookieLocale;
+use Goodcat\L10n\L10n;
+use Goodcat\L10n\Resolvers\BrowserLocale;
+use Goodcat\L10n\Resolvers\UserLocale;
+
 L10n::$preferredLocaleResolvers = [
     new CookieLocale,
-    new SessionLocale,
     new UserLocale,
     new BrowserLocale,
 ];
@@ -260,14 +282,27 @@ This package adds several helper methods to your Laravel application.
 ### Application Helpers
 
 ```php
-// Get the user's preferred locale
-app()->getPreferredLocale(); // Returns ?string
+// Get the user's preferred locales, in order of preference
+app()->getPreferredLocales(); // Returns ?array, e.g. ['es_ES', 'es', 'en']
 
-// Set the user's preferred locale (dispatches PreferredLocaleUpdated event)
+// Get the user's first preferred locale
+app()->getPreferredLocale(); // Returns ?string, e.g. 'es_ES'
+
+// Get the best match among the given locales, or null
+app()->getPreferredLocale(['en', 'es']); // Returns ?string, e.g. 'es'
+
+// Set the user's preferred locales (dispatches PreferredLocaleUpdated event)
 app()->setPreferredLocale('es');
+app()->setPreferredLocale(['es_ES', 'es', 'en']);
 
 // Check if a locale is the fallback locale
 app()->isFallbackLocale('en'); // Returns bool
+```
+
+When given a list of locales, `getPreferredLocale()` follows the preferences in order and, for each one, looks for an exact match, then its language (`es_ES` matches `es`), then the first variant of the same language in the given list (`es_ES` matches `es_MX`). It returns `null` when nothing matches, so you can provide a default explicitly:
+
+```php
+app()->getPreferredLocale(['en', 'es']) ?? 'en';
 ```
 
 ### Route Helpers
@@ -397,7 +432,7 @@ php artisan vendor:publish --tag=l10n-wayfinder
 > [!NOTE]
 > The `route()` helper only works with named routes, actions are not supported.
 
-This creates a `resources/js/l10n.ts` file exporting a `route(routes, args?)` helper that selects the appropriate localized route based on the current locale.
+This creates a `resources/js/l10n.ts` file exporting a `route(routes, params?, options?)` helper that selects the appropriate localized route based on the current locale.
 
 Import the `route` helper and pass Wayfinder's generated route functions:
 
@@ -407,6 +442,8 @@ import foo from '@/routes/foo';
 
 const esUrl = route(foo, { id: 1, lang: 'es' }).url;
 ```
+
+The `LocalizedRoutes` type is also exported, to type your own wrappers and composables.
 
 The locale is resolved in the following order:
 1. The `lang` parameter, if provided.

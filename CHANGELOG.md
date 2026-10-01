@@ -4,6 +4,31 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## v0.5.3
+
+Released on _**2026-10-01**_.
+
+### Added
+
+- Adds `RedirectToPreferredLocale` middleware with a once-per-session check that preserves locale switching.
+- Exports the Wayfinder helper's `LocalizedRoutes` type for typed wrappers and composables.
+- Adds `getPreferredLocales()` and an optional `$locales` argument to `getPreferredLocale()` to match the best locale.
+
+### Changed
+
+- `LocaleResolver::resolve()` may return a list of locales; `BrowserLocale` returns all `Accept-Language` languages.
+- Stores preferred locales in `config('app.preferred_locales')`, replacing `config('app.preferred_locale')`.
+- `PreferredLocaleUpdated` exposes `$locales` and `$previousLocales` lists instead of `$locale` and `$previousLocale`.
+
+### Deprecated
+
+- Deprecates `SessionLocale`; use a custom `LocaleResolver` for application-managed session preferences.
+
+### Fixed
+
+- Forwards query options and subsequent arguments in the Wayfinder route helper.
+- Preserves required and optional arguments in the Wayfinder route helper's TypeScript signature.
+
 ## v0.5.2
 
 Released on _**2026-09-25**_.

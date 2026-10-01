@@ -20,7 +20,7 @@ Register middleware in `bootstrap/app.php`:
 @endverbatim
 
 - `SetLocale` sets the active application and request locale only when the matched route has explicit locale metadata.
-- `SetPreferredLocale` checks Session, User, then Browser and stores the first detected preference in `config('app.preferred_locale')` for the current application. It does not persist it to the session or user.
+- `SetPreferredLocale` checks Session, User, then Browser and stores the preferences of the first resolver that detects any, as an ordered list, in `config('app.preferred_locales')` for the current application. It does not persist them to the session or user.
 
 ## Route definitions
 
@@ -93,9 +93,11 @@ With `prefix_except_default` (default), the fallback locale keeps the unprefixed
 
 `SetPreferredLocale` middleware runs resolvers in order. The first non-null result wins:
 
-1. **SessionLocale** — reads `session('locale')`
+1. **SessionLocale** (deprecated) — reads `session('locale')`
 2. **UserLocale** — calls `$user->preferredLocale()` if the user model implements `HasLocalePreference`
-3. **BrowserLocale** — parses `Accept-Language` header
+3. **BrowserLocale** — parses `Accept-Language` header and returns all its languages in order of preference
+
+`SessionLocale` remains in the default chain for compatibility. For session-based preferences, implement a custom `LocaleResolver` matching the session key written by the application. Neither Laravel nor this package automatically writes `session('locale')`.
 
 Override the resolver chain:
 
@@ -115,8 +117,10 @@ L10n::$preferredLocaleResolvers = [
 
 @verbatim
 <code-snippet name="Application and route helpers" lang="php">
-app()->getPreferredLocale();   // ?string — the detected preferred locale
-app()->setPreferredLocale($locale); // sets preferred locale, dispatches PreferredLocaleUpdated event (see below)
+app()->getPreferredLocales();  // ?array — the detected preferred locales, in order of preference
+app()->getPreferredLocale();   // ?string — the first preferred locale
+app()->getPreferredLocale(['en', 'es']); // ?string — best match among the given locales (es_ES matches es_ES, then es, then es_MX); null if none
+app()->setPreferredLocale($locale); // accepts a locale or a list, dispatches PreferredLocaleUpdated event (see below)
 app()->isFallbackLocale('en'); // bool — true if 'en' is the fallback locale
 
 L10n::is('example');           // bool — like Route::is() but matches across all localized variants
@@ -126,15 +130,15 @@ L10n::is('admin.*');           // supports wildcard patterns (delegates to Route
 
 ## Events
 
-`Goodcat\L10n\Events\PreferredLocaleUpdated` is dispatched whenever `app()->setPreferredLocale()` is called. It exposes `$locale` and `$previousLocale` as public properties:
+`Goodcat\L10n\Events\PreferredLocaleUpdated` is dispatched whenever `app()->setPreferredLocale()` is called. It exposes `$locales` and `$previousLocales` as public properties:
 
 @verbatim
 <code-snippet name="Listen for preferred locale updates" lang="php">
 use Goodcat\L10n\Events\PreferredLocaleUpdated;
 
 Event::listen(PreferredLocaleUpdated::class, function (PreferredLocaleUpdated $event) {
-    // $event->locale — the new preferred locale
-    // $event->previousLocale — the previous preferred locale (nullable)
+    // $event->locales — the new preferred locales
+    // $event->previousLocales — the previous preferred locales (nullable)
 });
 </code-snippet>
 @endverbatim

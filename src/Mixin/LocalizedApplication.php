@@ -7,23 +7,58 @@ use Goodcat\L10n\Events\PreferredLocaleUpdated;
 
 class LocalizedApplication
 {
-    /** @return Closure(): ?string */
+    /** @return Closure(list<string>|null=): ?string */
     public function getPreferredLocale(): Closure
     {
-        return function (): ?string {
-            return config('app.preferred_locale');
+        return function (?array $locales = null): ?string {
+            /** @var list<string> $preferred */
+            $preferred = config('app.preferred_locales') ?? [];
+
+            if ($locales === null) {
+                return $preferred[0] ?? null;
+            }
+
+            foreach ($preferred as $locale) {
+                $language = strstr($locale, '_', true) ?: $locale;
+
+                foreach ([$locale, $language] as $candidate) {
+                    if (in_array($candidate, $locales, true)) {
+                        return $candidate;
+                    }
+                }
+
+                foreach ($locales as $available) {
+                    if (str_starts_with($available, $language.'_')) {
+                        return $available;
+                    }
+                }
+            }
+
+            return null;
         };
     }
 
-    /** @return Closure(string): void */
+    /** @return Closure(): (non-empty-list<string>|null) */
+    public function getPreferredLocales(): Closure
+    {
+        return function (): ?array {
+            /** @var non-empty-list<string>|null */
+            return config('app.preferred_locales');
+        };
+    }
+
+    /** @return Closure(string|non-empty-list<string>): void */
     public function setPreferredLocale(): Closure
     {
-        return function (string $locale): void {
-            $previous = config('app.preferred_locale');
+        return function (string|array $locale): void {
+            /** @var non-empty-list<string> $locales */
+            $locales = (array) $locale;
 
-            config(['app.preferred_locale' => $locale]);
+            $previous = config('app.preferred_locales');
 
-            event(new PreferredLocaleUpdated($locale, $previous));
+            config(['app.preferred_locales' => $locales]);
+
+            event(new PreferredLocaleUpdated($locales, $previous));
         };
     }
 
