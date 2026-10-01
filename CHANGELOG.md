@@ -8,6 +8,13 @@ All notable changes to this project will be documented in this file.
 
 - Adds `RedirectToPreferredLocale` middleware with a once-per-session check that preserves locale switching.
 - Exports the Wayfinder helper's `LocalizedRoutes` type for typed wrappers and composables.
+- Adds `getPreferredLocales()` and an optional `$locales` argument to `getPreferredLocale()` to match the best locale.
+
+### Changed
+
+- `LocaleResolver::resolve()` may return a list of locales; `BrowserLocale` returns all `Accept-Language` languages.
+- Stores preferred locales in `config('app.preferred_locales')`, replacing `config('app.preferred_locale')`.
+- `PreferredLocaleUpdated` exposes `$locales` and `$previousLocales` lists instead of `$locale` and `$previousLocale`.
 
 ### Deprecated
 

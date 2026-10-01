@@ -13,6 +13,7 @@ class RedirectToPreferredLocale
 {
     /**
      * @param  Closure(Request): (Response)  $next
+     *
      * @throws UrlGenerationException
      */
     public function handle(Request $request, Closure $next): Response
@@ -32,9 +33,9 @@ class RedirectToPreferredLocale
 
         $request->session()->put('l10n.redirected_to_preferred_locale', true);
 
-        $locale = app()->getPreferredLocale();
+        $locale = app()->getPreferredLocale(array_keys($translations));
 
-        if (! $locale || $locale === $route->locale() || ! isset($translations[$locale])) {
+        if (! $locale || $locale === $route->locale()) {
             return $next($request);
         }
 

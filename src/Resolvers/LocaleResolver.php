@@ -6,5 +6,6 @@ use Illuminate\Http\Request;
 
 interface LocaleResolver
 {
-    public function resolve(Request $request): ?string;
+    /** @return string|list<string>|null */
+    public function resolve(Request $request): string|array|null;
 }
