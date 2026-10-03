@@ -37,15 +37,15 @@ it('renders alternate hreflang links from a localized route', function () {
 
     app(L10n::class)->registerLocalizedRoutes();
 
-    $response = get('/es/productos/42');
+    $response = get('/es/productos/42?page=2');
 
     $response->assertOk();
 
     $response->assertSee([
-        '<link rel="alternate" hreflang="en" href="http://localhost/products/42" />',
-        '<link rel="alternate" hreflang="es" href="http://localhost/es/productos/42" />',
-        '<link rel="alternate" hreflang="it" href="http://localhost/it/products/42" />',
-        '<link rel="alternate" hreflang="x-default" href="http://localhost/products/42" />',
+        '<link rel="alternate" hreflang="en" href="http://localhost/products/42?page=2" />',
+        '<link rel="alternate" hreflang="es" href="http://localhost/es/productos/42?page=2" />',
+        '<link rel="alternate" hreflang="it" href="http://localhost/it/products/42?page=2" />',
+        '<link rel="alternate" hreflang="x-default" href="http://localhost/products/42?page=2" />',
     ], false);
 });
 

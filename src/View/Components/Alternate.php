@@ -30,7 +30,7 @@ class Alternate extends Component
             return;
         }
 
-        $parameters = $route->parameters();
+        $parameters = $route->parameters() + request()->query();
 
         $this->canonical = $url->toRoute($route->canonical(), $parameters, true);
 

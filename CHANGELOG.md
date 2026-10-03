@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+- Preserves the current query string in alternate hreflang links, including `x-default`.
+
 ## v0.5.3
 
 Released on _**2026-10-01**_.
