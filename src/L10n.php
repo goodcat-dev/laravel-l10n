@@ -34,6 +34,8 @@ class L10n
                 continue;
             }
 
+            $route->action['locale'] = app()->getFallbackLocale();
+
             if ($strategy->isPrefix()) {
                 $this->prefixCanonicalRoute($route);
             }
@@ -70,8 +72,6 @@ class L10n
         $route
             ->prefix(app()->getFallbackLocale())
             ->setBindingFields($bindingFields);
-
-        $route->action['locale'] = app()->getFallbackLocale();
     }
 
     public function is(string ...$patterns): bool

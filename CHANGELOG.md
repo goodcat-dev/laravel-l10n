@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Changed
+
+- Registers `SetLocale` automatically in the `web` and `api` groups, before `SubstituteBindings`.
+- Sets the fallback locale explicitly on localized canonical routes in every routing strategy.
+
 ### Fixed
 
 - Preserves the current query string in alternate hreflang links, including `x-default`.

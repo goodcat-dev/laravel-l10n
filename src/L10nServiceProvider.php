@@ -5,14 +5,18 @@ namespace Goodcat\L10n;
 use Closure;
 use Goodcat\L10n\Listeners\RegisterLocalizedViewsPath;
 use Goodcat\L10n\Listeners\RegisterWayfinderCanonicalRoute;
+use Goodcat\L10n\Middleware\SetLocale;
 use Goodcat\L10n\Mixin\LocalizedApplication;
 use Goodcat\L10n\Mixin\LocalizedRoute;
 use Goodcat\L10n\Mixin\LocalizedRouter;
 use Goodcat\L10n\Mixin\LocalizedRouteRegistrar;
 use Goodcat\L10n\Routing\LocalizedUrlGenerator;
 use Illuminate\Console\Events\CommandStarting;
+use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Events\LocaleUpdated;
+use Illuminate\Foundation\Http\Kernel;
+use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
 use Illuminate\Routing\RouteRegistrar;
@@ -25,6 +29,14 @@ class L10nServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
+        $this->callAfterResolving(HttpKernel::class, function (Kernel $kernel) {
+            foreach (['web', 'api'] as $group) {
+                $kernel->appendMiddlewareToGroup($group, SetLocale::class);
+            }
+
+            $kernel->addToMiddlewarePriorityBefore(SubstituteBindings::class, SetLocale::class);
+        });
+
         $this->publishes([__DIR__.'/../config/l10n.php' => config_path('l10n.php')], 'l10n-config');
 
         $this->publishes([

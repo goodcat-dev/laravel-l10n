@@ -19,23 +19,13 @@ An opinionated Laravel package for app localization.
 
 ## Quickstart
 
-Get started with `laravel-l10n` in three steps.
+Get started with `laravel-l10n` in two steps.
 
 1. Download the package via Composer.
    ```sh
    composer require goodcat/laravel-l10n
    ```
-2. Add the locale middlewares to your `bootstrap/app.php` file.
-   ```php
-   return Application::configure(basePath: dirname(__DIR__))
-       ->withMiddleware(function (Middleware $middleware): void {
-           $middleware->web([
-               \Goodcat\L10n\Middleware\SetLocale::class,
-               \Goodcat\L10n\Middleware\SetPreferredLocale::class,
-           ]);
-       });
-   ```
-3. Define localized routes using the `lang()` method.
+2. Define localized routes using the `lang()` method.
    ```php
    Route::get('/example', Controller::class)
        ->lang(['fr', 'de', 'it', 'es']);
@@ -62,6 +52,8 @@ This will generate:
 
 The fallback locale here is Laravel's own `fallback_locale` (`APP_FALLBACK_LOCALE` in `.env`), it must match the language your routes and content are actually written in.
 
+Localized routes automatically set the application's locale to their language. The canonical route uses `APP_FALLBACK_LOCALE`. Routes without `lang()` leave the application's locale unchanged, which defaults to `APP_LOCALE`.
+
 Listing the fallback locale in `lang()` is harmless: the canonical route already serves it, so no extra route is registered.
 
 #### Route groups
@@ -75,7 +67,7 @@ Route::lang(['es', 'it'])->group(function () {
 });
 ```
 
-All routes inside the group will inherit the locale definitions. A route can also extend the group's locales with its own `lang()` call — the locales are merged:
+All routes inside the group inherit its locales. Use `lang()` on an individual route to add more languages:
 
 ```php
 Route::lang(['es', 'it'])->group(function () {
@@ -93,8 +85,6 @@ The `route_strategy` option in `config/l10n.php` controls how locale prefixes ar
 - `prefix` prefixes every locale and does not register an unprefixed route (e.g. `/en/example`, `/es/ejemplo`).
 - `no_prefix` uses translated URIs without locale prefixes (e.g. `/example`, `/ejemplo`).
 
-With `prefix`, the canonical route itself is prefixed with the fallback locale instead of staying unprefixed. This changes the URL, not the rule from [Defining Localized Routes](#defining-localized-routes): the fallback locale listed in `lang()` is still skipped the same way, so you never end up with a duplicate route for it.
-
 > [!NOTE]
 > `config/l10n.php` is created by publishing the package config: `php artisan vendor:publish --tag=l10n-config`.
 
@@ -108,8 +98,8 @@ Manage route translations in dedicated language files. The expected file structu
 │   └── routes.php
 ├── /fr
 │   └── routes.php
-├── /it
-│   └── routes.php
+└── /it
+    └── routes.php
 ```
 
 Inside your `routes.php` file, map the original route URI to a translated slug:
@@ -129,7 +119,7 @@ If no translation is provided for a given locale, the original URI is used as-is
 > [!NOTE]
 > The key should be the route URI **without** the leading slash. For example, for `Route::get('/example')`, the key should be `example`.
 
-For routes with a custom binding key, use the normalized URI without the binding annotation:
+For routes with a custom binding key, omit `:slug` from the translation key:
 
 ```php
 // routes/web.php
@@ -144,7 +134,7 @@ return [
 ];
 ```
 
-Laravel stores `:slug` separately from the URI. The localized route still binds `post` by its slug.
+The localized route still binds `post` by its slug.
 
 ### Domain Translations
 
@@ -160,24 +150,16 @@ return [
 
 ## URL Generation
 
-The package automatically replaces Laravel's default URL generator with `LocalizedUrlGenerator`, ensuring that the `route()` helper generates the correct URLs for the current locale without any extra configuration.
-
-> [!NOTE]
-> If you need to use a custom URL generator, you can override it in your `AppServiceProvider` by aliasing your own implementation to the `url` service.
-
 ### Using the `route()` and `action()` Helpers
 
-Once the generator is registered, the `route()` helper will intelligently create URLs based on the current application locale.
-
-- **For the current locale**: The helper automatically generates the correct URL based on the active language.
-- **For a specific locale**: You can explicitly request a URL for a different language by passing the `lang` parameter to the `route()` helper.
+Use Laravel's `route()` helper as usual to generate URLs in the current language. Pass `lang` to link to another language:
 
 ```php
-// Assuming the current locale is 'en'
-route('example'); // Returns "/example"
+// Assuming the current locale is 'fr'
+route('example'); // Returns "/fr/example"
 
 // To generate a URL for a different locale
-route('example', ['lang' => 'fr']); // Returns "/fr/example"
+route('example', ['lang' => 'en']); // Returns "/example"
 
 // If a translation exists for 'es' in lang/es/routes.php, the translated slug is used
 route('example', ['lang' => 'es']); // Returns "/es/ejemplo"
@@ -190,11 +172,11 @@ action(Controller::class, ['lang' => 'es']); // Returns "/es/ejemplo"
 ```
 
 > [!WARNING]
-> `lang` is a reserved parameter name. The URL generator consumes it to select the locale, so it never reaches the route: a route defining its own `{lang}` parameter (e.g. `/translate/{lang}/text`) cannot be generated via `route()` or `action()`.
+> `lang` is reserved for selecting the URL's language. Use a different name for route parameters: URLs containing `{lang}` cannot be generated with `route()` or `action()`.
 
 ## Route Caching
 
-Localized routes are fully compatible with Laravel's route caching, with no custom cache setup required. When routes are cached, the package skips route generation at runtime (the localized variants are already included in the cache).
+Localized routes support Laravel's standard route caching:
 
 ```sh
 php artisan route:cache
@@ -202,9 +184,17 @@ php artisan route:cache
 
 ## Locale Preference
 
-This package provides a mechanism for automatically detecting a user's preferred language.
+To detect the user's preferred language, add `SetPreferredLocale` to your existing `bootstrap/app.php` configuration:
 
-The `SetPreferredLocale` middleware is responsible for populating the preferred locale. It does this by checking a series of configurable **preferred locale resolvers**.
+```php
+->withMiddleware(function (Middleware $middleware): void {
+    $middleware->web(append: [
+        \Goodcat\L10n\Middleware\SetPreferredLocale::class,
+    ]);
+})
+```
+
+This optional middleware resolves a preference without changing the active locale.
 
 By default, the package checks the following sources in order:
 
@@ -217,28 +207,30 @@ By default, the package checks the following sources in order:
 Optionally add `RedirectToPreferredLocale` after `SetPreferredLocale` in the web middleware group:
 
 ```php
-$middleware->web([
-    \Goodcat\L10n\Middleware\SetLocale::class,
+$middleware->web(append: [
     \Goodcat\L10n\Middleware\SetPreferredLocale::class,
     \Goodcat\L10n\Middleware\RedirectToPreferredLocale::class,
 ]);
 ```
 
-On the first GET request to a route with translations, it uses [`getPreferredLocale()`](#application-helpers) to select a matching translation and redirects if its locale differs from the current one (HTTP 302), preserving route parameters and query strings. The check runs once per session, even when no redirect is needed, so subsequent locale switching remains unrestricted.
+On the first GET request to a route with translations, the user is redirected to their preferred language if it is available and differs from the current one (HTTP 302). The check runs once per session, even when no redirect is needed, so the user can switch languages freely afterward.
 
-It requires Laravel's `StartSession` middleware (already included in `web`), with a shared session when using translated domains. For stateless requests, write your own middleware using this one as a reference.
+This feature requires a session, which Laravel's `web` group provides. When using translated domains, configure a shared session across those domains.
 
 ### Customizing Resolvers
 
-You can customize the resolvers by setting the static property on the `L10n` class. Do this in the `boot()` method of a service provider, such as `AppServiceProvider`:
+To choose which sources to check and in what order, set the resolvers in the `boot()` method of your `AppServiceProvider`:
 
 ```php
 use Goodcat\L10n\L10n;
 use Goodcat\L10n\Resolvers\BrowserLocale;
 
-L10n::$preferredLocaleResolvers = [
-    new BrowserLocale,
-];
+public function boot(): void
+{
+    L10n::$preferredLocaleResolvers = [
+        new BrowserLocale,
+    ];
+}
 ```
 
 ### Creating a Custom Resolver
@@ -260,7 +252,7 @@ class CookieLocale implements LocaleResolver
 }
 ```
 
-Then add it to the resolver chain. Your application is responsible for setting the cookie:
+Then add it to the resolvers in your `AppServiceProvider::boot()` method. Your application is responsible for setting the cookie:
 
 ```php
 use App\Resolvers\CookieLocale;
@@ -268,11 +260,14 @@ use Goodcat\L10n\L10n;
 use Goodcat\L10n\Resolvers\BrowserLocale;
 use Goodcat\L10n\Resolvers\UserLocale;
 
-L10n::$preferredLocaleResolvers = [
-    new CookieLocale,
-    new UserLocale,
-    new BrowserLocale,
-];
+public function boot(): void
+{
+    L10n::$preferredLocaleResolvers = [
+        new CookieLocale,
+        new UserLocale,
+        new BrowserLocale,
+    ];
+}
 ```
 
 ## Helpers
@@ -308,8 +303,7 @@ app()->getPreferredLocale(['en', 'es']) ?? 'en';
 ### Route Helpers
 
 ```php
-// Get the locale served by a route. A route without l10n
-// metadata counts as the fallback locale.
+// Get the route's language, or the fallback locale for a non-localized route
 $request->route()->locale(); // Returns string
 ```
 
@@ -322,7 +316,7 @@ L10n::is('dashboard');  // Matches /dashboard, /es/dashboard, /it/bacheca, etc.
 L10n::is('admin.*');    // Wildcard patterns are supported, just like Route::is()
 ```
 
-This is the localized equivalent of `Route::is()`. It resolves the canonical route behind any localized variant and delegates to `Route::named()`.
+Use the original route name in your patterns, without a locale suffix.
 
 ## Components
 
@@ -385,18 +379,11 @@ To customize the HTML output of the Blade components, publish the views:
 php artisan vendor:publish --tag=l10n-views
 ```
 
-This copies the templates to `resources/views/vendor/l10n/components/`. Each template documents the available variables in a docblock at the top of the file.
+Edit the published templates in `resources/views/vendor/l10n/components/`. Each template lists the variables available for customization.
 
 ## Localized Views
 
-The application's view loader is configured to automatically search for a localized version of a view before falling back to the generic one.
-
-When you render a view, the system follows a specific search order based on the current application locale.
-
-- **Locale-specific path**: The application first tries to find the view within a folder that matches the current locale. For example, if the locale is set to `it`, it will look for the `example` view in `resources/views/it/example.blade.php`.
-- **Generic path**: If the view is not found in the locale-specific folder, it will then fall back to the generic `resources/views/example.blade.php`.
-
-This makes it straightforward to organize your views with a clean, language-based folder structure, like the one below.
+Organize language-specific views in folders named after their locale:
 
 ```
 /resources/views
@@ -407,12 +394,12 @@ This makes it straightforward to organize your views with a clean, language-base
     └── example.blade.php
 ```
 
-The `example.blade.php` file in the root views folder can serve as your default template, while the localized versions (`it/example.blade.php`, `es/example.blade.php`) contain language-specific content or layouts.
+Call `view('example')` as usual. When the current locale is `it`, it renders `resources/views/it/example.blade.php` if available, otherwise `resources/views/example.blade.php`.
 
 ## JavaScript URL Generation
 
 This package provides helper functions for generating localized URLs in your JavaScript/TypeScript frontend.
-Two stubs are available: one for [Wayfinder](https://github.com/laravel/wayfinder) and one for [Ziggy](https://github.com/tightenco/ziggy).
+Choose the helper for [Wayfinder](https://github.com/laravel/wayfinder) or [Ziggy](https://github.com/tightenco/ziggy).
 Given the following route definition:
 
 ```php
@@ -452,7 +439,7 @@ The locale is resolved in the following order:
 
 During server-side rendering, pass `lang` explicitly to select a localized route; without it, the helper falls back to the canonical route.
 
-In the generated files the canonical route is exported under the `__canonical` key instead of the fallback locale name, while translations keep their locale keys (`it`, `es`). You only need the marker when calling the canonical route directly, without the `route()` helper: `foo.__canonical({ id: 1 })`.
+To call the canonical route directly, use `foo.__canonical({ id: 1 })`.
 
 ### Ziggy
 
@@ -472,9 +459,8 @@ import { route } from '@/l10n';
 route('foo', { id: 1, lang: 'it' });
 ```
 
-The function automatically looks for a localized route by appending the locale to the route name (e.g., `foo.es`).
-If a localized route exists, it uses that; otherwise, it falls back to the original route name.
+The helper uses the `lang` parameter first, then the HTML `lang` attribute, and falls back to the canonical route if no translation matches. Regional locales such as `pt-BR` also match Laravel's underscore format, `pt_BR`.
 
-The locale is resolved from the `lang` parameter first, then from the HTML `lang` attribute. For regional locales, the helper tries both the original value and Laravel's underscore format, so `pt-BR` can match either `foo.pt-BR` or `foo.pt_BR`. During server-side rendering, pass `lang` explicitly to select a localized route; without it, the helper falls back to the canonical route.
+During server-side rendering, pass `lang` explicitly to select a localized route; without it, the helper falls back to the canonical route.
 
 All Ziggy arguments are forwarded, including an explicit configuration object as the fourth argument. Calling `route()` without a route name returns Ziggy's `Router` instance as usual.

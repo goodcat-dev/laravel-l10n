@@ -46,16 +46,46 @@ it('detects and set the route locale', function () {
     }
 });
 
+it('uses the route locale for binding and restores it on the canonical route', function (string $group) {
+    config(['app.key' => str_repeat('a', 32), 'session.driver' => 'array']);
+
+    Route::bind('value', fn () => app()->getLocale());
+
+    Route::get('example/{value}', function (Request $request, string $value) {
+        return [$value, $request->getLocale()];
+    })->middleware($group)->lang(['es']);
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    app()->setLocale('fr');
+
+    get('/es/example/42')->assertExactJson(['es', 'es']);
+    get('/example/42')->assertExactJson(['en', 'en']);
+})->with(['web', 'api']);
+
+it('preserves the application locale on routes without localization', function () {
+    Route::get('plain', fn () => app()->getLocale())->middleware('api');
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    app()->setLocale('fr');
+
+    get('/plain')->assertContent('fr');
+});
+
 it('skips a translation that collides with the canonical route', function () {
     config(['l10n.route_strategy' => 'no_prefix']);
 
-    Route::get('/untranslated', fn () => 'Hello, World!')
+    Route::get('/untranslated', fn () => app()->getLocale())
+        ->middleware('api')
         ->lang(['es'])
         ->name('untranslated');
 
     app(L10n::class)->registerLocalizedRoutes();
 
-    get('/untranslated')->assertOk();
+    app()->setLocale('fr');
+
+    get('/untranslated')->assertContent('en');
 
     expect(app(Router::class)->getRoutes()->getByName('untranslated'))
         ->not->toBeNull()
