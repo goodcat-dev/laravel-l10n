@@ -4,14 +4,11 @@ use Goodcat\L10n\L10n;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Translation\Translator;
 use Tighten\Ziggy\Ziggy;
 
 beforeEach(fn () => Ziggy::clearRoutes());
 
 it('keeps generated route names out of Ziggy', function () {
-    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
-
     config(['l10n.route_strategy' => 'no_prefix']);
 
     $canonical = Route::get('/example', fn () => 'Hello, World!')->lang(['es']);
@@ -27,8 +24,6 @@ it('generates localized routes with Ziggy', function (
     string $canonicalUri,
     string $localizedUri,
 ) {
-    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
-
     config(['l10n.route_strategy' => $strategy]);
 
     Route::get('/example', fn () => 'Hello, World!')

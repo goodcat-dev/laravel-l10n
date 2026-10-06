@@ -3,13 +3,10 @@
 use Goodcat\L10n\L10n;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Translation\Translator;
 
 use function Pest\Laravel\get;
 
 it('renders alternate hreflang links for the current route', function () {
-    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
-
     Route::get('/products/{product}', fn () => Blade::render('<x-l10n::alternate />'))
         ->lang(['es', 'it'])
         ->name('products.show');
@@ -29,8 +26,6 @@ it('renders alternate hreflang links for the current route', function () {
 });
 
 it('renders alternate hreflang links from a localized route', function () {
-    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
-
     Route::get('/products/{product}', fn () => Blade::render('<x-l10n::alternate />'))
         ->lang(['es', 'it'])
         ->name('products.show');

@@ -3,13 +3,10 @@
 use Goodcat\L10n\L10n;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Translation\Translator;
 
 use function Pest\Laravel\get;
 
 it('renders a locale switcher for the current route', function () {
-    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
-
     Route::get('/products/{product}', fn () => Blade::render('<x-l10n::switcher />'))
         ->lang(['es', 'it'])
         ->name('products.show');
@@ -30,8 +27,6 @@ it('renders a locale switcher for the current route', function () {
 });
 
 it('preserves the current query string without overriding route parameters', function () {
-    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
-
     Route::get('/products/{product}', fn () => Blade::render('<x-l10n::switcher />'))
         ->lang(['es', 'it'])
         ->name('products.show');

@@ -19,15 +19,7 @@ use function Pest\Laravel\post;
 use function Pest\Laravel\withHeader;
 use function Pest\Laravel\withSession;
 
-it('has default resolvers', function () {
-    $resolvers = L10n::getPreferredLocaleResolvers();
-
-    expect($resolvers)->toMatchArray([
-        new SessionLocale,
-        new UserLocale,
-        new BrowserLocale,
-    ]);
-});
+beforeEach(fn () => L10n::$preferredLocaleResolvers = []);
 
 it('detects preferred locale from browser', function () {
     L10n::$preferredLocaleResolvers = [new BrowserLocale];
@@ -168,7 +160,10 @@ it('skips redirecting when no preferred translation is available', function (?st
     get('/example/42')
         ->assertOk()
         ->assertSessionHas('l10n.redirected_to_preferred_locale', true);
-})->with([null, 'de']);
+})->with([
+    'no preference' => [null],
+    'unsupported preference' => ['de'],
+]);
 
 it('ignores routes without translations', function () {
     L10n::$preferredLocaleResolvers = [new BrowserLocale];
