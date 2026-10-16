@@ -136,6 +136,63 @@ return [
 
 The localized route still binds `post` by its slug.
 
+### Translated Route Keys
+
+If the route key itself is translated (for example a slug stored per locale), implement `HasLocalizedRouteKey` on the model. The package calls it when generating a URL for a localized route, passing the route locale and the binding field:
+
+```php
+use Goodcat\L10n\Contracts\HasLocalizedRouteKey;
+
+class Post extends Model implements HasLocalizedRouteKey
+{
+    use HasTranslations;
+
+    public array $translatable = ['slug'];
+
+    public function getLocalizedRouteKey(string $locale, ?string $field = null): ?string
+    {
+        return $this->getTranslation($field ?? $this->getRouteKeyName(), $locale, false) ?: null;
+    }
+}
+```
+
+```php
+route('posts.show', ['post' => $post, 'lang' => 'it']); // Returns "/it/articolo/ciao-mondo"
+```
+
+Return `null` when the model has no translation for a locale. The locale switcher, the hreflang links and the `RedirectToPreferredLocale` middleware skip that locale, while `route()` and `action()` fall back to the canonical route:
+
+```php
+// The post has no Italian translation
+route('posts.show', ['post' => $post, 'lang' => 'it']); // Returns "/article/hello-world"
+```
+
+The canonical route key is always required: if it is `null` too, a `UrlGenerationException` is thrown.
+
+Incoming requests are resolved by the model's own binding. Look up the slug in the route locale to answer with a 404 when the post has no translation, or its slug belongs to another locale:
+
+```php
+public function resolveRouteBinding($value, $field = null): ?self
+{
+    $field ??= $this->getRouteKeyName();
+
+    return $this->where("$field->".app()->getLocale(), $value)->first();
+}
+```
+
+To redirect instead, let the binding match the slug of any locale and send the visitor to the right URL:
+
+```php
+public function show(Request $request, Post $post)
+{
+    if ($request->route()->originalParameter('post') !== $post->getLocalizedRouteKey(app()->getLocale())) {
+        return redirect()->route('posts.show', $post, 301);
+    }
+
+    // ...
+}
+```
+
 ### Domain Translations
 
 If your application uses domain-based routing, you can translate domains in the same `routes.php` language files. The key is the original domain string:

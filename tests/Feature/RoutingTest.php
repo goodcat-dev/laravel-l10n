@@ -4,8 +4,10 @@ use Goodcat\L10n\Contracts\LocalizedRoute;
 use Goodcat\L10n\L10n;
 use Goodcat\L10n\Middleware\SetLocale;
 use Goodcat\L10n\Tests\Support\Controller;
+use Goodcat\L10n\Tests\Support\Post;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Exceptions\UrlGenerationException;
 use Illuminate\Routing\RouteCollection;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
@@ -676,4 +678,68 @@ it('signs and validates urls on localized routes across locales', function () {
     get($url)->assertOk()->assertSee('es:valid');
 
     get($url.'&tampered=1')->assertOk()->assertSee('invalid');
+});
+
+it('generates localized uri with the localized route key', function () {
+    Route::get('/posts/{post:slug}', fn () => 'Hello, World!')
+        ->name('posts.show')
+        ->lang(['es']);
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    $post = new Post(['slug' => ['en' => 'hello-world', 'es' => 'hola-mundo']]);
+
+    expect(route('posts.show', $post))
+        ->toBe('http://localhost/posts/hello-world')
+        ->and(route('posts.show', ['post' => $post, 'lang' => 'es']))
+        ->toBe('http://localhost/es/articulos/hola-mundo');
+});
+
+it('falls back to the canonical route without the localized route key', function () {
+    Route::get('/posts/{post:slug}', fn () => 'Hello, World!')
+        ->name('posts.show')
+        ->lang(['es']);
+
+    Route::get('/posts/{post:slug}/edit', Controller::class)
+        ->lang(['es']);
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    $post = new Post(['slug' => ['en' => 'hello-world']]);
+
+    app()->setLocale('es');
+
+    expect(route('posts.show', $post))
+        ->toBe('http://localhost/posts/hello-world')
+        ->and(route('posts.show', ['post' => $post, 'lang' => 'es']))
+        ->toBe('http://localhost/posts/hello-world')
+        ->and(action(Controller::class, $post))
+        ->toBe('http://localhost/posts/hello-world/edit');
+});
+
+it('fails to generate a uri without the canonical route key', function () {
+    Route::get('/posts/{post:slug}', fn () => 'Hello, World!')
+        ->name('posts.show')
+        ->lang(['es']);
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    route('posts.show', new Post(['slug' => ['es' => 'hola-mundo']]));
+})->throws(UrlGenerationException::class, 'Missing required parameter for [Route: posts.show] [URI: posts/{post}] [Missing parameter: post].');
+
+it('generates localized uri with an optional localized route key', function () {
+    Route::get('/posts/{post:slug?}', fn () => 'Hello, World!')
+        ->name('posts.show')
+        ->lang(['es']);
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    $post = new Post(['slug' => ['en' => 'hello-world', 'es' => 'hola-mundo']]);
+
+    expect(route('posts.show', ['lang' => 'es']))
+        ->toBe('http://localhost/es/articulos')
+        ->and(route('posts.show', ['post' => $post, 'lang' => 'es']))
+        ->toBe('http://localhost/es/articulos/hola-mundo')
+        ->and(route('posts.show', ['post' => new Post(['slug' => ['en' => 'hello-world']]), 'lang' => 'es']))
+        ->toBe('http://localhost/posts/hello-world');
 });

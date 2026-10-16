@@ -5,6 +5,7 @@ namespace Goodcat\L10n;
 use Closure;
 use Goodcat\L10n\Listeners\RegisterLocalizedViewsPath;
 use Goodcat\L10n\Listeners\RegisterWayfinderCanonicalRoute;
+use Goodcat\L10n\Middleware\RedirectToPreferredLocale;
 use Goodcat\L10n\Middleware\SetLocale;
 use Goodcat\L10n\Mixin\LocalizedApplication;
 use Goodcat\L10n\Mixin\LocalizedRoute;
@@ -35,6 +36,8 @@ class L10nServiceProvider extends ServiceProvider
             }
 
             $kernel->addToMiddlewarePriorityBefore(SubstituteBindings::class, SetLocale::class);
+
+            $kernel->addToMiddlewarePriorityAfter(SubstituteBindings::class, RedirectToPreferredLocale::class);
         });
 
         $this->publishes([__DIR__.'/../config/l10n.php' => config_path('l10n.php')], 'l10n-config');

@@ -4,5 +4,6 @@ return [
     'example' => 'ejemplo',
     'products/{product}' => 'productos/{product}',
     'posts/{post}' => 'articulos/{post}',
+    'posts/{post?}' => 'articulos/{post?}',
     'example.com' => 'es.example.com',
 ];

@@ -4,6 +4,7 @@ namespace Goodcat\L10n\Middleware;
 
 use Closure;
 use Goodcat\L10n\Contracts\LocalizedRoute;
+use Goodcat\L10n\Routing\LocalizedUrlGenerator;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Exceptions\UrlGenerationException;
 use Illuminate\Routing\Route;
@@ -27,7 +28,20 @@ class RedirectToPreferredLocale
         /** @var (Route&LocalizedRoute)|null $route */
         $route = $request->route();
 
-        if (! $route || count($translations = $route->getTranslations()) < 2) {
+        if (! $route) {
+            return $next($request);
+        }
+
+        $url = app(LocalizedUrlGenerator::class);
+
+        $parameters = $route->parameters() + $request->query();
+
+        $translations = array_filter(
+            $route->getTranslations(),
+            fn (Route $translation) => ! is_null($url->localizeParameters($translation, $parameters)),
+        );
+
+        if (count($translations) < 2) {
             return $next($request);
         }
 
@@ -39,10 +53,6 @@ class RedirectToPreferredLocale
             return $next($request);
         }
 
-        return redirect()->to(url()->toRoute(
-            $translations[$locale],
-            $route->parameters() + $request->query(),
-            true,
-        ));
+        return redirect()->to($url->toRoute($translations[$locale], $parameters, true));
     }
 }
