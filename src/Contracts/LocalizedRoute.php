@@ -9,15 +9,18 @@ interface LocalizedRoute
     /** @see \Goodcat\L10n\Mixin\LocalizedRoute::canonical */
     public function canonical(): Route;
 
+    /** @see \Goodcat\L10n\Mixin\LocalizedRoute::isCanonical */
+    public function isCanonical(): bool;
+
+    /** @see \Goodcat\L10n\Mixin\LocalizedRoute::isTranslation */
+    public function isTranslation(): bool;
+
     /**
      * @param  list<string>  $translations
      *
      * @see \Goodcat\L10n\Mixin\LocalizedRoute::lang
      */
     public function lang(array $translations = []): Route;
-
-    /** @see \Goodcat\L10n\Mixin\LocalizedRoute::needsLocalization */
-    public function needsLocalization(): bool;
 
     /**
      * The locale served by this route. A route without l10n
@@ -36,6 +39,9 @@ interface LocalizedRoute
      * @see \Goodcat\L10n\Mixin\LocalizedRoute::getTranslations
      */
     public function getTranslations(string ...$locales): array;
+
+    /** @see \Goodcat\L10n\Mixin\LocalizedRoute::getTranslation */
+    public function getTranslation(string $locale): ?Route;
 
     /**
      * @return array<string, Route>

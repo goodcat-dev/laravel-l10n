@@ -306,6 +306,26 @@ it('generates the url for the requested locale', function (string $name, array $
     'translation with an unsupported lang' => ['example.it', ['lang' => 'de'], 'http://localhost/it/example'],
 ]);
 
+it('keeps the lang parameter on routes without localization', function () {
+    Route::get('/plain/{lang}', Controller::class)->name('plain.segment');
+    Route::get('/plain', Controller::class)->name('plain.query');
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    expect(route('plain.segment', ['lang' => 'it']))
+        ->toBe('http://localhost/plain/it')
+        ->and(route('plain.query', ['lang' => 'it']))
+        ->toBe('http://localhost/plain?lang=it');
+});
+
+it('redirects to a destination with a lang segment', function () {
+    Route::redirect('/old/{lang}', '/new/{lang}');
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    get('/old/it')->assertRedirect('/new/it');
+});
+
 it('generates the url for the application locale unless the route is a translation', function () {
     Route::get('/example', Controller::class)
         ->name('example')
@@ -590,6 +610,57 @@ test('getTranslations() throws when a registered translation is missing', functi
 
     expect(fn () => $route->getTranslations())
         ->toThrow(RouteNotFoundException::class, 'Translated route [missing-name] not defined.');
+});
+
+test('getTranslation() returns the translation for a locale from any localized route', function () {
+    Route::get('/example', fn () => 'Hello, World!')
+        ->name('example')
+        ->lang(['es']);
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    $canonical = Route::getRoutes()->getByName('example');
+    $translated = Route::getRoutes()->getByName('example.es');
+
+    expect($canonical->getTranslation('es'))
+        ->toBe($translated)
+        ->and($translated->getTranslation('en'))
+        ->toBe($canonical)
+        ->and($translated->getTranslation('es'))
+        ->toBe($translated)
+        ->and($canonical->getTranslation('de'))
+        ->toBeNull();
+});
+
+test('getTranslation() returns only the fallback locale for a route without translations', function () {
+    $plain = Route::get('/plain', fn () => 'Hello, World!');
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    expect($plain->getTranslation('en'))
+        ->toBe($plain)
+        ->and($plain->getTranslation('es'))
+        ->toBeNull();
+});
+
+test('isCanonical() and isTranslation() tell the role of a route', function () {
+    Route::get('/example', fn () => 'Hello, World!')
+        ->name('example')
+        ->lang(['es']);
+
+    $plain = Route::get('/plain', fn () => 'Hello, World!');
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    $canonical = Route::getRoutes()->getByName('example');
+    $translated = Route::getRoutes()->getByName('example.es');
+
+    expect($canonical->isCanonical())->toBeTrue()
+        ->and($canonical->isTranslation())->toBeFalse()
+        ->and($translated->isCanonical())->toBeFalse()
+        ->and($translated->isTranslation())->toBeTrue()
+        ->and($plain->isCanonical())->toBeFalse()
+        ->and($plain->isTranslation())->toBeFalse();
 });
 
 test('canonical() throws when the canonical route is not registered', function () {

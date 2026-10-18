@@ -9,16 +9,24 @@ All notable changes to this project will be documented in this file.
 - Adds the `HasLocalizedRouteKey` contract to generate URLs with a model's route key in the target locale.
 - Skips locales without a localized route key in the switcher, hreflang links and preferred locale redirect.
 - Falls back to the canonical route in `route()` and `action()` when a model has no localized route key.
+- Adds the `isCanonical()` and `isTranslation()` route methods to check a route's role in localization.
+- Adds the `getTranslation()` route method to get the registered route for a single locale.
 
 ### Changed
 
 - Registers `SetLocale` automatically in the `web` and `api` groups, before `SubstituteBindings`.
 - Sets the fallback locale explicitly on localized canonical routes in every routing strategy.
 - Runs `RedirectToPreferredLocale` after `SubstituteBindings`, so it redirects with the bound models.
+- Resolves the requested locale in `toRoute()` too, so redirects and `URL::toRoute()` behave like `route()`.
+
+### Removed
+
+- Removes the internal `needsLocalization()` route method.
 
 ### Fixed
 
 - Preserves the current query string in alternate hreflang links, including `x-default`.
+- Keeps the `lang` parameter on routes without localization, so `{lang}` segments generate their URL.
 
 ## v0.5.3
 

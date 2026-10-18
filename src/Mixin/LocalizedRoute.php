@@ -37,6 +37,22 @@ class LocalizedRoute
         };
     }
 
+    /** @return Closure(): bool */
+    public function isCanonical(): Closure
+    {
+        return function (): bool {
+            return (bool) $this->getAction('lang');
+        };
+    }
+
+    /** @return Closure(): bool */
+    public function isTranslation(): Closure
+    {
+        return function (): bool {
+            return (bool) $this->getAction('canonical');
+        };
+    }
+
     /**
      * @return Closure(list<string>=): self
      */
@@ -46,16 +62,6 @@ class LocalizedRoute
             $this->action['lang'] = array_unique(array_merge($this->action['lang'] ?? [], $translations));
 
             return $this;
-        };
-    }
-
-    /** @return Closure(): bool */
-    public function needsLocalization(): Closure
-    {
-        return function (): bool {
-            return (bool) $this->getAction('lang')
-                && ! $this->getAction('canonical')
-                && $this->getAction('translations') === null;
         };
     }
 
@@ -107,6 +113,14 @@ class LocalizedRoute
             }
 
             return $translations;
+        };
+    }
+
+    /** @return Closure(string): ?Route */
+    public function getTranslation(): Closure
+    {
+        return function (string $locale): ?Route {
+            return (new LocalizedRoute)->getTranslations()->call($this, $locale)[$locale] ?? null;
         };
     }
 

@@ -32,13 +32,11 @@ class Alternate extends Component
 
         $parameters = $route->parameters() + request()->query();
 
-        if (! is_null($localized = $url->localizeParameters($route->canonical(), $parameters))) {
-            $this->canonical = $url->toRoute($route->canonical(), $localized, true);
-        }
+        $this->canonical = $url->toExactRoute($route->canonical(), $parameters) ?? '';
 
         foreach ($translations as $locale => $translation) {
-            if (! is_null($localized = $url->localizeParameters($translation, $parameters))) {
-                $this->alternates[$locale] = $url->toRoute($translation, $localized, true);
+            if (! is_null($href = $url->toExactRoute($translation, $parameters))) {
+                $this->alternates[$locale] = $href;
             }
         }
 

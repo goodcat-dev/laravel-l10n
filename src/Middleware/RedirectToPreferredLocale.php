@@ -36,23 +36,23 @@ class RedirectToPreferredLocale
 
         $parameters = $route->parameters() + $request->query();
 
-        $translations = array_filter(
+        $urls = array_filter(array_map(
+            fn (Route $translation) => $url->toExactRoute($translation, $parameters),
             $route->getTranslations(),
-            fn (Route $translation) => ! is_null($url->localizeParameters($translation, $parameters)),
-        );
+        ));
 
-        if (count($translations) < 2) {
+        if (count($urls) < 2) {
             return $next($request);
         }
 
         $request->session()->put('l10n.redirected_to_preferred_locale', true);
 
-        $locale = app()->getPreferredLocale(array_keys($translations));
+        $locale = app()->getPreferredLocale(array_keys($urls));
 
         if (! $locale || $locale === $route->locale()) {
             return $next($request);
         }
 
-        return redirect()->to($url->toRoute($translations[$locale], $parameters, true));
+        return redirect()->to($urls[$locale]);
     }
 }

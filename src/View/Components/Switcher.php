@@ -35,8 +35,8 @@ class Switcher extends Component
         $this->current = $route->locale();
 
         foreach ($translations as $locale => $translation) {
-            if (! is_null($localized = $url->localizeParameters($translation, $parameters))) {
-                $this->translations[$locale] = $url->toRoute($translation, $localized, true);
+            if (! is_null($href = $url->toExactRoute($translation, $parameters))) {
+                $this->translations[$locale] = $href;
             }
         }
 

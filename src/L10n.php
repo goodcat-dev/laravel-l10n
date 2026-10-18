@@ -28,7 +28,7 @@ class L10n
 
         foreach ($router->getRoutes()->getRoutes() as $route) {
             /** @var Route&LocalizedRoute $route */
-            if (! $route->needsLocalization()) {
+            if (! $route->isCanonical() || $route->getAction('translations') !== null) {
                 $collection->add($route);
 
                 continue;
