@@ -22,6 +22,7 @@ To enable optional preferred locale detection, register `SetPreferredLocale` in 
 
 - `SetLocale` sets the active application and request locale to the route's language. Canonical routes declared with `lang()` explicitly use `APP_FALLBACK_LOCALE` in every strategy, even if their translations collide. Routes without localization preserve the application's locale.
 - `SetPreferredLocale` checks Session, User, then Browser and stores the preferences of the first resolver that detects any, as an ordered list, in `config('app.preferred_locales')` for the current application. It does not persist them to the session or user.
+- `RedirectToPreferredLocale` is optional: append it after `SetPreferredLocale`. On the first GET request of a session to a route with translations, it redirects (302) to the preferred locale when available. The package orders it after `SubstituteBindings`, so redirects use the bound models. It requires a session.
 
 ## Route definitions
 
@@ -42,7 +43,7 @@ Route::lang(['es', 'it'])->group(function () {
 </code-snippet>
 @endverbatim
 
-After the application boots, the package registers localized variants of routes declared with `lang()`. A route named `example` gets variants such as `example.es` and `example.it`; its canonical route keeps the name `example`. To generate an URL for a specific locale, pass `['lang' => $locale]` to `route('example', ...)` instead of constructing a localized name.
+After the application boots, the package registers localized variants of routes declared with `lang()`. A route named `example` gets variants such as `example.es` and `example.it`; its canonical route keeps the name `example`. To generate an URL for a specific locale, prefer passing `['lang' => $locale]` to `route('example', ...)` over constructing a localized name. Both `lang` and a localized name such as `route('example.es')` request that locale explicitly.
 
 ## Route translation files
 
@@ -77,6 +78,47 @@ action(ExampleController::class, ['lang' => 'es']); // /es/ejemplo
 route('example');
 </code-snippet>
 @endverbatim
+
+## Translated route keys
+
+When the route key itself is translated (for example a slug stored per locale), implement `Goodcat\L10n\Contracts\HasLocalizedRouteKey` on the model. Return the key for the given locale and binding field, or `null` when the model has no translation in that locale:
+
+@verbatim
+<code-snippet name="Model with a translated slug" lang="php">
+use Goodcat\L10n\Contracts\HasLocalizedRouteKey;
+
+class Post extends Model implements HasLocalizedRouteKey
+{
+    use HasTranslations; // spatie/laravel-translatable
+
+    public array $translatable = ['slug'];
+
+    public function getLocalizedRouteKey(string $locale, ?string $field = null): ?string
+    {
+        return $this->getTranslation($field ?? $this->getRouteKeyName(), $locale, false) ?: null;
+    }
+}
+</code-snippet>
+@endverbatim
+
+Pass the model, not its key, to `route()` and `action()`: a string parameter is used as-is in every locale. When the model returns `null` for the selected locale:
+
+@verbatim
+<code-snippet name="Missing localized route key" lang="php">
+// Implicit locale: falls back to the canonical route
+route('posts.show', $post); // /posts/hello-world
+
+// Explicit locale: throws Goodcat\L10n\Routing\Exceptions\MissingLocalizedRouteKeyException
+route('posts.show', ['post' => $post, 'lang' => 'it']);
+route('posts.show.it', $post);
+</code-snippet>
+@endverbatim
+
+`MissingLocalizedRouteKeyException` extends `UrlGenerationException`; catch it to skip a locale, for example in a sitemap. The canonical route key is always required: a model without a key in the fallback locale throws even with an implicit locale. For content available in another locale only, pass `lang` explicitly.
+
+Incoming requests are resolved by the model's own `resolveRouteBinding()`, which runs with the route locale already set. Look up the key in `app()->getLocale()` only to answer with a 404 for keys of other locales. If the binding accepts the keys of every locale, redirect in the controller when the URL key differs from `$post->getLocalizedRouteKey(app()->getLocale())`.
+
+For a route parameter without implicit binding, register an explicit `Route::bind()` that returns the model, so the components and the redirect middleware can localize it.
 
 ## Config
 
@@ -124,6 +166,11 @@ app()->getPreferredLocale(['en', 'es']); // ?string — best match among the giv
 app()->setPreferredLocale($locale); // accepts a locale or a list, dispatches PreferredLocaleUpdated event (see below)
 app()->isFallbackLocale('en'); // bool — true if 'en' is the fallback locale
 
+$request->route()->locale();   // string — the route's language, or the fallback locale for a non-localized route
+$route->isCanonical();         // bool — true for the canonical route of a route declared with lang()
+$route->isTranslation();       // bool — true for a registered localized variant
+$route->getTranslation('es');  // ?Route — the registered route for a single locale
+
 L10n::is('example');           // bool — like Route::is() but matches across all localized variants
 L10n::is('admin.*');           // supports wildcard patterns (delegates to Route::named())
 </code-snippet>
@@ -158,6 +205,15 @@ resources/views/
 ```
 
 The directory must exist on disk; otherwise the step is silently skipped.
+
+## Blade components
+
+@verbatim
+- `<x-l10n::alternate />` in the `<head>` renders `<link rel="alternate" hreflang="...">` tags for every locale of the current route, plus `x-default` for the canonical route.
+- `<x-l10n::switcher />` renders a `<select>` that reloads the page in the chosen locale. It accepts any HTML attribute.
+@endverbatim
+
+Both preserve the current query string, skip locales whose model has no localized route key, and render nothing for routes without translations. Publish the templates with `php artisan vendor:publish --tag=l10n-views`.
 
 ## JavaScript integration
 
