@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## v0.5.4
+
+Released on _**2026-10-24**_.
+
 ### Added
 
 - Adds the `HasLocalizedRouteKey` contract to generate URLs with a model's route key in the target locale.
