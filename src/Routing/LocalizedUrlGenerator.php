@@ -51,6 +51,8 @@ class LocalizedUrlGenerator extends UrlGenerator
     }
 
     /**
+     * @internal
+     *
      * @param  Route&LocalizedRoute  $route
      * @param  array<int|string, mixed>  $parameters
      * @return array<string, string>
