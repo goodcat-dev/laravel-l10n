@@ -2,56 +2,91 @@
 
 namespace Goodcat\L10n\Routing;
 
-use BackedEnum;
+use Goodcat\L10n\Contracts\HasLocalizedRouteKey;
 use Goodcat\L10n\Contracts\LocalizedRoute;
+use Goodcat\L10n\Routing\Exceptions\MissingLocalizedRouteKeyException;
+use Illuminate\Routing\Exceptions\UrlGenerationException;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\UrlGenerator;
 use Illuminate\Support\Arr;
-use InvalidArgumentException;
 
 class LocalizedUrlGenerator extends UrlGenerator
 {
-    public function route($name, $parameters = [], $absolute = true): string
+    /**
+     * @param  Route&LocalizedRoute  $route
+     *
+     * @throws UrlGenerationException
+     */
+    public function toRoute($route, $parameters, $absolute): string
     {
-        if ($name instanceof BackedEnum) {
-            if (! is_string($name = $name->value)) {
-                throw new InvalidArgumentException('Attribute [name] expects a string backed enum.');
+        if (! $route->isCanonical() && ! $route->isTranslation()) {
+            return parent::toRoute($route, $parameters, $absolute);
+        }
+
+        $parameters = Arr::wrap($parameters);
+
+        $lang = Arr::pull($parameters, 'lang');
+
+        // Fallback is allowed only when the locale is resolved from the app,
+        // not explicitly requested by the developer. E.g. route('post', ['lang' => 'es'])
+        $canFallback = $lang === null && ! $route->isTranslation();
+
+        $locale = $lang ?? ($route->isTranslation() ? $route->locale() : app()->getLocale());
+
+        $translation = $route->getTranslation($locale) ?? $route;
+
+        $candidates = $canFallback && $translation !== $route->canonical()
+            ? [$translation, $route->canonical()]
+            : [$translation];
+
+        foreach ($candidates as $candidate) {
+            $keys = $this->localizedRouteKeys($candidate, $parameters);
+
+            if (! in_array(null, $keys, true)) {
+                return parent::toRoute($candidate, array_replace($parameters, $keys), $absolute);
             }
         }
 
-        $parameters = Arr::wrap($parameters);
-
-        $locale = Arr::pull($parameters, 'lang');
-
-        if (! is_null($route = $this->routes->getByName($name))) {
-            /** @var Route&LocalizedRoute $route */
-            $locale ??= $route->getAction('canonical') ? $route->locale() : app()->getLocale();
-
-            $route = $route->getTranslations($locale)[$locale] ?? $route;
-
-            return $this->toRoute($route, $parameters, $absolute);
-        }
-
-        return parent::route($name, $parameters, $absolute);
+        throw MissingLocalizedRouteKeyException::forParameters($candidate, array_keys($keys, null, true));
     }
 
     /**
-     * @param  string|array<int|string, mixed>  $action
+     * @internal
+     *
+     * @param  Route&LocalizedRoute  $route
+     * @param  array<int|string, mixed>  $parameters
+     * @return array<string, string>
+     *
+     * @throws UrlGenerationException
      */
-    public function action($action, $parameters = [], $absolute = true): string
+    public function toTranslations(Route $route, array $parameters = [], bool $absolute = true): array
     {
-        if (is_null($route = $this->routes->getByAction($action = $this->formatAction($action)))) {
-            throw new InvalidArgumentException("Action {$action} not defined.");
+        $urls = [];
+
+        foreach ($route->getTranslations() as $locale => $translation) {
+            try {
+                $urls[$locale] = $this->toRoute($translation, ['lang' => $locale] + $parameters, $absolute);
+            } catch (MissingLocalizedRouteKeyException) {
+            }
         }
 
-        $parameters = Arr::wrap($parameters);
+        return $urls;
+    }
 
-        $locale = Arr::pull($parameters, 'lang')
-            ?? ($route->getAction('canonical') ? $route->locale() : app()->getLocale());
+    /**
+     * @param  array<int|string, mixed>  $parameters
+     * @return array<int|string, ?string>
+     */
+    protected function localizedRouteKeys(Route $route, array $parameters): array
+    {
+        $keys = [];
 
-        /** @var Route&LocalizedRoute $route */
-        $route = $route->getTranslations($locale)[$locale] ?? $route;
+        foreach ($parameters as $name => $parameter) {
+            if ($parameter instanceof HasLocalizedRouteKey) {
+                $keys[$name] = $parameter->getLocalizedRouteKey($route->locale(), $route->bindingFieldFor($name));
+            }
+        }
 
-        return $this->toRoute($route, $parameters, $absolute);
+        return $keys;
     }
 }

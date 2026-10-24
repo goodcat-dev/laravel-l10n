@@ -6,20 +6,21 @@ Route-level localization for Laravel. Locales are declared per-route (or per-gro
 
 ## Setup
 
-Register middleware in `bootstrap/app.php`:
+The service provider registers `SetLocale` automatically in the `web` and `api` middleware groups, with priority before `SubstituteBindings`. Routes outside these groups need explicit registration on the route or in their custom group; the package still manages its priority.
+
+To enable optional preferred locale detection, register `SetPreferredLocale` in `bootstrap/app.php`:
 
 @verbatim
 <code-snippet name="bootstrap/app.php" lang="php">
 ->withMiddleware(function (Middleware $middleware) {
-    $middleware->web([
-        \Goodcat\L10n\Middleware\SetLocale::class,
+    $middleware->web(append: [
         \Goodcat\L10n\Middleware\SetPreferredLocale::class,
     ]);
 })
 </code-snippet>
 @endverbatim
 
-- `SetLocale` sets the active application and request locale only when the matched route has explicit locale metadata.
+- `SetLocale` sets the active application and request locale to the route's language. Canonical routes declared with `lang()` explicitly use `APP_FALLBACK_LOCALE` in every strategy, even if their translations collide. Routes without localization preserve the application's locale.
 - `SetPreferredLocale` checks Session, User, then Browser and stores the preferences of the first resolver that detects any, as an ordered list, in `config('app.preferred_locales')` for the current application. It does not persist them to the session or user.
 
 ## Route definitions

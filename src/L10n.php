@@ -28,11 +28,13 @@ class L10n
 
         foreach ($router->getRoutes()->getRoutes() as $route) {
             /** @var Route&LocalizedRoute $route */
-            if (! $route->needsLocalization()) {
+            if (! $route->isCanonical() || $route->getAction('translations') !== null) {
                 $collection->add($route);
 
                 continue;
             }
+
+            $route->action['locale'] = app()->getFallbackLocale();
 
             if ($strategy->isPrefix()) {
                 $this->prefixCanonicalRoute($route);
@@ -70,8 +72,6 @@ class L10n
         $route
             ->prefix(app()->getFallbackLocale())
             ->setBindingFields($bindingFields);
-
-        $route->action['locale'] = app()->getFallbackLocale();
     }
 
     public function is(string ...$patterns): bool

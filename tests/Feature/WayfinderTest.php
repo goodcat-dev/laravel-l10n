@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Translation\Translator;
 use Symfony\Component\Console\Input\StringInput;
 use Symfony\Component\Console\Output\NullOutput;
 
@@ -83,8 +82,6 @@ it('does not duplicate the canonical route name when the fallback locale is in l
 });
 
 it('renames canonical cached routes', function (string $strategy) {
-    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
-
     config(['l10n.route_strategy' => $strategy]);
 
     Route::get('/example', fn () => 'Hello, World!')
@@ -118,7 +115,6 @@ it('renames canonical cached routes', function (string $strategy) {
 ]);
 
 it('generates the canonical marker with Wayfinder', function () {
-    app(Translator::class)->addPath(__DIR__.'/../Support/lang');
     config(['app.fallback_locale' => 'fr']);
 
     Route::get('/example/{id}', fn () => 'Hello, World!')

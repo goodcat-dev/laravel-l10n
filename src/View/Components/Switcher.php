@@ -4,11 +4,11 @@ namespace Goodcat\L10n\View\Components;
 
 use Closure;
 use Goodcat\L10n\Contracts\LocalizedRoute;
+use Goodcat\L10n\Routing\LocalizedUrlGenerator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Routing\Exceptions\UrlGenerationException;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
-use Illuminate\Routing\UrlGenerator;
 use Illuminate\View\Component;
 
 class Switcher extends Component
@@ -21,21 +21,21 @@ class Switcher extends Component
     /**
      * @throws UrlGenerationException
      */
-    public function __construct(UrlGenerator $url)
+    public function __construct(LocalizedUrlGenerator $url)
     {
         /** @var (LocalizedRoute&Route)|null $route */
         $route = app(Router::class)->current();
 
-        if (! $route || count($translations = $route->getTranslations()) < 2) {
+        if (! $route || count($route->getTranslations()) < 2) {
             return;
         }
 
-        $parameters = $route->parameters() + request()->query();
-
         $this->current = $route->locale();
 
-        foreach ($translations as $locale => $translation) {
-            $this->translations[$locale] = $url->toRoute($translation, $parameters, true);
+        $this->translations = $url->toTranslations($route, $route->parameters() + request()->query());
+
+        if (count($this->translations) < 2) {
+            $this->translations = [];
         }
     }
 

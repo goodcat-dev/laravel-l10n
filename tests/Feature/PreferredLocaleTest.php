@@ -7,8 +7,10 @@ use Goodcat\L10n\Middleware\SetPreferredLocale;
 use Goodcat\L10n\Resolvers\BrowserLocale;
 use Goodcat\L10n\Resolvers\SessionLocale;
 use Goodcat\L10n\Resolvers\UserLocale;
+use Goodcat\L10n\Tests\Support\Post;
 use Goodcat\L10n\Tests\Support\User;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
@@ -19,15 +21,7 @@ use function Pest\Laravel\post;
 use function Pest\Laravel\withHeader;
 use function Pest\Laravel\withSession;
 
-it('has default resolvers', function () {
-    $resolvers = L10n::getPreferredLocaleResolvers();
-
-    expect($resolvers)->toMatchArray([
-        new SessionLocale,
-        new UserLocale,
-        new BrowserLocale,
-    ]);
-});
+beforeEach(fn () => L10n::$preferredLocaleResolvers = []);
 
 it('detects preferred locale from browser', function () {
     L10n::$preferredLocaleResolvers = [new BrowserLocale];
@@ -152,6 +146,24 @@ it('redirects to the closest translation of a regional preference', function (st
     'unsupported first choice' => ['de-DE,de;q=0.9,pt-BR;q=0.8', 'example.pt_BR'],
 ]);
 
+it('redirects to a preferred locale with a localized route key', function () {
+    L10n::$preferredLocaleResolvers = [new BrowserLocale];
+
+    $post = new Post(['slug' => ['en' => 'hello-world', 'es' => 'hola-mundo']]);
+
+    Route::bind('post', fn () => $post);
+
+    Route::get('/posts/{post:slug}', fn () => 'Page')
+        ->middleware([StartSession::class, SetPreferredLocale::class, RedirectToPreferredLocale::class, SubstituteBindings::class])
+        ->lang(['es', 'it']);
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    withHeader('Accept-Language', 'it,es;q=0.9');
+
+    get('/posts/hello-world')->assertRedirect('http://localhost/es/articulos/hola-mundo');
+});
+
 it('skips redirecting when no preferred translation is available', function (?string $locale) {
     L10n::$preferredLocaleResolvers = [new BrowserLocale];
 
@@ -168,7 +180,10 @@ it('skips redirecting when no preferred translation is available', function (?st
     get('/example/42')
         ->assertOk()
         ->assertSessionHas('l10n.redirected_to_preferred_locale', true);
-})->with([null, 'de']);
+})->with([
+    'no preference' => [null],
+    'unsupported preference' => ['de'],
+]);
 
 it('ignores routes without translations', function () {
     L10n::$preferredLocaleResolvers = [new BrowserLocale];
