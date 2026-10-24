@@ -160,14 +160,26 @@ class Post extends Model implements HasLocalizedRouteKey
 route('posts.show', ['post' => $post, 'lang' => 'it']); // Returns "/it/articolo/ciao-mondo"
 ```
 
-Return `null` when the model has no translation for a locale. The locale switcher, the hreflang links and the `RedirectToPreferredLocale` middleware skip that locale, while `route()` and `action()` fall back to the canonical route:
+Return `null` when the model has no translation for a locale. The locale switcher, the hreflang links and the `RedirectToPreferredLocale` middleware skip that locale. Without an explicit locale, `route()` and `action()` fall back to the canonical route:
 
 ```php
-// The post has no Italian translation
-route('posts.show', ['post' => $post, 'lang' => 'it']); // Returns "/article/hello-world"
+// The post has no Italian translation and the application locale is "it"
+route('posts.show', $post); // Returns "/article/hello-world"
 ```
 
-The canonical route key is always required: if it is `null` too, a `UrlGenerationException` is thrown.
+When you ask for a locale explicitly, with the `lang` parameter or the name of a translated route, there is no fallback and a `MissingLocalizedRouteKeyException` is thrown. It extends `UrlGenerationException`, and you can catch it to skip the locale, for example in your own locale switcher or sitemap:
+
+```php
+use Goodcat\L10n\Routing\Exceptions\MissingLocalizedRouteKeyException;
+
+try {
+    $url = route('posts.show', ['post' => $post, 'lang' => 'it']);
+} catch (MissingLocalizedRouteKeyException) {
+    // The post has no Italian translation
+}
+```
+
+The canonical route key is always required: if it is `null` too, a `MissingLocalizedRouteKeyException` is thrown.
 
 Incoming requests are resolved by the model's own binding. Look up the slug in the route locale to answer with a 404 when the post has no translation, or its slug belongs to another locale:
 

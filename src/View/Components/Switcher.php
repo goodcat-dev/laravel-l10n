@@ -26,19 +26,13 @@ class Switcher extends Component
         /** @var (LocalizedRoute&Route)|null $route */
         $route = app(Router::class)->current();
 
-        if (! $route || count($translations = $route->getTranslations()) < 2) {
+        if (! $route || count($route->getTranslations()) < 2) {
             return;
         }
 
-        $parameters = $route->parameters() + request()->query();
-
         $this->current = $route->locale();
 
-        foreach ($translations as $locale => $translation) {
-            if (! is_null($href = $url->toExactRoute($translation, $parameters))) {
-                $this->translations[$locale] = $href;
-            }
-        }
+        $this->translations = $url->toTranslations($route, $route->parameters() + request()->query());
 
         if (count($this->translations) < 2) {
             $this->translations = [];

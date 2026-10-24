@@ -8,7 +8,8 @@ All notable changes to this project will be documented in this file.
 
 - Adds the `HasLocalizedRouteKey` contract to generate URLs with a model's route key in the target locale.
 - Skips locales without a localized route key in the switcher, hreflang links and preferred locale redirect.
-- Falls back to the canonical route in `route()` and `action()` when a model has no localized route key.
+- Falls back to the canonical route in `route()` and `action()` when a model has no localized route key and no locale is requested.
+- Adds `MissingLocalizedRouteKeyException`, thrown when an explicitly requested locale has no localized route key.
 - Adds the `isCanonical()` and `isTranslation()` route methods to check a route's role in localization.
 - Adds the `getTranslation()` route method to get the registered route for a single locale.
 

@@ -32,14 +32,7 @@ class RedirectToPreferredLocale
             return $next($request);
         }
 
-        $url = app(LocalizedUrlGenerator::class);
-
-        $parameters = $route->parameters() + $request->query();
-
-        $urls = array_filter(array_map(
-            fn (Route $translation) => $url->toExactRoute($translation, $parameters),
-            $route->getTranslations(),
-        ));
+        $urls = app(LocalizedUrlGenerator::class)->toTranslations($route, $route->parameters() + $request->query());
 
         if (count($urls) < 2) {
             return $next($request);

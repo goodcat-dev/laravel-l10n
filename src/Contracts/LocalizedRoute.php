@@ -34,13 +34,17 @@ interface LocalizedRoute
      * The registered translations and canonical route, keyed by locale. Resolves
      * through the canonical route, so it answers from any localized route.
      *
-     * @return array<string, Route>
+     * @return array<string, Route&LocalizedRoute>
      *
      * @see \Goodcat\L10n\Mixin\LocalizedRoute::getTranslations
      */
     public function getTranslations(string ...$locales): array;
 
-    /** @see \Goodcat\L10n\Mixin\LocalizedRoute::getTranslation */
+    /**
+     * @return (Route&LocalizedRoute)|null
+     *
+     * @see \Goodcat\L10n\Mixin\LocalizedRoute::getTranslation
+     */
     public function getTranslation(string $locale): ?Route;
 
     /**

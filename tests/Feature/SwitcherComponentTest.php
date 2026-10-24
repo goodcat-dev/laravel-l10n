@@ -45,6 +45,24 @@ it('preserves the current query string without overriding route parameters', fun
     ]);
 });
 
+it('ignores the lang query parameter of the current request', function () {
+    Route::get('/products/{product}', fn () => Blade::render('<x-l10n::switcher />'))
+        ->lang(['es', 'it'])
+        ->name('products.show');
+
+    app(L10n::class)->registerLocalizedRoutes();
+
+    $response = get('/es/productos/42?lang=it');
+
+    $response->assertOk();
+
+    $response->assertSeeHtml([
+        '<option value="http://localhost/products/42" >en</option>',
+        '<option value="http://localhost/es/productos/42" selected>es</option>',
+        '<option value="http://localhost/it/products/42" >it</option>',
+    ]);
+});
+
 it('uses the localized route key of each locale', function () {
     $post = new Post(['slug' => ['en' => 'hello-world', 'es' => 'hola-mundo']]);
 
