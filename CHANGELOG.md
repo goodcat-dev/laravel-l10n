@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+- Clears the view finder cache when the locale changes so views use the new locale's templates.
+
 ## v0.5.4
 
 Released on _**2026-10-24**_.

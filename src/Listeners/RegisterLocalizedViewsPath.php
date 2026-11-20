@@ -33,5 +33,7 @@ class RegisterLocalizedViewsPath
         if (is_dir($newPath)) {
             $views->prependLocation($newPath);
         }
+
+        $finder->flush();
     }
 }
