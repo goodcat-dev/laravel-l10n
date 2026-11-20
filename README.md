@@ -227,6 +227,8 @@ The `action()` helper works the same way:
 action(Controller::class, ['lang' => 'es']); // Returns "/es/ejemplo"
 ```
 
+When `route()` or `action()` selects a translation from the application locale, it tries an exact match, then the base language, then the first registered locale of the same language. For example, `es_MX` (or `es-MX`) can use `es` instead of the canonical route. This matching does not apply to an explicit `lang` parameter or to `getTranslation()`.
+
 > [!WARNING]
 > `lang` is reserved for selecting the URL's language. Use a different name for route parameters: URLs containing `{lang}` cannot be generated with `route()` or `action()`.
 

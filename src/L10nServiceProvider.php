@@ -3,6 +3,7 @@
 namespace Goodcat\L10n;
 
 use Closure;
+use Goodcat\L10n\Contracts\LocaleMatcher;
 use Goodcat\L10n\Listeners\RegisterLocalizedViewsPath;
 use Goodcat\L10n\Listeners\RegisterWayfinderCanonicalRoute;
 use Goodcat\L10n\Middleware\RedirectToPreferredLocale;
@@ -11,6 +12,7 @@ use Goodcat\L10n\Mixin\LocalizedApplication;
 use Goodcat\L10n\Mixin\LocalizedRoute;
 use Goodcat\L10n\Mixin\LocalizedRouter;
 use Goodcat\L10n\Mixin\LocalizedRouteRegistrar;
+use Goodcat\L10n\Routing\LocaleMatcher as DefaultLocaleMatcher;
 use Goodcat\L10n\Routing\LocalizedUrlGenerator;
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
@@ -78,6 +80,8 @@ class L10nServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/../config/l10n.php', 'l10n');
 
         $this->app->singleton(L10n::class);
+
+        $this->app->bindIf(LocaleMatcher::class, DefaultLocaleMatcher::class);
 
         $this->app->singleton(LocalizedUrlGenerator::class, function (Application $app) {
             $routes = $app['router']->getRoutes();

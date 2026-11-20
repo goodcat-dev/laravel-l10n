@@ -3,6 +3,7 @@
 namespace Goodcat\L10n\Routing;
 
 use Goodcat\L10n\Contracts\HasLocalizedRouteKey;
+use Goodcat\L10n\Contracts\LocaleMatcher;
 use Goodcat\L10n\Contracts\LocalizedRoute;
 use Goodcat\L10n\Routing\Exceptions\MissingLocalizedRouteKeyException;
 use Illuminate\Routing\Exceptions\UrlGenerationException;
@@ -33,7 +34,17 @@ class LocalizedUrlGenerator extends UrlGenerator
 
         $locale = $lang ?? ($route->isTranslation() ? $route->locale() : app()->getLocale());
 
-        $translation = $route->getTranslation($locale) ?? $route;
+        $translation = $route->getTranslation($locale);
+
+        if ($translation === null && $canFallback) {
+            $translations = $route->getTranslations();
+
+            $match = app(LocaleMatcher::class)->match($locale, array_keys($translations));
+
+            $translation = $match === null ? null : ($translations[$match] ?? null);
+        }
+
+        $translation ??= $route;
 
         $candidates = $canFallback && $translation !== $route->canonical()
             ? [$translation, $route->canonical()]

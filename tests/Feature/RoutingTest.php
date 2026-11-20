@@ -344,6 +344,39 @@ it('generates the url for the application locale unless the route is a translati
         ->toBe('http://localhost/it/example');
 });
 
+it('matches the application locale against registered route locales', function (string $locale, array $locales, string $expected) {
+    Route::get('/example', Controller::class)
+        ->name('example')
+        ->lang($locales);
+
+    app(L10n::class)->registerLocalizedRoutes();
+    app()->setLocale($locale);
+
+    expect(route('example'))->toBe("http://localhost/$expected")
+        ->and(action(Controller::class))->toBe("http://localhost/$expected");
+})->with([
+    'exact region' => ['es_MX', ['es_AR', 'es', 'es_MX'], 'es_MX/example'],
+    'equivalent separator before base language' => ['es-MX', ['es', 'es_MX'], 'es_MX/example'],
+    'base language before another region' => ['es_MX', ['es_AR', 'es'], 'es/ejemplo'],
+    'hyphenated locale matches base language' => ['es-MX', ['es'], 'es/ejemplo'],
+    'first registered region' => ['es_MX', ['es_AR', 'es_CL'], 'es_AR/example'],
+    'base locale matches a regional variant' => ['es', ['es_AR'], 'es_AR/example'],
+    'no matching language' => ['es_MX', ['it'], 'example'],
+]);
+
+it('does not match regional locales for explicit route selections', function () {
+    Route::get('/example', Controller::class)
+        ->name('example')
+        ->lang(['es', 'it']);
+
+    app(L10n::class)->registerLocalizedRoutes();
+    app()->setLocale('es_MX');
+
+    expect(route('example', ['lang' => 'es_MX']))->toBe('http://localhost/example')
+        ->and(route('example.it', ['lang' => 'es_MX']))->toBe('http://localhost/it/example')
+        ->and(route('example.it'))->toBe('http://localhost/it/example');
+});
+
 it('generates localized uri via helpers with scalar parameters', function () {
     Route::get('/example/{id}', Controller::class)
         ->name('example')
@@ -630,6 +663,8 @@ test('getTranslation() returns the translation for a locale from any localized r
         ->and($translated->getTranslation('es'))
         ->toBe($translated)
         ->and($canonical->getTranslation('de'))
+        ->toBeNull()
+        ->and($canonical->getTranslation('es_MX'))
         ->toBeNull();
 });
 
@@ -767,7 +802,7 @@ it('generates localized uri with the localized route key', function () {
         ->toBe('http://localhost/es/articulos/hola-mundo');
 });
 
-it('falls back to the canonical route without the localized route key', function () {
+it('falls back to the canonical route without the localized route key', function (string $locale) {
     Route::get('/posts/{post:slug}', fn () => 'Hello, World!')
         ->name('posts.show')
         ->lang(['es']);
@@ -779,13 +814,13 @@ it('falls back to the canonical route without the localized route key', function
 
     $post = new Post(['slug' => ['en' => 'hello-world']]);
 
-    app()->setLocale('es');
+    app()->setLocale($locale);
 
     expect(route('posts.show', $post))
         ->toBe('http://localhost/posts/hello-world')
         ->and(action(Controller::class, $post))
         ->toBe('http://localhost/posts/hello-world/edit');
-});
+})->with(['es', 'es_MX']);
 
 it('fails to generate a uri without the localized route key of an explicit locale', function (string $name, array $parameters) {
     Route::get('/posts/{post:slug}', fn () => 'Hello, World!')

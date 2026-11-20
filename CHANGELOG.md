@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - Clears the view finder cache when the locale changes so views use the new locale's templates.
+- Matches regional application locales to available route translations when generating URLs.
 
 ## v0.5.4
 

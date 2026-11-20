@@ -3,6 +3,7 @@
 namespace Goodcat\L10n\Mixin;
 
 use Closure;
+use Goodcat\L10n\Contracts\LocaleMatcher;
 use Goodcat\L10n\Events\PreferredLocaleUpdated;
 
 class LocalizedApplication
@@ -19,18 +20,14 @@ class LocalizedApplication
             }
 
             foreach ($preferred as $locale) {
-                $language = strstr($locale, '_', true) ?: $locale;
-
-                foreach ([$locale, $language] as $candidate) {
-                    if (in_array($candidate, $locales, true)) {
-                        return $candidate;
-                    }
+                if (in_array($locale, $locales, true)) {
+                    return $locale;
                 }
 
-                foreach ($locales as $available) {
-                    if (str_starts_with($available, $language.'_')) {
-                        return $available;
-                    }
+                $match = app(LocaleMatcher::class)->match($locale, $locales);
+
+                if ($match !== null && in_array($match, $locales, true)) {
+                    return $match;
                 }
             }
 

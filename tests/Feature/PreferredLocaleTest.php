@@ -1,5 +1,6 @@
 <?php
 
+use Goodcat\L10n\Contracts\LocaleMatcher;
 use Goodcat\L10n\Events\PreferredLocaleUpdated;
 use Goodcat\L10n\L10n;
 use Goodcat\L10n\Middleware\RedirectToPreferredLocale;
@@ -67,11 +68,33 @@ it('matches the preferred locale against the given locales', function () {
     app()->setPreferredLocale(['es_ES', 'en']);
 
     expect(app()->getPreferredLocale(['en', 'es_ES']))->toBe('es_ES')
+        ->and(app()->getPreferredLocale(['es', 'es-ES']))->toBe('es-ES')
         ->and(app()->getPreferredLocale(['en', 'es']))->toBe('es')
         ->and(app()->getPreferredLocale(['es_MX', 'fr']))->toBe('es_MX')
         ->and(app()->getPreferredLocale(['es_MX', 'es']))->toBe('es')
         ->and(app()->getPreferredLocale(['en', 'es_MX']))->toBe('es_MX')
         ->and(app()->getPreferredLocale(['de', 'fr']))->toBeNull();
+});
+
+it('uses the application locale matcher for implicit URLs and preferred locales', function () {
+    app()->bind(LocaleMatcher::class, fn () => new class implements LocaleMatcher
+    {
+        public function match(string $locale, array $availableLocales): ?string
+        {
+            return in_array('es_AR', $availableLocales, true) ? 'es_AR' : null;
+        }
+    });
+
+    Route::get('/example', fn () => 'Hello, World!')
+        ->lang(['es', 'es_AR'])
+        ->name('example');
+
+    app(L10n::class)->registerLocalizedRoutes();
+    app()->setLocale('es_MX');
+    app()->setPreferredLocale('es_MX');
+
+    expect(route('example'))->toBe('http://localhost/es_AR/example')
+        ->and(app()->getPreferredLocale(['es', 'es_AR']))->toBe('es_AR');
 });
 
 it('detects preferred locale from user', function (Authenticatable $user) {
